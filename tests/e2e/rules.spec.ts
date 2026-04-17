@@ -21,7 +21,7 @@ async function filterToRule(
 }
 
 test.describe("rules page regressions", () => {
-    test("built-in rules show source details in popup", async ({
+    test("rule package metadata is shown in popup", async ({
         page,
     }) => {
         await openRulesPage(page);
@@ -47,9 +47,11 @@ test.describe("rules page regressions", () => {
             .locator(".v-popper--theme-dropdown .v-popper__inner")
             .filter({ hasText: "Copy name" })
             .first();
-        await expect(popup).toContainText("Rule source");
-        await expect(popup).toContainText("remark-lint");
-        await expect(popup).toContainText("Built-in remark-lint rule package");
+        await expect(popup).toContainText("Plugin package");
+        await expect(popup).toContainText("remark-lint-final-newline");
+        await expect(popup).not.toContainText(
+            "Built-in remark-lint rule package"
+        );
     });
 
     test("plugin chips can narrow rule list and reset back to all plugins", async ({
@@ -57,11 +59,16 @@ test.describe("rules page regressions", () => {
     }) => {
         await openRulesPage(page);
 
+        await page
+            .getByRole("button", { name: /show plugin filters/i })
+            .first()
+            .click();
+
         const allPluginsButton = page.locator(".plugin-filter-button", {
             hasText: "All plugins",
         });
         const pluginChip = page.locator(".plugin-filter-button", {
-            hasText: "no-dead-urls",
+            hasText: pluginRuleName,
         });
 
         await expect(pluginChip).toBeVisible();
@@ -186,6 +193,11 @@ test.describe("rules page regressions", () => {
         page,
     }) => {
         await openRulesPage(page);
+
+        await page
+            .getByRole("button", { name: /show plugin filters/i })
+            .first()
+            .click();
 
         const pluginFilterChip = page.getByRole("button", {
             name: "All plugins",

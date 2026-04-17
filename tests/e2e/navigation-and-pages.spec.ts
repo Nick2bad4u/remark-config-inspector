@@ -80,11 +80,16 @@ test.describe("navigation and page regressions", () => {
         await mockPayload(page);
         await page.goto("/configs");
 
+        await page
+            .getByRole("button", { name: /show plugin filters/i })
+            .first()
+            .click();
+
         const filepathInput = page.getByPlaceholder(
             "Test matching with filepath..."
         );
         const pluginChip = page.locator(".plugin-filter-button", {
-            hasText: "no-dead-urls",
+            hasText: "remark-lint-no-dead-urls",
         });
         const listButton = page.getByRole("button", { name: "List" });
         const gridButton = page.getByRole("button", { name: "Grid" });

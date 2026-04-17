@@ -1,30 +1,30 @@
 # Support
 
-Thanks for using `stylelint-config-inspector`.
+Thanks for using `remark-config-inspector`.
 
 ## How to get help
 
 1. Check project docs first:
    - [README.md](./README.md)
-   - `npx stylelint-config-inspector --help`
+   - `npx remark-config-inspector --help`
 2. Search existing issues:
-   - <https://github.com/Nick2bad4u/Stylelint-Config-Inspector/issues>
+   - <https://github.com/Nick2bad4u/remark-config-inspector/issues>
 3. Open a new issue if needed:
-   - <https://github.com/Nick2bad4u/Stylelint-Config-Inspector/issues/new>
+   - <https://github.com/Nick2bad4u/remark-config-inspector/issues/new>
 
 ## What to include in an issue
 
 Please include:
 
 - Node.js version
-- Stylelint version
-- `stylelint-config-inspector` version
+- `remark` / `remark-lint` versions
+- `remark-config-inspector` version
 - Minimal reproduction repository or snippet
 - Expected behavior and actual behavior
 
-If possible, include the Stylelint config file (`stylelint.config.*`,
-`.stylelintrc*`, or `package.json#stylelint`) and the target file path you used
-to reproduce the issue.
+If possible, include the remark config file (`.remarkrc*` or
+`package.json#remarkConfig`) and the target file path you used to reproduce the
+issue.
 
 ## Support scope
 

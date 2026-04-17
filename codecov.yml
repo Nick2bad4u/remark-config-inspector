@@ -6,7 +6,11 @@ codecov:
     notify:
         wait_for_ci: true
     require_ci_to_pass: true
-    slug: Nick2bad4u/stylelint-config-inspector
+    slug: Nick2bad4u/remark-config-inspector
+
+bundle_analysis:
+    warning_threshold: "5%"
+    status: informational
 
 comment:
     behavior: default

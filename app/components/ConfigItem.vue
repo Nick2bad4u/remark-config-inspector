@@ -2,11 +2,6 @@
 import type { FiltersConfigsPage, FlatConfigItem } from "~~/shared/types";
 import { computed, nextTick, ref, watchEffect } from "vue";
 import {
-    getConfigRulePlugins,
-    resolveConfigPluginFilter,
-    ruleMatchesPluginFilters,
-} from "~~/shared/config-plugin-filters";
-import {
     getRuleLevel,
     getRuleOptions,
     getRulePrimaryOption,
@@ -58,39 +53,39 @@ if (!hasShown.value) {
     });
 }
 
-const knownRulePlugins = computed(
-    () =>
-        new Set(
-            Object.values(payload.value.rules)
-                .map((rule) => rule.plugin)
-                .filter(Boolean)
-        )
-);
-const configRulePlugins = computed(() => getConfigRulePlugins(props.config));
 const selectedPluginPackages = computed(() => props.filters?.plugins ?? []);
-const selectedRulePlugins = computed(() => {
-    const filters = new Set<string>();
 
-    for (const pluginName of selectedPluginPackages.value) {
-        if (!(pluginName in (props.config.plugins ?? {}))) continue;
+function resolveRulePluginPackageName(ruleName: string): string {
+    const ruleInfo = payload.value.rules[ruleName];
 
-        const filter = resolvePluginFilter(pluginName);
-        if (filter) filters.add(filter);
+    if (
+        typeof ruleInfo?.pluginPackageName === "string" &&
+        ruleInfo.pluginPackageName.length > 0
+    ) {
+        return ruleInfo.pluginPackageName;
     }
 
-    return [...filters].toSorted((left, right) => left.localeCompare(right));
-});
+    if (typeof ruleInfo?.plugin === "string" && ruleInfo.plugin.length > 0)
+        return ruleInfo.plugin;
+
+    return ruleName;
+}
+
+const configRulePluginPackages = computed(() =>
+    new Set(
+        Object.keys(props.config.rules ?? {})
+            .map((ruleName) => resolveRulePluginPackageName(ruleName))
+            .filter((pluginPackage) => pluginPackage.length > 0)
+    )
+);
+
 const configRuleListColumns =
     "40px_minmax(14rem,clamp(14rem,38vw,28rem))_5rem_minmax(0,1fr)";
 const pluginEntries = computed(() => {
     return Object.keys(props.config.plugins ?? {}).map((name) => {
-        const filter = resolvePluginFilter(name);
-
         return {
             name,
-            filter,
-            hasPluginScopedRules:
-                filter.length > 0 && configRulePlugins.value.has(filter),
+            hasPluginScopedRules: configRulePluginPackages.value.has(name),
             isSelected: selectedPluginPackages.value.includes(name),
             style: {
                 color: getPluginColor(name),
@@ -106,14 +101,16 @@ const totalRuleCount = computed(
 const filteredRuleCount = computed(
     () =>
         Object.keys(props.config.rules ?? {}).filter((ruleName) =>
-            ruleMatchesPluginFilters(ruleName, selectedRulePlugins.value)
+            matchesSelectedRulePluginPackages(ruleName)
         ).length
 );
 const hasGlobalPluginFilter = computed(
     () => selectedPluginPackages.value.length > 0
 );
-const hasActiveRuleScopedPluginFilter = computed(
-    () => selectedRulePlugins.value.length > 0
+const hasMatchingRuleScopedPluginFilter = computed(() =>
+    selectedPluginPackages.value.some((pluginPackage) =>
+        configRulePluginPackages.value.has(pluginPackage)
+    )
 );
 const isRootConfig = computed(() => {
     return (
@@ -134,16 +131,11 @@ const ignoreFileDetailsEl = ref<HTMLDetailsElement>();
 const rulesSectionEl = ref<HTMLElement>();
 const optionsSectionEl = ref<HTMLElement>();
 
-function resolvePluginFilter(name: string): string {
-    return resolveConfigPluginFilter(
-        name,
-        knownRulePlugins.value,
-        configRulePlugins.value
-    );
-}
+function matchesSelectedRulePluginPackages(ruleName: string): boolean {
+    if (!selectedPluginPackages.value.length) return true;
 
-function matchesSelectedRulePlugins(ruleName: string): boolean {
-    return ruleMatchesPluginFilters(ruleName, selectedRulePlugins.value);
+    const rulePluginPackage = resolveRulePluginPackageName(ruleName);
+    return selectedPluginPackages.value.includes(rulePluginPackage);
 }
 
 function getRuleItemClass(ruleName: string): string {
@@ -485,7 +477,7 @@ async function scrollToSection(
                     <div flex="~ gap-2 items-center wrap">
                         <span>Plugins ({{ pluginEntries.length }})</span>
                     </div>
-                    <div v-if="!configRulePlugins.size" text-sm op65>
+                    <div v-if="!configRulePluginPackages.size" text-sm op65>
                         No plugin-scoped rules are declared in this config item;
                         these plugins likely augment core rules, syntax, or
                         metadata.
@@ -507,7 +499,7 @@ async function scrollToSection(
                             font-mono
                             :title="
                                 entry.hasPluginScopedRules
-                                    ? `Plugin-scoped rules detected here under ${entry.filter}`
+                                    ? `Plugin-scoped rules detected here under ${entry.name}`
                                     : 'No plugin-scoped rule names detected in this config item'
                             "
                         >
@@ -651,12 +643,16 @@ async function scrollToSection(
                     <div i-ph-list-dashes-duotone my1 flex-none />
                     <div>
                         Rules
-                        <template v-if="hasActiveRuleScopedPluginFilter">
+                        <template v-if="hasMatchingRuleScopedPluginFilter">
                             ({{ filteredRuleCount }} / {{ totalRuleCount }})
                         </template>
                         <template v-else> ({{ totalRuleCount }}) </template>
                     </div>
-                    <div v-if="hasActiveRuleScopedPluginFilter" text-sm op60>
+                    <div
+                        v-if="hasMatchingRuleScopedPluginFilter"
+                        text-sm
+                        op60
+                    >
                         filtered by the page plugin filter
                     </div>
                     <div v-else-if="hasGlobalPluginFilter" text-sm op60>
@@ -671,7 +667,7 @@ async function scrollToSection(
                     :filter="
                         (name) =>
                             (!filters?.rule || filters.rule === name) &&
-                            matchesSelectedRulePlugins(name)
+                            matchesSelectedRulePluginPackages(name)
                     "
                     :get-bind="
                         (name: string) => ({ class: getRuleItemClass(name) })

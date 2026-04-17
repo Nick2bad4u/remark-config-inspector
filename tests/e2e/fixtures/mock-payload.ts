@@ -52,7 +52,7 @@ export const MOCK_PAYLOAD = {
     rules: {
         [pluginRuleName]: {
             name: pluginRuleName,
-            plugin: "no-dead-urls",
+            plugin: "remark-lint",
             pluginPackageName: "remark-lint-no-dead-urls",
             fixable: false,
             docs: {
@@ -66,6 +66,7 @@ export const MOCK_PAYLOAD = {
         "remark-lint-final-newline": {
             name: "remark-lint-final-newline",
             plugin: "remark-lint",
+            pluginPackageName: "remark-lint-final-newline",
             fixable: true,
             docs: {
                 description: "Warn when files do not end with a final newline.",
@@ -78,6 +79,7 @@ export const MOCK_PAYLOAD = {
         "remark-lint-maximum-line-length": {
             name: "remark-lint-maximum-line-length",
             plugin: "remark-lint",
+            pluginPackageName: "remark-lint-maximum-line-length",
             fixable: true,
             docs: {
                 description: "Warn when lines exceed the configured maximum length.",
@@ -90,6 +92,7 @@ export const MOCK_PAYLOAD = {
         "remark-lint-no-undefined-references": {
             name: "remark-lint-no-undefined-references",
             plugin: "remark-lint",
+            pluginPackageName: "remark-lint-no-undefined-references",
             fixable: false,
             docs: {
                 description: "Disallow references that were not previously defined.",

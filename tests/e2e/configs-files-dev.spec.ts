@@ -90,11 +90,16 @@ test.describe("configs/files/dev regressions", () => {
     }) => {
         await openConfigs(page);
 
+        await page
+            .getByRole("button", { name: /show plugin filters/i })
+            .first()
+            .click();
+
         const configItems = page.locator("details.flat-config-item:visible");
         await expect(configItems).toHaveCount(3);
 
         const pluginChip = page.locator(".plugin-filter-button", {
-            hasText: "no-dead-urls",
+            hasText: "remark-lint-no-dead-urls",
         });
         await pluginChip.click();
 
@@ -190,12 +195,24 @@ test.describe("configs/files/dev regressions", () => {
             .getByPlaceholder("Test matching with filepath...")
             .fill("docs/example.md");
         await page
-            .locator(".plugin-filter-button", { hasText: "no-dead-urls" })
+            .getByRole("button", { name: /show plugin filters/i })
+            .first()
+            .click();
+        await page
+            .locator(".plugin-filter-button", {
+                hasText: "remark-lint-no-dead-urls",
+            })
             .click();
 
         await page.getByTestId(testIds.nav.rulesLink).click();
         await page
-            .locator(".plugin-filter-button", { hasText: "no-dead-urls" })
+            .getByRole("button", { name: /show plugin filters/i })
+            .first()
+            .click();
+        await page
+            .locator(".plugin-filter-button", {
+                hasText: "remark-lint-no-dead-urls",
+            })
             .click();
 
         await page.getByTestId(testIds.nav.devLink).click();
@@ -204,7 +221,9 @@ test.describe("configs/files/dev regressions", () => {
         await expect(
             page.getByText("config-plugin:remark-lint-no-dead-urls")
         ).toBeVisible();
-        await expect(page.getByText("rules-plugin:no-dead-urls")).toBeVisible();
+        await expect(
+            page.getByText("rules-plugin:remark-lint-no-dead-urls")
+        ).toBeVisible();
     });
 
     test("extends-to-configs navigation opens the targeted config index", async ({

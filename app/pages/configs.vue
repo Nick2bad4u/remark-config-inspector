@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { FuseResultMatch } from "fuse.js";
 import type { ComponentPublicInstance, PropType, VNode } from "vue";
-import type { FlatConfigItem, MatchedFile, RulesRecord } from "~~/shared/types";
+import type {
+    FlatConfigItem,
+    MatchedFile,
+    RulesRecord,
+} from "~~/shared/types";
 import { useRoute } from "#app/composables/router";
 import { debouncedWatch } from "@vueuse/core";
 import Fuse from "fuse.js";
@@ -16,7 +20,6 @@ import {
     watch,
     watchEffect,
 } from "vue";
-import {} from "~~/shared/config-plugin-filters";
 import { isIgnoreOnlyConfig, matchFile } from "~~/shared/configs";
 import { getRuleLevel } from "~~/shared/rules";
 import { getPluginColor } from "~/composables/color";
@@ -38,6 +41,23 @@ definePageMeta({
 const input = ref(filters.filepath);
 const autoCompleteIndex = ref(0);
 const autoCompleteOpen = ref(false);
+const isPluginFilterPanelExpanded = ref(false);
+
+function resolveRulePluginPackageName(ruleName: string): string {
+    const ruleInfo = payload.value.rules[ruleName];
+
+    if (
+        typeof ruleInfo?.pluginPackageName === "string" &&
+        ruleInfo.pluginPackageName.length > 0
+    ) {
+        return ruleInfo.pluginPackageName;
+    }
+
+    if (typeof ruleInfo?.plugin === "string" && ruleInfo.plugin.length > 0)
+        return ruleInfo.plugin;
+
+    return ruleName;
+}
 
 function expandAll() {
     configsOpenState.value = configsOpenState.value.map(() => true);
@@ -86,12 +106,36 @@ watchEffect(() => {
     prePluginFilteredConfigs.value = configs;
 });
 
+const configPluginPackagesByIndex = computed(() => {
+    const packagesByIndex = new Map<number, Set<string>>();
+
+    for (const config of prePluginFilteredConfigs.value) {
+        const packages = new Set<string>();
+
+        for (const pluginName of Object.keys(config.plugins ?? {}))
+            packages.add(pluginName);
+
+        for (const ruleName of Object.keys(config.rules ?? {})) {
+            const pluginPackage = resolveRulePluginPackageName(ruleName);
+            if (pluginPackage.length > 0) packages.add(pluginPackage);
+        }
+
+        packagesByIndex.set(config.index, packages);
+    }
+
+    return packagesByIndex;
+});
+
+const hasSelectedPlugin = computed(() => filters.plugins.length > 0);
+const shouldShowPluginFilterChips = computed(
+    () => isPluginFilterPanelExpanded.value || hasSelectedPlugin.value
+);
+
 const configPluginNames = computed(() => {
     const pluginNames = new Set<string>();
 
-    for (const config of prePluginFilteredConfigs.value) {
-        for (const pluginName of Object.keys(config.plugins ?? {}))
-            pluginNames.add(pluginName);
+    for (const pluginPackages of configPluginPackagesByIndex.value.values()) {
+        for (const pluginPackage of pluginPackages) pluginNames.add(pluginPackage);
     }
 
     return [...pluginNames].toSorted((left, right) =>
@@ -111,7 +155,6 @@ const pluginOptions = computed(() => {
     }));
 });
 
-const hasSelectedPlugin = computed(() => filters.plugins.length > 0);
 const hasActiveConfigFilters = computed(
     () => !!(filters.filepath || filters.rule || filters.plugins.length)
 );
@@ -134,6 +177,10 @@ function togglePluginSelection(pluginName: string): void {
 
 function clearPluginSelection(): void {
     filters.plugins = [];
+}
+
+function togglePluginFilterPanel(): void {
+    isPluginFilterPanelExpanded.value = !isPluginFilterPanelExpanded.value;
 }
 
 function clearFilepathFilter(): void {
@@ -163,11 +210,17 @@ watchEffect(() => {
     let configs = prePluginFilteredConfigs.value;
 
     if (filters.plugins.length) {
-        configs = configs.filter((config) =>
-            filters.plugins.some(
-                (pluginName) => pluginName in (config.plugins ?? {})
-            )
-        );
+        configs = configs.filter((config) => {
+            const pluginPackages = configPluginPackagesByIndex.value.get(
+                config.index
+            );
+
+            if (!pluginPackages) return false;
+
+            return filters.plugins.some((pluginName) =>
+                pluginPackages.has(pluginName)
+            );
+        });
     }
 
     filteredConfigs.value = configs;
@@ -469,14 +522,40 @@ onMounted(async () => {
                 my2
                 items-center
             >
-                <div text-right text-sm op50>Plugin rules</div>
+                <div text-right text-sm op50>Plugin packages</div>
                 <div class="space-y-2">
-                    <div
-                        class="text-xs text-zinc-600 font-semibold tracking-wide uppercase dark:text-zinc-300/85"
-                    >
-                        Filter all configs by plugin-scoped rules
+                    <div flex="~ items-center gap-2 wrap">
+                        <div
+                            class="text-xs text-zinc-600 font-semibold tracking-wide uppercase dark:text-zinc-300/85"
+                        >
+                            Filter configs by plugin package
+                        </div>
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-1 rounded-full border border-base px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            @click="togglePluginFilterPanel"
+                        >
+                            <span
+                                :class="
+                                    shouldShowPluginFilterChips
+                                        ? 'i-ph-caret-down-duotone'
+                                        : 'i-ph-caret-right-duotone'
+                                "
+                            />
+                            <span>
+                                {{
+                                    shouldShowPluginFilterChips
+                                        ? 'Hide plugin filters'
+                                        : `Show plugin filters (${pluginOptions.length})`
+                                }}
+                            </span>
+                        </button>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
+
+                    <div
+                        v-if="shouldShowPluginFilterChips"
+                        class="flex flex-wrap items-center gap-2"
+                    >
                         <button
                             type="button"
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
@@ -506,6 +585,10 @@ onMounted(async () => {
                         >
                             {{ pluginOption.title }}
                         </button>
+                    </div>
+                    <div v-else text-sm op60>
+                        Plugin filters are minimized by default to reduce visual
+                        noise.
                     </div>
                 </div>
             </div>

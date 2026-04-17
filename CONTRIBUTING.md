@@ -1,9 +1,9 @@
-# Contributing to Stylelint Config Inspector
+# Contributing to Remark Config Inspector
 
 Thanks for your interest in contributing.
 
-This repository contains the Stylelint Config Inspector CLI, server, and web UI
-for exploring resolved Stylelint configuration state.
+This repository contains the remark-config-inspector CLI, server, and web UI
+for exploring resolved remark / remark-lint configuration state.
 
 Maintainers: release procedures are documented in [RELEASING.md](./RELEASING.md).
 
@@ -19,15 +19,15 @@ Maintainers: release procedures are documented in [RELEASING.md](./RELEASING.md)
 
 2. Install dependencies from the repository root:
 
-   ```bash
-  npm ci --force
-   ```
+    ```bash
+    npm ci --force
+    ```
 
 3. Run the main quality gate:
 
-   ```bash
-  npm run check
-   ```
+    ```bash
+    npm run check
+    ```
 
 ## Recommended development workflow
 
@@ -62,7 +62,7 @@ When adding script output, prefer this severity split:
 ├── app/                  # Nuxt app UI
 ├── server/               # Nitro server endpoints
 ├── shared/               # Shared payload and type definitions
-├── src/                  # CLI and Stylelint inspector implementation
+├── src/                  # CLI and remark inspector implementation
 ├── tests/                # Vitest coverage and fixtures
 ├── scripts/              # Repository scripts
 ├── .github/              # Workflows and automation configs
@@ -81,7 +81,7 @@ Use these commands locally before submitting a pull request:
 
 ## Testing guidance
 
-Prefer focused Vitest coverage that exercises real Stylelint config discovery,
+Prefer focused Vitest coverage that exercises real remark config discovery,
 config normalization, payload generation, and CLI-facing behavior.
 
 When adding regression coverage, favor small temporary fixture projects in
@@ -90,7 +90,7 @@ When adding regression coverage, favor small temporary fixture projects in
 Focused run examples:
 
 ```bash
-npx vitest --run tests/stylelint_adapter.test.ts
+npx vitest --run tests/remark_adapter.test.ts
 npx vitest --run tests/ws_error_payload.test.ts
 ```
 
@@ -106,7 +106,7 @@ Format:
 Examples:
 
 - `:sparkles: feat(cli): add target path normalization`
-- `:bug: fix(inspector): honor file-specific Stylelint overrides`
+- `:bug: fix(inspector): honor file-specific remark overrides`
 - `:memo: docs: clarify target resolution behavior`
 
 ## Pull request expectations

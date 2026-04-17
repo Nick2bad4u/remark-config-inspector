@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { debouncedWatch } from "@vueuse/core";
 import Fuse from "fuse.js";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 import { isRuleConfigured, isRuleEnabled } from "~~/shared/rules";
 import { getPluginColor } from "~/composables/color";
 import { payload } from "~/composables/payload";
@@ -14,8 +14,25 @@ import {
 const rules = computed(() => Object.values(payload.value.rules));
 const listColumns =
     "56px_minmax(14rem,clamp(14rem,38vw,30rem))_5.25rem_minmax(0,1fr)";
+
+const isPluginFilterPanelExpanded = ref(false);
+
+function resolveRulePluginPackage(rule: (typeof rules.value)[number]): string {
+    if (
+        typeof rule.pluginPackageName === "string" &&
+        rule.pluginPackageName.length > 0
+    ) {
+        return rule.pluginPackageName;
+    }
+
+    if (typeof rule.plugin === "string" && rule.plugin.length > 0)
+        return rule.plugin;
+
+    return rule.name;
+}
+
 const pluginNames = computed<string[]>(() => {
-    return [...new Set(rules.value.map((i) => i.plugin))].filter(
+    return [...new Set(rules.value.map((rule) => resolveRulePluginPackage(rule)))].filter(
         (plugin): plugin is string =>
             typeof plugin === "string" && plugin.length > 0
     );
@@ -43,6 +60,9 @@ const selectedPlugins = computed({
 });
 
 const hasSelectedPlugin = computed(() => selectedPlugins.value.length > 0);
+const shouldShowPluginFilterChips = computed(
+    () => isPluginFilterPanelExpanded.value || hasSelectedPlugin.value
+);
 
 const isPluginSelected = (pluginName: string): boolean =>
     selectedPlugins.value.includes(pluginName);
@@ -59,6 +79,20 @@ function togglePluginSelection(pluginName: string): void {
 function clearPluginSelection(): void {
     selectedPlugins.value = [];
 }
+
+function togglePluginFilterPanel(): void {
+    isPluginFilterPanelExpanded.value = !isPluginFilterPanelExpanded.value;
+}
+
+watchEffect(() => {
+    const availablePlugins = new Set(pluginNames.value);
+    const normalizedPlugins = selectedPlugins.value.filter((plugin) =>
+        availablePlugins.has(plugin)
+    );
+
+    if (normalizedPlugins.length !== selectedPlugins.value.length)
+        selectedPlugins.value = normalizedPlugins;
+});
 const hasGeneratedDescriptions = computed(() =>
     rules.value.some(
         (rule) =>
@@ -107,12 +141,17 @@ const conditionalFiltered = computed(() => {
 
     if (hasSelectedPlugin.value) {
         conditional = conditional.filter((rule) => {
-            const [scope, remainder] = rule.name.split("/");
-            const scopeCandidate = remainder ? (scope ?? "") : "";
+            const pluginPackage = resolveRulePluginPackage(rule);
             const pluginCandidate =
-                typeof rule.plugin === "string" ? rule.plugin : "";
+                typeof rule.plugin === "string" && rule.plugin.length > 0
+                    ? rule.plugin
+                    : "";
             const candidates = new Set<string>(
-                [pluginCandidate, scopeCandidate].filter(Boolean)
+                [
+                    pluginPackage,
+                    pluginCandidate,
+                    rule.name,
+                ].filter(Boolean)
             );
 
             return selectedPlugins.value.some((selectedPlugin) =>
@@ -293,12 +332,38 @@ function setRulesViewMode(mode: "list" | "grid"): void {
             <div grid="~ cols-[max-content_1fr] gap-2" my2 items-center>
                 <div text-right text-sm op50>Plugins</div>
                 <div class="space-y-2">
-                    <div
-                        class="text-xs text-zinc-600 font-semibold tracking-wide uppercase dark:text-zinc-300/85"
-                    >
-                        Plugin
+                    <div flex="~ items-center gap-2 wrap">
+                        <div
+                            class="text-xs text-zinc-600 font-semibold tracking-wide uppercase dark:text-zinc-300/85"
+                        >
+                            Plugin packages
+                        </div>
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-1 rounded-full border border-base px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            @click="togglePluginFilterPanel"
+                        >
+                            <span
+                                :class="
+                                    shouldShowPluginFilterChips
+                                        ? 'i-ph-caret-down-duotone'
+                                        : 'i-ph-caret-right-duotone'
+                                "
+                            />
+                            <span>
+                                {{
+                                    shouldShowPluginFilterChips
+                                        ? 'Hide plugin filters'
+                                        : `Show plugin filters (${pluginOptions.length})`
+                                }}
+                            </span>
+                        </button>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
+
+                    <div
+                        v-if="shouldShowPluginFilterChips"
+                        class="flex flex-wrap items-center gap-2"
+                    >
                         <button
                             type="button"
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
@@ -329,6 +394,10 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                         >
                             {{ pluginOption.title }}
                         </button>
+                    </div>
+                    <div v-else text-sm op60>
+                        Plugin filters are minimized by default to reduce visual
+                        noise.
                     </div>
                 </div>
                 <div text-right text-sm op50>State</div>

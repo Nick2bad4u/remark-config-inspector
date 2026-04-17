@@ -226,21 +226,31 @@ const dimRuleClass = computed(() =>
 const hasRuleStates = computed(() => (props.ruleStates?.length ?? 0) > 0);
 const hasLocalValue = computed(() => props.value !== undefined);
 
+const resolvedPluginPackageName = computed(() => {
+    if (
+        typeof props.rule.pluginPackageName === "string" &&
+        props.rule.pluginPackageName.length > 0
+    ) {
+        return props.rule.pluginPackageName;
+    }
+
+    if (typeof props.rule.plugin === "string" && props.rule.plugin.length > 0)
+        return props.rule.plugin;
+
+    return undefined;
+});
+
 const isCoreRemarkRule = computed(() => {
-    return props.rule.plugin === "remark-lint";
+    return resolvedPluginPackageName.value === "remark-lint";
 });
 
 const builtInRuleHint =
     "Built-in remark-lint rule from the core remark-lint plugin collection.";
 
+const unsetRuleStateHint = "Not configured in any matched config item.";
+
 const pluginPackageName = computed(() => {
-    if (isCoreRemarkRule.value) return "remark-lint";
-
-    if (props.rule.pluginPackageName) return props.rule.pluginPackageName;
-
-    if (props.rule.plugin) return props.rule.plugin;
-
-    return undefined;
+    return resolvedPluginPackageName.value;
 });
 
 const pluginSourceLabel = computed(() =>
@@ -328,7 +338,14 @@ const pluginPrefixHint = computed(() => {
                 :has-redundant-options="redundantOptions(getRuleOptions(value))"
             />
         </template>
-        <div v-else-if="!gridView" h-5 w-5 op0 />
+        <div
+            v-else-if="!gridView"
+            v-tooltip="unsetRuleStateHint"
+            :title="unsetRuleStateHint"
+            class="inline-flex items-center justify-center text-zinc-500 op70 dark:text-zinc-400"
+        >
+            <div i-ph-minus-circle-duotone class="h-4.5 w-4.5" />
+        </div>
     </div>
 
     <div :class="[props.class, dimRuleClass]" relative min-w-0 pr2>

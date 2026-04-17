@@ -1,22 +1,31 @@
 # Remark Config Inspector
 
-A visual inspector for understanding resolved **remark / remark-lint** configuration.
+Visual inspector for exploring resolved **remark / remark-lint** configuration.
+
+It helps you understand:
+
+- which config items are active,
+- where rule states come from,
+- how overrides and file globs affect resolution,
+- and how final rule behavior is composed.
 
 ## Quick start
 
-From a project that contains a remark config (`.remarkrc*` or `package.json#remarkConfig`):
+From a project that contains a remark config (`.remarkrc*` or
+`package.json#remarkConfig`):
 
 ```bash
 npx remark-config-inspector@latest
 ```
 
-Use a target file when you want context-sensitive resolution:
+Use a specific target file when you want context-sensitive resolution:
 
 ```bash
-npx remark-config-inspector --file docs/guide.md
+npx remark-config-inspector --target docs/guide.md
 ```
 
-If you do not provide `--file` or `--target`, the inspector uses a synthetic target file named `remark-inspector-target.md`.
+If neither `--file` nor `--target` is supplied, the inspector uses a synthetic
+target file: `remark-inspector-target.md`.
 
 ## CLI
 
@@ -25,7 +34,7 @@ remark-config-inspector [options]
 remark-config-inspector build [options]
 ```
 
-### Common options
+### Core options
 
 - `--config <configFile>`: explicit config file path
 - `--basePath <basePath>`: root path used for glob resolution
@@ -39,7 +48,7 @@ remark-config-inspector build [options]
 - `--port <port>` (default: `9999`)
 - `--open`
 
-### Build options
+### Static build options
 
 - `--base <baseURL>`: deployment base URL
 - `--outDir <dir>`: output directory (default: `.remark-config-inspector`)
@@ -58,7 +67,7 @@ Legacy compatibility variables (still supported):
 - `ESLINT_BASE_PATH`
 - `ESLINT_TARGET`
 
-## Static build
+## Static export
 
 Generate a static inspector bundle:
 
@@ -68,13 +77,24 @@ npx remark-config-inspector build
 
 This writes a static app and payload into `.remark-config-inspector`.
 
-## Development
+## Local development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-## Status
+## Validation
 
-This repository is now maintained as a remark-first config inspector architecture.
+```bash
+npm run lint
+npm run typecheck
+npm run test
+```
+
+## Project docs
+
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [SUPPORT.md](./SUPPORT.md)
+- [SECURITY.md](./SECURITY.md)
+- [RELEASING.md](./RELEASING.md)
