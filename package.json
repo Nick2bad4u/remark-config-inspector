@@ -219,7 +219,7 @@
         "ts-unused-exports": "^11.0.1",
         "tsdown": "^0.21.9",
         "typedoc": "^0.28.19",
-        "typescript": "^6.0.2",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.58.2",
         "typesync": "^0.14.3",
         "vfile": "^6.0.3",
