@@ -369,7 +369,7 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
                             :class="[
                                 !hasSelectedPlugin
-                                    ? 'bg-violet-100 text-violet-800 dark:bg-zinc-700/45 dark:text-zinc-100'
+                                    ? 'bg-rose-100 text-rose-800 dark:bg-zinc-700/45 dark:text-zinc-100'
                                     : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
                             ]"
                             @click="clearPluginSelection"
@@ -384,7 +384,7 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
                             :class="[
                                 isPluginSelected(pluginOption.value)
-                                    ? 'bg-violet-100 text-violet-800 opacity-100 dark:bg-zinc-700/45 dark:text-zinc-100'
+                                                                        ? 'bg-rose-100 text-rose-800 opacity-100 dark:bg-zinc-700/45 dark:text-zinc-100'
                                     : hasSelectedPlugin
                                       ? 'bg-white/65 text-zinc-700 opacity-55 hover:opacity-85 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-45 dark:hover:opacity-80'
                                       : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
@@ -553,20 +553,20 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                         v-if="hasGeneratedDescriptions"
                         v-tooltip="descriptionsNoticeText"
                         i-ph-info-duotone
-                        text-violet5
+                        text-rose5
                         op70
                     />
                 </div>
                 <button
                     v-if="!isDefaultFilters"
                     flex="~ inline gap-2 items-center self-start"
-                    border="~ purple/20 rounded-full"
-                    bg-purple:10
+                    border="~ rose/20 rounded-full"
+                    bg-rose:10
                     px3
                     py1
                     @click="resetFilters()"
                 >
-                    <div i-ph-funnel-duotone text-purple />
+                    <div i-ph-funnel-duotone text-rose6 />
                     <span op50>Clear Filter</span>
                     <div i-ph-x ml--1 text-sm op25 hover:op100 />
                 </button>

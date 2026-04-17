@@ -4,9 +4,19 @@ import { payload } from "~/composables/payload";
 import { stateStorage } from "~/composables/state";
 
 const PLACEHOLDER_DESCRIPTION_RE = /<value>|‹[^›]+›/u;
+const ANSI_ESCAPE_RE = /\u001B\[[0-?]*[ -/]*[@-~]/gu;
 
 const rules = computed(() => Object.values(payload.value.rules));
-const diagnostics = computed(() => payload.value.diagnostics ?? []);
+function stripAnsiSequences(input: string): string {
+    const stripped = input.replaceAll(ANSI_ESCAPE_RE, "").trim();
+    return stripped.length > 0 ? stripped : input;
+}
+
+const diagnostics = computed(() =>
+    (payload.value.diagnostics ?? []).map((diagnostic) =>
+        stripAnsiSequences(diagnostic)
+    )
+);
 const configs = computed(() => payload.value.configs);
 const filesResolved = computed(() => payload.value.filesResolved);
 const extendsEntries = computed(() => payload.value.extendsInfo ?? []);
@@ -300,11 +310,11 @@ const metadataHealth = computed(() => {
             </div>
         </section>
 
-        <section border="~ purple/20 rounded-xl" bg-purple:6 p4>
+        <section border="~ rose/20 rounded-xl" bg-rose:6 p4>
             <div
                 flex="~ items-center gap-2 wrap"
-                text-violet8
-                dark:text-violet3
+                text-rose8
+                dark:text-rose3
             >
                 <div i-ph-flask-duotone flex-none />
                 <span font-medium>Metadata health</span>
@@ -314,7 +324,7 @@ const metadataHealth = computed(() => {
             </div>
 
             <div
-                border="~ purple/20"
+                border="~ rose/20"
                 mt3
                 rounded-lg
                 bg-black:10
@@ -476,13 +486,13 @@ const metadataHealth = computed(() => {
             <div v-else mt3 text-sm op70>No active viewer filters.</div>
         </section>
 
-        <section border="~ violet/20 rounded-xl" bg-violet:6 p4>
-            <div flex="~ gap-2 items-center" text-violet8 dark:text-violet3>
+        <section border="~ rose/20 rounded-xl" bg-rose:6 p4>
+            <div flex="~ gap-2 items-center" text-rose8 dark:text-rose3>
                 <div i-ph-stack-duotone flex-none />
                 <span font-medium>Config composition summary</span>
             </div>
             <div
-                border="~ violet/20"
+                border="~ rose/20"
                 mt3
                 rounded-lg
                 bg-black:8
@@ -527,7 +537,7 @@ const metadataHealth = computed(() => {
             </div>
             <div mt3 grid="~ cols-1 gap-3 lg:cols-2">
                 <div
-                    border="~ violet/20"
+                    border="~ rose/20"
                     rounded-lg
                     bg-black:8
                     p3
@@ -541,14 +551,14 @@ const metadataHealth = computed(() => {
                                 18
                             )"
                             :key="pluginEntry.name"
-                            class="rounded-full bg-violet:10 px2.5 py0.5 text-xs text-violet8 font-mono dark:text-violet2"
+                            class="rounded-full bg-rose:10 px2.5 py0.5 text-xs text-rose8 font-mono dark:text-rose2"
                         >
                             {{ pluginEntry.name }} · {{ pluginEntry.count }}
                         </code>
                     </div>
                 </div>
                 <div
-                    border="~ violet/20"
+                    border="~ rose/20"
                     rounded-lg
                     bg-black:8
                     p3
@@ -563,7 +573,7 @@ const metadataHealth = computed(() => {
                         <code
                             v-for="pattern in ignoreFile.patterns"
                             :key="pattern"
-                            class="rounded-full bg-fuchsia:10 px2.5 py0.5 text-xs text-fuchsia8 font-mono dark:text-fuchsia2"
+                            class="rounded-full bg-rose:10 px2.5 py0.5 text-xs text-rose8 font-mono dark:text-rose2"
                         >
                             {{ pattern }}
                         </code>

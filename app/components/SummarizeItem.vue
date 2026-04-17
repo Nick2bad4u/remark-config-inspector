@@ -19,12 +19,15 @@ const emit = defineEmits<{
 }>();
 
 const rootTag = computed(() => (props.clickable ? "button" : "div"));
+const tooltip = computed(() => ({
+    content: `${props.number} ${props.title}`,
+    placement: "top",
+}));
 </script>
 
 <template>
     <component
         :is="rootTag"
-        v-tooltip="`${props.number} ${props.title}`"
         class="inline-flex items-center gap-1.5 text-left leading-none"
         :class="[
             props.number ? props.color : 'op25',
@@ -32,7 +35,11 @@ const rootTag = computed(() => (props.clickable ? "button" : "div"));
         ]"
         @click="emit('click')"
     >
-        <div :class="props.icon" class="h-4 w-4 flex-none text-center" />
+        <div
+            v-tooltip="tooltip"
+            :class="props.icon"
+            class="h-4 w-4 flex-none text-center"
+        />
         <span
             inline-block
             min-w="1.75ch"

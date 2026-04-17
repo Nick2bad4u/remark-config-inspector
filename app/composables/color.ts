@@ -3,7 +3,7 @@ import { isDark } from "./dark";
 /**
  * Predefined color map for matching the branding
  *
- * Accpet a 6-digit hex color string or a hue number Hue numbers are preferred
+ * Accept a 6-digit hex color string or a hue number. Hue numbers are preferred
  * because they will adapt better contrast in light/dark mode
  *
  * Hue numbers reference:
@@ -14,7 +14,7 @@ import { isDark } from "./dark";
  * - 120: green
  * - 180: cyan
  * - 240: blue
- * - 270: purple
+ * - 270: cool accent hue
  */
 const predefinedColorMap = {
     ts: 200,

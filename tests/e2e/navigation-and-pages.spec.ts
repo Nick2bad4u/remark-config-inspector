@@ -91,8 +91,8 @@ test.describe("navigation and page regressions", () => {
         const pluginChip = page.locator(".plugin-filter-button", {
             hasText: "remark-lint-no-dead-urls",
         });
-        const listButton = page.getByRole("button", { name: "List" });
-        const gridButton = page.getByRole("button", { name: "Grid" });
+        const listButton = page.getByRole("button", { name: /^List$/ });
+        const gridButton = page.getByRole("button", { name: /^Grid$/ });
         const controlsRow = page
             .locator("div")
             .filter({ has: listButton })
@@ -118,7 +118,7 @@ test.describe("navigation and page regressions", () => {
 
         await expect(filepathInput).toHaveValue("");
         await expect(clearFiltersButton).toHaveCount(0);
-        await expect(allPluginsButton).toHaveClass(/bg-violet-100/);
+        await expect(allPluginsButton).toHaveClass(/bg-rose-100/);
     });
 
     test("files page supports collapsible matched-file sections", async ({

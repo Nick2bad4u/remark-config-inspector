@@ -332,7 +332,7 @@ const HighlightMatch = defineComponent({
                     array.push(
                         h(
                             "span",
-                            { class: "text-purple font-bold" },
+                            { class: "text-red6 font-bold" },
                             content.slice(from, to + 1)
                         )
                     );
@@ -454,13 +454,13 @@ onMounted(async () => {
                 <div v-if="filters.filepath">
                     <div
                         flex="~ gap-2 items-center wrap"
-                        border="~ purple/20 rounded-full"
-                        bg-purple:10
+                        border="~ rose/20 rounded-full"
+                        bg-rose:10
                         px3
                         py1
                         :class="{ 'saturate-0': !filteredConfigs.length }"
                     >
-                        <div i-ph-file-dotted-duotone text-purple />
+                        <div i-ph-file-dotted-duotone text-rose6 />
                         <span op50>Filepath</span>
                         <code>{{ filters.filepath }}</code>
 
@@ -505,7 +505,7 @@ onMounted(async () => {
                     <div
                         flex="~ gap-2 items-center"
                         border="~ blue/20 rounded-full"
-                        bg-violet:10
+                        bg-rose:10
                         px3
                         py1
                     >
@@ -590,7 +590,7 @@ onMounted(async () => {
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
                             :class="[
                                 !hasSelectedPlugin
-                                    ? 'bg-violet-100 text-violet-800 dark:bg-zinc-700/45 dark:text-zinc-100'
+                                    ? 'bg-rose-100 text-rose-800 dark:bg-zinc-700/45 dark:text-zinc-100'
                                     : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
                             ]"
                             @click="clearPluginSelection"
@@ -604,7 +604,7 @@ onMounted(async () => {
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
                             :class="[
                                 isPluginSelected(pluginOption.value)
-                                    ? 'bg-violet-100 text-violet-800 opacity-100 dark:bg-zinc-700/45 dark:text-zinc-100'
+                                                                        ? 'bg-rose-100 text-rose-800 opacity-100 dark:bg-zinc-700/45 dark:text-zinc-100'
                                     : hasSelectedPlugin
                                       ? 'bg-white/65 text-zinc-700 opacity-55 hover:opacity-85 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-45 dark:hover:opacity-80'
                                       : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',

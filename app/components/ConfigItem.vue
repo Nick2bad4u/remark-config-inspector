@@ -259,7 +259,7 @@ const summaryItems = computed<SummaryItemDescriptor[]>(() => {
             key: "ignorefile",
             icon: "i-ph-file-x-duotone",
             number: ignoreFilePatternCount,
-            color: "text-fuchsia5 dark:text-fuchsia4",
+            color: "text-amber6 dark:text-amber4",
             title: ".remarkignore",
             clickable: ignoreFilePatternCount > 0,
             section: "ignorefile",
@@ -268,7 +268,7 @@ const summaryItems = computed<SummaryItemDescriptor[]>(() => {
             key: "ignores",
             icon: "i-ph-eye-closed-duotone",
             number: ignoresCount,
-            color: "text-purple5 dark:text-purple4",
+            color: "text-amber6 dark:text-amber4",
             title: "ignoreFiles",
             clickable: ignoresCount > 0,
             section: "ignores",
@@ -304,7 +304,7 @@ const summaryItems = computed<SummaryItemDescriptor[]>(() => {
             key: "extends",
             icon: "i-ph-stack-plus-duotone",
             number: extendsCount,
-            color: "text-violet5",
+            color: "text-rose5",
             title: "Extends",
             clickable: extendsCount > 0,
             section: "extends",
@@ -542,7 +542,7 @@ async function scrollToSection(
                                     ? 'ring-1 ring-teal/25 shadow-sm'
                                     : 'opacity-80',
                                 entry.isSelected
-                                    ? 'ring-2 ring-violet/45 shadow-sm scale-102'
+                                    ? 'ring-2 ring-rose/45 shadow-sm scale-102'
                                     : '',
                             ]"
                             :style="entry.style"
@@ -573,12 +573,12 @@ async function scrollToSection(
                             v-for="(entry, idx) of config.extends"
                             :key="idx"
                             border="~ base rounded-full"
-                            bg-violet:8
+                            bg-rose:8
                             px3
                             py0.5
-                            text-violet7
+                            text-rose7
                             font-mono
-                            dark:text-violet3
+                            dark:text-rose3
                         >
                             {{ entry }}
                         </code>
@@ -641,7 +641,7 @@ async function scrollToSection(
             <details
                 v-if="ignoreFileInfo?.patterns.length"
                 ref="ignoreFileDetailsEl"
-                class="border border-fuchsia/18 rounded-lg bg-fuchsia/5 p3"
+                class="border border-amber/20 rounded-lg bg-amber/6 p3"
             >
                 <summary
                     ref="ignoreFileSectionEl"
@@ -649,10 +649,10 @@ async function scrollToSection(
                     cursor-pointer
                     select-none
                 >
-                    <div i-ph-file-x-duotone flex-none text-fuchsia5 />
+                    <div i-ph-file-x-duotone flex-none text-amber6 />
                     <span font-medium>.remarkignore</span>
                     <code
-                        class="rounded-full bg-fuchsia:10 px3 py0.5 text-fuchsia7 font-mono dark:text-fuchsia3"
+                        class="rounded-full bg-amber:10 px3 py0.5 text-amber7 font-mono dark:text-amber3"
                     >
                         {{ ignoreFileInfo.path }}
                     </code>
@@ -667,7 +667,7 @@ async function scrollToSection(
                     />
                 </summary>
                 <div mt3 flex="~ gap-2 items-start">
-                    <div i-ph-eye-slash-duotone my1 flex-none text-fuchsia5 />
+                    <div i-ph-eye-slash-duotone my1 flex-none text-amber6 />
                     <div flex="~ col gap-2">
                         <div text-sm op65>
                             Workspace-level ignore patterns loaded from

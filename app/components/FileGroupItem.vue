@@ -77,14 +77,14 @@ const groupIdentity = computed(() => {
         return {
             label: "Workspace scan",
             icon: "i-ph-binoculars-duotone",
-            colorClass: "text-fuchsia6 dark:text-fuchsia3",
+            colorClass: "text-amber6 dark:text-amber3",
         } as const;
     }
 
     return {
         label: "Glob",
         icon: "i-ph-file-magnifying-glass-duotone",
-        colorClass: "text-violet6 dark:text-violet3",
+        colorClass: "text-rose6 dark:text-rose3",
     } as const;
 });
 </script>

@@ -354,7 +354,7 @@ const pluginPrefixHint = computed(() => {
                 <span
                     v-if="isCoreRemarkRule"
                     v-tooltip="builtInRuleHint"
-                    class="inline-flex flex-none cursor-help items-center text-violet6 op75 dark:text-violet3"
+                    class="inline-flex flex-none cursor-help items-center text-rose6 op75 dark:text-rose3"
                     :title="builtInRuleHint"
                 >
                     <span i-ph-asterisk class="text-3 leading-none" />
@@ -428,7 +428,7 @@ const pluginPrefixHint = computed(() => {
                             </code>
                             <span
                                 v-if="isCoreRemarkRule"
-                                class="inline-flex border border-violet/30 rounded-full bg-violet/8 px2 py0.5 text-xs text-violet7 dark:text-violet3"
+                                class="inline-flex border border-rose/30 rounded-full bg-rose/8 px2 py0.5 text-xs text-rose7 dark:text-rose3"
                             >
                                 Built-in remark-lint rule package
                             </span>
@@ -442,7 +442,7 @@ const pluginPrefixHint = computed(() => {
                                 <span>
                                     {{ pluginPrefixHint.firstLineBeforePrefix }}
                                     <span
-                                        class="mx0.5 text-violet7 font-mono dark:text-violet3"
+                                        class="mx0.5 text-rose7 font-mono dark:text-rose3"
                                         >plugin/</span
                                     >
                                     {{ pluginPrefixHint.firstLineAfterPrefix }}
@@ -450,7 +450,7 @@ const pluginPrefixHint = computed(() => {
                                 <span>
                                     Keep the
                                     <span
-                                        class="mx0.5 text-violet7 font-mono dark:text-violet3"
+                                        class="mx0.5 text-rose7 font-mono dark:text-rose3"
                                         >plugin/</span
                                     >
                                     prefix in your config.
@@ -536,7 +536,7 @@ const pluginPrefixHint = computed(() => {
                 <span v-if="segment.type === 'text'">{{ segment.value }}</span>
                 <code
                     v-else
-                    class="mx-0.5 inline text-[0.94em] text-violet7 font-mono dark:text-violet3"
+                    class="mx-0.5 inline text-[0.94em] text-rose7 font-mono dark:text-rose3"
                 >
                     {{ segment.value }}
                 </code>
@@ -559,7 +559,7 @@ const pluginPrefixHint = computed(() => {
             "
             i-ph-chat-centered-text-duotone
             text-3
-            text-violet5
+            text-rose5
             op55
         />
     </div>

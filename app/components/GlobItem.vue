@@ -42,9 +42,9 @@ const variantClass = computed(() => {
         default: "text-gray",
         files: "border-sky/35 bg-sky:8 text-sky7 dark:text-sky3",
         "ignore-files":
-            "border-purple/35 bg-purple:8 text-purple7 dark:text-purple3",
+            "border-amber/35 bg-amber:8 text-amber7 dark:text-amber3",
         "ignore-file":
-            "border-fuchsia/35 bg-fuchsia:8 text-fuchsia7 dark:text-fuchsia3",
+            "border-amber/35 bg-amber:8 text-amber7 dark:text-amber3",
     }[props.variant];
 });
 
