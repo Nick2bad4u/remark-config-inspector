@@ -70,7 +70,7 @@ function showDeprecated() {
                     class="inline-flex items-center gap-2 border border-primary/45 rounded-full bg-zinc-950/80 px3 py1 text-xs text-zinc-200"
                 >
                     <img
-                        src="/remark/remarklint.svg"
+                        src="/remark/favicon.svg"
                         alt="remarklint logo"
                         class="h-4.5 w-auto"
                     />

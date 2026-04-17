@@ -115,6 +115,36 @@ describe("resolvePayload", () => {
         ]);
     });
 
+    it("normalizes rule metadata names to match payload rule keys", () => {
+        const payload: Payload = {
+            ...createBasePayload(1),
+            configs: [
+                {
+                    index: 0,
+                    rules: {
+                        "remark-lint-correct-media-syntax": true,
+                    },
+                },
+            ],
+            rules: {
+                "remark-lint-correct-media-syntax": {
+                    name: "correct-media-syntax",
+                    plugin: "remark-lint",
+                },
+            },
+        };
+
+        const resolved = resolvePayload(payload);
+
+        expect(
+            resolved.rules["remark-lint-correct-media-syntax"]?.name
+        ).toBe("remark-lint-correct-media-syntax");
+        expect(
+            resolved.ruleToState.get("remark-lint-correct-media-syntax")
+                ?.length
+        ).toBe(1);
+    });
+
     it("builds extends info and glob maps from config files and ignores", () => {
         const payload: Payload = {
             ...createBasePayload(2),

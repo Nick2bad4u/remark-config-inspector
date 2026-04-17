@@ -67,6 +67,9 @@ Legacy compatibility variables (still supported):
 - `ESLINT_BASE_PATH`
 - `ESLINT_TARGET`
 
+These variables are respected by both the CLI and the Nuxt dev server API
+(`npm run dev`).
+
 ## Static export
 
 Generate a static inspector bundle:
@@ -81,6 +84,22 @@ This writes a static app and payload into `.remark-config-inspector`.
 
 ```bash
 npm ci
+npm run dev
+```
+
+Use env overrides when you want dev mode to inspect a specific config or
+target:
+
+```bash
+REMARK_CONFIG=.remarkrc.mjs REMARK_BASE_PATH=. REMARK_TARGET=docs/guide.md npm run dev
+```
+
+PowerShell example:
+
+```powershell
+$env:REMARK_CONFIG = ".remarkrc.mjs"
+$env:REMARK_BASE_PATH = "."
+$env:REMARK_TARGET = "docs/guide.md"
 npm run dev
 ```
 

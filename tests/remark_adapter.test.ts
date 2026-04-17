@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "pathe";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_TARGET_FILE } from "../src/constants";
 import { ConfigPathError } from "../src/errors";
 import { createRemarkInspectorAdapter } from "../src/inspectors/remark";
@@ -192,6 +192,43 @@ export default {
         expect(result.payload.configs[0]?.rules).toMatchObject({
             "remark-lint-final-newline": true,
         });
+    });
+
+    it("continues loading when process.chdir is unavailable in workers", async () => {
+        const cwd = await createTempDir();
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
+export default {
+  plugins: ['remark-lint-final-newline']
+}
+`,
+        });
+
+        const chdirSpy = vi
+            .spyOn(process, "chdir")
+            .mockImplementation((() => {
+                throw Object.assign(
+                    new Error("process.chdir() is not supported in workers"),
+                    {
+                        code: "ERR_WORKER_UNSUPPORTED_OPERATION",
+                    }
+                );
+            }) as typeof process.chdir);
+
+        try {
+            const adapter = createRemarkInspectorAdapter();
+            const result = await adapter.readConfig({
+                cwd,
+                globMatchedFiles: false,
+            });
+
+            expect(chdirSpy).toHaveBeenCalled();
+            expect(result.payload.configs[0]?.rules).toMatchObject({
+                "remark-lint-final-newline": true,
+            });
+        } finally {
+            chdirSpy.mockRestore();
+        }
     });
 
         it("handles symbol plugin ids, multi-argument rule values, and sorted presets", async () => {

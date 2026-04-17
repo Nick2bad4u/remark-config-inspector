@@ -81,21 +81,21 @@ export default defineNuxtConfig({
                 {
                     rel: "icon",
                     type: "image/svg+xml",
-                    href: "/remark/remarklint.svg",
+                    href: "/remark/favicon.svg",
                 },
                 {
                     rel: "alternate icon",
                     type: "image/svg+xml",
-                    href: "/remark/remarklint2.svg",
+                    href: "/remark/logo-square.svg",
                 },
                 {
                     rel: "alternate icon",
                     type: "image/png",
-                    href: "/favicon.svg",
+                    href: "/remark/favicon.png",
                 },
                 {
                     rel: "apple-touch-icon",
-                    href: "/favicon.svg",
+                    href: "/remark/favicon.png",
                 },
             ],
             title: "Remark Config Inspector",
@@ -104,6 +104,21 @@ export default defineNuxtConfig({
 
     vite: {
         base: "./",
+        optimizeDeps: {
+            include: [
+                "fuse.js",
+                "floating-vue",
+                "@eslint/config-array",
+                "minimatch",
+                "@shikijs/engine-javascript",
+                "shiki/core",
+                "@shikijs/themes/vitesse-light",
+                "@shikijs/themes/vitesse-dark",
+                "@shikijs/langs-precompiled/javascript",
+                "@shikijs/langs-precompiled/typescript",
+                "@shikijs/transformers",
+            ],
+        },
     },
 
     devtools: {

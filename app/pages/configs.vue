@@ -128,7 +128,7 @@ const configPluginPackagesByIndex = computed(() => {
 
 const hasSelectedPlugin = computed(() => filters.plugins.length > 0);
 const shouldShowPluginFilterChips = computed(
-    () => isPluginFilterPanelExpanded.value || hasSelectedPlugin.value
+    () => isPluginFilterPanelExpanded.value
 );
 
 const configPluginNames = computed(() => {
@@ -158,7 +158,14 @@ const pluginOptions = computed(() => {
 const hasActiveConfigFilters = computed(
     () => !!(filters.filepath || filters.rule || filters.plugins.length)
 );
-const hasSummaryChips = computed(() => !!(filters.filepath || filters.rule));
+const hasSummaryChips = computed(
+    () => !!(filters.filepath || filters.rule || filters.plugins.length)
+);
+const selectedPluginSummaryLabel = computed(() =>
+    filters.plugins.length === 1
+        ? (filters.plugins[0] ?? "")
+        : `${filters.plugins.length} selected`
+);
 
 function isPluginSelected(pluginName: string): boolean {
     return filters.plugins.includes(pluginName);
@@ -515,6 +522,26 @@ onMounted(async () => {
                         />
                     </div>
                 </div>
+                <div v-if="filters.plugins.length">
+                    <div
+                        flex="~ gap-2 items-center"
+                        border="~ emerald/20 rounded-full"
+                        bg-emerald:10
+                        px3
+                        py1
+                    >
+                        <div i-ph-puzzle-piece-duotone />
+                        <span op50>Plugin filter</span>
+                        <code>{{ selectedPluginSummaryLabel }}</code>
+                        <button
+                            i-ph-x
+                            text-sm
+                            op25
+                            hover:op100
+                            @click="clearPluginSelection"
+                        />
+                    </div>
+                </div>
             </div>
             <div
                 v-if="pluginOptions.length"
@@ -546,7 +573,9 @@ onMounted(async () => {
                                 {{
                                     shouldShowPluginFilterChips
                                         ? 'Hide plugin filters'
-                                        : `Show plugin filters (${pluginOptions.length})`
+                                        : hasSelectedPlugin
+                                          ? `Show plugin filters (${pluginOptions.length}, ${filters.plugins.length} selected)`
+                                          : `Show plugin filters (${pluginOptions.length})`
                                 }}
                             </span>
                         </button>

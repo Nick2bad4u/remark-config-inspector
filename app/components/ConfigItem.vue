@@ -43,6 +43,7 @@ const open = defineModel("open", {
 
 const hasShown = ref(open.value);
 const showAdditionalConfigs = ref(false);
+const isPluginListExpanded = ref(false);
 
 if (!hasShown.value) {
     const stop = watchEffect(() => {
@@ -94,6 +95,19 @@ const pluginEntries = computed(() => {
             },
         };
     });
+});
+const selectedPluginEntryCount = computed(
+    () => pluginEntries.value.filter((entry) => entry.isSelected).length
+);
+const shouldShowPluginEntries = computed(() => isPluginListExpanded.value);
+const pluginToggleLabel = computed(() => {
+    if (shouldShowPluginEntries.value) return "Hide plugin list";
+
+    if (selectedPluginEntryCount.value > 0) {
+        return `Show plugin list (${pluginEntries.value.length}, ${selectedPluginEntryCount.value} selected)`;
+    }
+
+    return `Show plugin list (${pluginEntries.value.length})`;
 });
 const totalRuleCount = computed(
     () => Object.keys(props.config.rules ?? {}).length
@@ -207,6 +221,10 @@ const sourceBadge = computed(() => {
 
     return undefined;
 });
+
+function togglePluginList(): void {
+    isPluginListExpanded.value = !isPluginListExpanded.value;
+}
 
 interface SummaryItemDescriptor {
     key: string;
@@ -476,13 +494,41 @@ async function scrollToSection(
                 <div flex="~ col gap-2">
                     <div flex="~ gap-2 items-center wrap">
                         <span>Plugins ({{ pluginEntries.length }})</span>
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-1 rounded-full border border-base px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            @click="togglePluginList"
+                        >
+                            <span
+                                :class="
+                                    shouldShowPluginEntries
+                                        ? 'i-ph-caret-down-duotone'
+                                        : 'i-ph-caret-right-duotone'
+                                "
+                            />
+                            <span>{{ pluginToggleLabel }}</span>
+                        </button>
                     </div>
-                    <div v-if="!configRulePluginPackages.size" text-sm op65>
+                    <div v-if="!shouldShowPluginEntries" text-sm op60>
+                        Plugin list is minimized by default to reduce visual
+                        noise.
+                    </div>
+                    <div
+                        v-if="
+                            shouldShowPluginEntries &&
+                            !configRulePluginPackages.size
+                        "
+                        text-sm
+                        op65
+                    >
                         No plugin-scoped rules are declared in this config item;
                         these plugins likely augment core rules, syntax, or
                         metadata.
                     </div>
-                    <div flex="~ gap-2 items-center wrap">
+                    <div
+                        v-if="shouldShowPluginEntries"
+                        flex="~ gap-2 items-center wrap"
+                    >
                         <code
                             v-for="entry of pluginEntries"
                             :key="entry.name"

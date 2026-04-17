@@ -75,6 +75,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
+function isWorkerUnsupportedChdirError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+
+    if (error.message.includes("process.chdir() is not supported in workers"))
+        return true;
+
+    return (
+        "code" in error &&
+        (error as { code?: unknown }).code === "ERR_WORKER_UNSUPPORTED_OPERATION"
+    );
+}
+
 function isJavaScriptConfigPath(path: string): boolean {
     return /\.[cm]?js$/u.test(path);
 }
@@ -424,7 +436,13 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
             const cwd = normalize(options.cwd);
             const { basePath } = resolvedPath;
 
-            if (options.chdir !== false) process.chdir(basePath);
+            if (options.chdir !== false) {
+                try {
+                    process.chdir(basePath);
+                } catch (error) {
+                    if (!isWorkerUnsupportedChdirError(error)) throw error;
+                }
+            }
 
             const targetFilePath = normalize(
                 options.targetFilePath ?? DEFAULT_TARGET_FILE

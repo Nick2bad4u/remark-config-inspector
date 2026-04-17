@@ -23,7 +23,7 @@ withDefaults(
                 class="flex items-center justify-center border border-primary/45 rounded-full bg-zinc-900/85 p-2"
             >
                 <img
-                    src="/remark/remarklint.svg"
+                    src="/remark/logo-square.png"
                     alt="remarklint logo"
                     class="h-1.15em w-auto"
                 />
@@ -32,12 +32,12 @@ withDefaults(
             <span class="flex flex-col gap-0.5">
                 <span class="flex items-center gap-2">
                     <img
-                        src="/remark/remarklint2.svg"
+                        src="/remark/favicon.png"
                         alt="remarklint"
                         class="h-0.95em w-auto"
                     />
                     <span class="text-xs font-medium op70"
-                        >Config Inspector</span
+                        >Remark Config Inspector</span
                     >
                 </span>
                 <span class="text-xs font-medium op70">

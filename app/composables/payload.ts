@@ -195,6 +195,13 @@ function syncConfigsOpenState(configCount: number): void {
 }
 
 export function resolvePayload(payload: Payload): ResolvedPayload {
+    const normalizedRules: Record<string, RuleInfo> = Object.fromEntries(
+        Object.entries(payload.rules).map(([ruleName, info]) => [
+            ruleName,
+            info.name === ruleName ? info : { ...info, name: ruleName },
+        ])
+    );
+
     const ruleToState = new Map<string, RuleConfigStates>();
     const globToConfigs = new Map<string, FlatConfigItem[]>();
     const extendsInfoMap = new Map(
@@ -213,6 +220,7 @@ export function resolvePayload(payload: Payload): ResolvedPayload {
 
     return {
         ...payload,
+        rules: normalizedRules,
         configsIgnoreOnly: payload.configs.filter((i) => isIgnoreOnlyConfig(i)),
         configsGeneral: payload.configs.filter((i) => isGeneralConfig(i)),
         extendsInfoMap,
