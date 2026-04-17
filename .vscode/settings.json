@@ -1,0 +1,40 @@
+{
+    // Auto fix
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "never"
+    },
+
+    "editor.formatOnSave": false,
+
+    // Reduce noisy formatting-style diagnostics in the IDE; Prettier handles formatting.
+    "eslint.rules.customizations": [
+        { "rule": "*-indent", "severity": "off" },
+        { "rule": "*-spacing", "severity": "off" },
+        { "rule": "*-spaces", "severity": "off" },
+        { "rule": "*-order", "severity": "off" },
+        { "rule": "*-dangle", "severity": "off" },
+        { "rule": "*-newline", "severity": "off" },
+        { "rule": "*quotes", "severity": "off" },
+        { "rule": "*semi", "severity": "off" }
+    ],
+
+    // Enable the ESLint flat config support
+    "eslint.useFlatConfig": true,
+
+    // Enable eslint for all supported languages
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue",
+        "html",
+        "markdown",
+        "json",
+        "jsonc",
+        "yaml"
+    ],
+    // Disable the default formatter, use eslint instead
+    "prettier.enable": false
+}
