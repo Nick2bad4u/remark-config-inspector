@@ -194,6 +194,48 @@ export default {
         });
     });
 
+    it("prefers package metadata URLs for external remark-lint rule docs", async () => {
+        const cwd = await createTempDir();
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
+export default {
+  plugins: ['remark-lint-write-good']
+}
+`,
+            "node_modules/remark-lint-write-good/package.json": JSON.stringify(
+                {
+                    name: "remark-lint-write-good",
+                    version: "1.0.0",
+                    main: "index.js",
+                    repository:
+                        "git+https://github.com/zerok/remark-lint-write-good.git",
+                },
+                null,
+                2
+            ),
+            "node_modules/remark-lint-write-good/index.js": `
+module.exports = function remarkLintWriteGood() {
+  return function () {};
+};
+`,
+        });
+
+        const adapter = createRemarkInspectorAdapter();
+        const result = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        expect(result.payload.rules["remark-lint-write-good"]?.docs?.url).toBe(
+            "https://github.com/zerok/remark-lint-write-good"
+        );
+        expect(
+            result.payload.rules["remark-lint-write-good"]?.docs?.urlSource
+        ).toBe("meta");
+    });
+
     it("continues loading when process.chdir is unavailable in workers", async () => {
         const cwd = await createTempDir();
         await writeFiles(cwd, {
@@ -303,7 +345,7 @@ export default plugin
                         "remark-preset-lint-zeta",
                 ]);
                 expect(result.payload.rules["remark-lint-symbol-rule"]?.docs?.url).toBe(
-                        "https://github.com/remarkjs/remark-lint/tree/main/packages/remark-lint-symbol-rule"
+                    "https://www.npmjs.com/package/remark-lint-symbol-rule"
                 );
 
                 const files = result.payload.files?.map((entry) => entry.filepath) ?? [];

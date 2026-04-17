@@ -114,6 +114,62 @@ test.describe("configs/files/dev regressions", () => {
         await expect(configItems).toHaveCount(3);
     });
 
+    test("config-item plugin chips can toggle page plugin filters", async ({
+        page,
+    }) => {
+        await openConfigs(page);
+
+        const configItems = page.locator("details.flat-config-item:visible");
+        await expect(configItems).toHaveCount(3);
+
+        const firstConfigItem = configItems.first();
+        await firstConfigItem
+            .getByRole("button", { name: /show plugin list/i })
+            .click();
+        await firstConfigItem
+            .getByRole("button", { name: "remark-lint-no-dead-urls" })
+            .first()
+            .click();
+
+        await expect(configItems).toHaveCount(1);
+    });
+
+    test("config-item plugin list toggle is shared at user level", async ({
+        page,
+    }) => {
+        const payload = JSON.parse(JSON.stringify(MOCK_PAYLOAD)) as typeof MOCK_PAYLOAD;
+        payload.configs[1] = {
+            ...payload.configs[1],
+            plugins: {
+                "remark-lint-maximum-line-length": {},
+            },
+        };
+
+        await openConfigs(page, payload);
+
+        await expect(
+            page.getByRole("button", { name: /show plugin list/i })
+        ).toHaveCount(2);
+
+        await page
+            .getByRole("button", { name: /show plugin list/i })
+            .first()
+            .click();
+
+        await expect(
+            page.getByRole("button", { name: /hide plugin list/i })
+        ).toHaveCount(2);
+
+        await page
+            .getByRole("button", { name: /hide plugin list/i })
+            .first()
+            .click();
+
+        await expect(
+            page.getByRole("button", { name: /show plugin list/i })
+        ).toHaveCount(2);
+    });
+
     test("files group mode expand/collapse controls affect every file group", async ({
         page,
     }) => {

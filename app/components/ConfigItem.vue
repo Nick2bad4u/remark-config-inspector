@@ -22,6 +22,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     badgeClick: [string];
+    pluginClick: [string];
 }>();
 
 /**
@@ -43,7 +44,6 @@ const open = defineModel("open", {
 
 const hasShown = ref(open.value);
 const showAdditionalConfigs = ref(false);
-const isPluginListExpanded = ref(false);
 
 if (!hasShown.value) {
     const stop = watchEffect(() => {
@@ -99,7 +99,9 @@ const pluginEntries = computed(() => {
 const selectedPluginEntryCount = computed(
     () => pluginEntries.value.filter((entry) => entry.isSelected).length
 );
-const shouldShowPluginEntries = computed(() => isPluginListExpanded.value);
+const shouldShowPluginEntries = computed(
+    () => stateStorage.configPluginListExpanded
+);
 const pluginToggleLabel = computed(() => {
     if (shouldShowPluginEntries.value) return "Hide plugin list";
 
@@ -185,16 +187,13 @@ const extraConfigs = computed(() => {
     );
 });
 
-function isPrimitiveExtraConfigValue(value: unknown): boolean {
-    return (
-        value == null ||
-        [
-            "string",
-            "number",
-            "boolean",
-        ].includes(typeof value)
-    );
-}
+const extraConfigEntries = computed(() =>
+    Object.entries(extraConfigs.value).map(([key, value]) => ({
+        key,
+        value,
+        code: stringifyUnquoted(value),
+    }))
+);
 
 const sourceBadge = computed(() => {
     const name = props.config.name ?? "";
@@ -223,7 +222,11 @@ const sourceBadge = computed(() => {
 });
 
 function togglePluginList(): void {
-    isPluginListExpanded.value = !isPluginListExpanded.value;
+    stateStorage.configPluginListExpanded = !stateStorage.configPluginListExpanded;
+}
+
+function togglePluginFilterFromConfig(pluginName: string): void {
+    emit("pluginClick", pluginName);
 }
 
 interface SummaryItemDescriptor {
@@ -529,28 +532,31 @@ async function scrollToSection(
                         v-if="shouldShowPluginEntries"
                         flex="~ gap-2 items-center wrap"
                     >
-                        <code
+                        <button
                             v-for="entry of pluginEntries"
                             :key="entry.name"
+                            type="button"
                             class="badge border border-transparent rounded-full px-2.5 py-0.5 text-sm leading-4"
                             :class="[
                                 entry.hasPluginScopedRules
                                     ? 'ring-1 ring-teal/25 shadow-sm'
                                     : 'opacity-80',
                                 entry.isSelected
-                                    ? 'ring-2 ring-violet/45 shadow-sm'
+                                    ? 'ring-2 ring-violet/45 shadow-sm scale-102'
                                     : '',
                             ]"
                             :style="entry.style"
                             font-mono
+                            transition
                             :title="
                                 entry.hasPluginScopedRules
                                     ? `Plugin-scoped rules detected here under ${entry.name}`
                                     : 'No plugin-scoped rule names detected in this config item'
                             "
+                            @click="togglePluginFilterFromConfig(entry.name)"
                         >
                             {{ entry.name }}
-                        </code>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -760,11 +766,7 @@ async function scrollToSection(
                 </div>
             </div>
 
-            <div
-                v-if="Object.keys(extraConfigs).length"
-                ref="optionsSectionEl"
-                flex="~ gap-2"
-            >
+            <div v-if="extraConfigEntries.length" ref="optionsSectionEl" flex="~ gap-2">
                 <div i-ph-sliders-duotone my1 flex-none />
 
                 <div flex="~ col gap-2" w-full>
@@ -773,9 +775,7 @@ async function scrollToSection(
                         @click="showAdditionalConfigs = !showAdditionalConfigs"
                     >
                         <span
-                            >Additional configurations ({{
-                                Object.keys(extraConfigs).length
-                            }})</span
+                            >Additional configurations ({{ extraConfigEntries.length }})</span
                         >
                         <span
                             i-ph-caret-down-fill
@@ -786,33 +786,27 @@ async function scrollToSection(
 
                     <div
                         v-if="showAdditionalConfigs"
-                        class="grid gap-x-2 gap-y-1.5 md:grid-cols-[minmax(9rem,auto)_1fr]"
+                        class="flex flex-col gap-2"
                     >
-                        <template
-                            v-for="(value, key) in extraConfigs"
-                            :key="key"
+                        <div
+                            v-for="entry of extraConfigEntries"
+                            :key="entry.key"
+                            class="rounded-lg border border-base bg-black/2 p2 dark:bg-zinc-900/15"
                         >
-                            <span
-                                class="text-zinc-700 font-600 dark:text-zinc-300"
-                                >{{ key }}:</span
+                            <div
+                                class="mb-1 text-zinc-700 text-xs font-semibold tracking-wide uppercase dark:text-zinc-300"
                             >
-
-                            <template v-if="isPrimitiveExtraConfigValue(value)">
-                                <code
-                                    class="break-all rounded bg-black:8 px1.5 py0.5 text-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-200"
-                                >
-                                    {{ stringifyUnquoted(value) }}
-                                </code>
-                            </template>
-
-                            <template v-else>
-                                <code
-                                    class="break-all rounded bg-black:6 px1.5 py0.5 text-zinc-700 dark:bg-zinc-900/35 dark:text-zinc-300"
-                                >
-                                    {{ JSON.stringify(value) }}
-                                </code>
-                            </template>
-                        </template>
+                                {{ entry.key }}
+                            </div>
+                            <Shiki
+                                lang="ts"
+                                :code="entry.code"
+                                rounded
+                                bg-code
+                                p2
+                                text-sm
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

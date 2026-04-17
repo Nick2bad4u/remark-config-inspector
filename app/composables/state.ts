@@ -56,6 +56,7 @@ export interface ViewerStateStorage {
     rulesViewType: ViewType;
     viewFilesTab: ViewFilesTab;
     dimDisabledRules: boolean;
+    configPluginListExpanded: boolean;
     filtersConfigs: FiltersConfigsPage;
     filtersRules: FiltersRulesPage;
 }
@@ -103,6 +104,7 @@ const DEFAULT_STATE_STORAGE: ViewerStateStorage = {
     rulesViewType: "list",
     viewFilesTab: "group",
     dimDisabledRules: true,
+    configPluginListExpanded: false,
     filtersConfigs: {
         filepath: "",
         rule: "",
@@ -127,6 +129,7 @@ const VIEWER_STATE_STORAGE_KEYS = [
     "rulesViewType",
     "viewFilesTab",
     "dimDisabledRules",
+    "configPluginListExpanded",
     "filtersConfigs",
     "filtersRules",
 ] as const satisfies readonly (keyof ViewerStateStorage)[];
@@ -269,6 +272,10 @@ function buildInitialStateStorage(): ViewerStateStorage {
             typeof stored.dimDisabledRules === "boolean"
                 ? stored.dimDisabledRules
                 : DEFAULT_STATE_STORAGE.dimDisabledRules,
+        configPluginListExpanded:
+            typeof stored.configPluginListExpanded === "boolean"
+                ? stored.configPluginListExpanded
+                : DEFAULT_STATE_STORAGE.configPluginListExpanded,
         filtersConfigs: {
             filepath:
                 typeof storedFiltersConfigs.filepath === "string"

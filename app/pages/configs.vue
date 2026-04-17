@@ -883,6 +883,7 @@ onMounted(async () => {
                             :active="!!(filters.filepath && config.files)"
                             :matched-globs="fileMatchResult?.globs"
                             @badge-click="(e) => (filters.rule = e)"
+                            @plugin-click="togglePluginSelection"
                         />
                     </template>
                 </template>

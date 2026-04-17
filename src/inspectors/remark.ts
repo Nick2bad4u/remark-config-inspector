@@ -15,6 +15,7 @@ import type {
     ResolvedConfigPath,
 } from "./contracts";
 import { readFile, stat } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { isAbsolute } from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
@@ -70,6 +71,28 @@ interface RemarkIgnoreResolution {
     info?: IgnoreFileInfo;
     absolutePath?: string;
 }
+
+interface PackageRepositoryField {
+    url?: unknown;
+    directory?: unknown;
+}
+
+interface PackageBugsField {
+    url?: unknown;
+}
+
+interface PackageMetadata {
+    homepage?: unknown;
+    repository?: unknown;
+    bugs?: unknown;
+}
+
+interface RuleDocsResolution {
+    url: string;
+    urlSource: "meta" | "inferred";
+}
+
+const requireForResolution = createRequire(import.meta.url);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
@@ -250,14 +273,147 @@ function toRuleDescription(ruleName: string): string {
 }
 
 function inferRuleDocsUrl(ruleName: string): string {
-    if (ruleName.startsWith("remark-lint-")) {
-        return `https://github.com/remarkjs/remark-lint/tree/main/packages/${ruleName}`;
-    }
-
     return `https://www.npmjs.com/package/${ruleName}`;
 }
 
-function createRuleInfo(ruleName: string): RuleInfo {
+function normalizeRepositoryUrl(url: string): string {
+    let normalized = url.trim();
+    if (normalized.startsWith("github:")) {
+        normalized = `https://github.com/${normalized.slice("github:".length)}`;
+    }
+
+    normalized = normalized.replace(/^git\+/u, "");
+
+    if (normalized.startsWith("git://")) {
+        normalized = `https://${normalized.slice("git://".length)}`;
+    }
+
+    if (normalized.endsWith(".git")) {
+        normalized = normalized.slice(0, -".git".length);
+    }
+
+    return normalized;
+}
+
+function resolveRepositoryUrlFromMetadata(metadata: PackageMetadata):
+    | string
+    | undefined {
+    const repository = metadata.repository;
+    if (typeof repository === "string" && repository.length > 0) {
+        return normalizeRepositoryUrl(repository);
+    }
+
+    if (isRecord(repository)) {
+        const repositoryField = repository as PackageRepositoryField;
+
+        if (
+            typeof repositoryField.url === "string" &&
+            repositoryField.url.length > 0
+        ) {
+            return normalizeRepositoryUrl(repositoryField.url);
+        }
+    }
+
+    return undefined;
+}
+
+function resolveBugsUrlFromMetadata(metadata: PackageMetadata):
+    | string
+    | undefined {
+    const bugs = metadata.bugs;
+
+    if (typeof bugs === "string" && bugs.length > 0) return bugs;
+
+    if (isRecord(bugs)) {
+        const bugsField = bugs as PackageBugsField;
+        if (typeof bugsField.url === "string" && bugsField.url.length > 0)
+            return bugsField.url;
+    }
+
+    return undefined;
+}
+
+function resolvePackageJsonPath(
+    packageName: string,
+    basePath: string
+): string | undefined {
+    for (const rootPath of [
+        basePath,
+        process.cwd(),
+    ]) {
+        try {
+            return requireForResolution.resolve(`${packageName}/package.json`, {
+                paths: [rootPath],
+            });
+        } catch {
+            continue;
+        }
+    }
+
+    return undefined;
+}
+
+async function resolveRuleDocsFromPackageMetadata(
+    packageName: string,
+    basePath: string
+): Promise<RuleDocsResolution | undefined> {
+    const packageJsonPath = resolvePackageJsonPath(packageName, basePath);
+    if (!packageJsonPath) return undefined;
+
+    try {
+        const raw = await readFile(packageJsonPath, "utf8");
+        const parsed = JSON.parse(raw) as unknown;
+        if (!isRecord(parsed)) return undefined;
+
+        const metadata = parsed as PackageMetadata;
+        const homepage = metadata.homepage;
+
+        if (typeof homepage === "string" && homepage.length > 0) {
+            return {
+                url: homepage,
+                urlSource: "meta",
+            };
+        }
+
+        const repositoryUrl = resolveRepositoryUrlFromMetadata(metadata);
+        if (repositoryUrl) {
+            return {
+                url: repositoryUrl,
+                urlSource: "meta",
+            };
+        }
+
+        const bugsUrl = resolveBugsUrlFromMetadata(metadata);
+        if (bugsUrl) {
+            return {
+                url: bugsUrl,
+                urlSource: "meta",
+            };
+        }
+
+        return undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+async function resolveRuleDocs(
+    ruleName: string,
+    basePath: string
+): Promise<RuleDocsResolution> {
+    const metadataDocs = await resolveRuleDocsFromPackageMetadata(
+        ruleName,
+        basePath
+    );
+    if (metadataDocs) return metadataDocs;
+
+    return {
+        url: inferRuleDocsUrl(ruleName),
+        urlSource: "inferred",
+    };
+}
+
+function createRuleInfo(ruleName: string, docs: RuleDocsResolution): RuleInfo {
     return {
         name: ruleName,
         plugin: "remark-lint",
@@ -265,8 +421,8 @@ function createRuleInfo(ruleName: string): RuleInfo {
         docs: {
             description: toRuleDescription(ruleName),
             descriptionSource: "generated",
-            url: inferRuleDocsUrl(ruleName),
-            urlSource: "inferred",
+            url: docs.url,
+            urlSource: docs.urlSource,
         },
     };
 }
@@ -465,6 +621,7 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
             const configuredRules: RulesRecord = {};
             const rules: Record<string, RuleInfo> = {};
             const presetSpecifiers = new Set<string>();
+            const configuredRuleNames = new Set<string>();
 
             for (const pluginEntry of loaded.plugins) {
                 const [plugin, ...parameters] =
@@ -479,8 +636,27 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
                 if (!isRemarkLintRule(pluginId)) continue;
 
                 configuredRules[pluginId] = toRuleValue(parameters);
-                if (!(pluginId in rules))
-                    rules[pluginId] = createRuleInfo(pluginId);
+                configuredRuleNames.add(pluginId);
+            }
+
+            const ruleDocsByName = new Map<string, RuleDocsResolution>(
+                await Promise.all(
+                    [...configuredRuleNames].map(async (ruleName) =>
+                        [
+                            ruleName,
+                            await resolveRuleDocs(ruleName, basePath),
+                        ] as const
+                    )
+                )
+            );
+
+            for (const ruleName of configuredRuleNames) {
+                const docs = ruleDocsByName.get(ruleName) ?? {
+                    url: inferRuleDocsUrl(ruleName),
+                    urlSource: "inferred" as const,
+                };
+
+                rules[ruleName] = createRuleInfo(ruleName, docs);
             }
 
             const pluginMap = Object.fromEntries(
