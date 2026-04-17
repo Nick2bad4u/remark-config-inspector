@@ -14,7 +14,7 @@ export interface FlatConfigItem extends Record<string, unknown> {
     customSyntax?: string;
 }
 
-export interface StylelintIgnoreInfo {
+export interface IgnoreFileInfo {
     path: string;
     patterns: string[];
 }
@@ -98,13 +98,13 @@ export interface FilesGroup {
 
 export interface PayloadMeta {
     wsPort?: number;
-    engine?: "stylelint";
+    engine?: "remark";
     targetFilePath?: string;
     configNotFound?: boolean;
     lastUpdate: number;
     basePath: string;
     configPath: string;
-    stylelintIgnore?: StylelintIgnoreInfo;
+    ignoreFile?: IgnoreFileInfo;
 }
 
 export type RuleDescriptionSource = "meta" | "message" | "generated";

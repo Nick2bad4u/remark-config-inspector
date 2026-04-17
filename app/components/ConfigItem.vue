@@ -40,7 +40,7 @@ const META_FIELDS = new Set(["name"]);
  * @type {Set<string>}
  */
 const CONFIG_INSPECTOR_FIELDS = new Set(["index"]);
-const STYLELINT_OVERRIDE_NAME_RE = /^stylelint\/override-(\d+)(?:\s+\(.+\))?$/;
+const REMARK_OVERRIDE_NAME_RE = /^remark\/override-(\d+)(?:\s+\(.+\))?$/;
 
 const open = defineModel("open", {
     default: true,
@@ -117,20 +117,20 @@ const hasActiveRuleScopedPluginFilter = computed(
 );
 const isRootConfig = computed(() => {
     return (
-        props.config.name === "stylelint/root" ||
-        props.config.name === "stylelint/resolved/root"
+        props.config.name === "remark/root" ||
+        props.config.name === "remark/resolved/root"
     );
 });
-const stylelintIgnoreInfo = computed(() =>
-    isRootConfig.value ? payload.value.meta.stylelintIgnore : undefined
+const ignoreFileInfo = computed(() =>
+    isRootConfig.value ? payload.value.meta.ignoreFile : undefined
 );
 
 const filesSectionEl = ref<HTMLElement>();
 const pluginsSectionEl = ref<HTMLElement>();
 const extendsSectionEl = ref<HTMLElement>();
 const ignoresSectionEl = ref<HTMLElement>();
-const stylelintIgnoreSectionEl = ref<HTMLElement>();
-const stylelintIgnoreDetailsEl = ref<HTMLDetailsElement>();
+const ignoreFileSectionEl = ref<HTMLElement>();
+const ignoreFileDetailsEl = ref<HTMLDetailsElement>();
 const rulesSectionEl = ref<HTMLElement>();
 const optionsSectionEl = ref<HTMLElement>();
 
@@ -193,7 +193,7 @@ function isPrimitiveExtraConfigValue(value: unknown): boolean {
 const sourceBadge = computed(() => {
     const name = props.config.name ?? "";
 
-    if (name === "stylelint/root" || name === "stylelint/resolved/root") {
+    if (name === "remark/root" || name === "remark/resolved/root") {
         return {
             text: "Root",
             colorClass: "text-sky6 dark:text-sky3",
@@ -201,7 +201,7 @@ const sourceBadge = computed(() => {
         };
     }
 
-    const override = STYLELINT_OVERRIDE_NAME_RE.exec(name);
+    const override = REMARK_OVERRIDE_NAME_RE.exec(name);
     if (override?.[1]) {
         const filesLabel = props.config.files?.flat().join(", ");
 
@@ -228,7 +228,7 @@ interface SummaryItemDescriptor {
         | "plugins"
         | "extends"
         | "ignores"
-        | "stylelintignore"
+        | "ignorefile"
         | "rules"
         | "options";
     extraClass?: string;
@@ -240,17 +240,16 @@ const summaryItems = computed<SummaryItemDescriptor[]>(() => {
     const extendsCount = props.config.extends?.length ?? 0;
     const rulesCount = Object.keys(props.config.rules ?? {}).length;
     const ignoresCount = props.config.ignores?.length ?? 0;
-    const stylelintIgnoreCount =
-        stylelintIgnoreInfo.value?.patterns.length ?? 0;
+    const ignoreFilePatternCount = ignoreFileInfo.value?.patterns.length ?? 0;
     return [
         {
-            key: "stylelintignore",
+            key: "ignorefile",
             icon: "i-ph-file-x-duotone",
-            number: stylelintIgnoreCount,
+            number: ignoreFilePatternCount,
             color: "text-fuchsia5 dark:text-fuchsia4",
-            title: ".stylelintignore",
-            clickable: stylelintIgnoreCount > 0,
-            section: "stylelintignore",
+            title: ".remarkignore",
+            clickable: ignoreFilePatternCount > 0,
+            section: "ignorefile",
         },
         {
             key: "ignores",
@@ -316,14 +315,14 @@ async function scrollToSection(
         | "plugins"
         | "extends"
         | "ignores"
-        | "stylelintignore"
+        | "ignorefile"
         | "rules"
         | "options"
 ) {
     open.value = true;
     if (section === "options") showAdditionalConfigs.value = true;
-    if (section === "stylelintignore" && stylelintIgnoreDetailsEl.value)
-        stylelintIgnoreDetailsEl.value.open = true;
+    if (section === "ignorefile" && ignoreFileDetailsEl.value)
+        ignoreFileDetailsEl.value.open = true;
 
     await nextTick();
 
@@ -332,7 +331,7 @@ async function scrollToSection(
         plugins: pluginsSectionEl.value,
         extends: extendsSectionEl.value,
         ignores: ignoresSectionEl.value,
-        stylelintignore: stylelintIgnoreSectionEl.value,
+        ignorefile: ignoreFileSectionEl.value,
         rules: rulesSectionEl.value,
         options: optionsSectionEl.value,
     }[section];
@@ -582,7 +581,7 @@ async function scrollToSection(
                     <div text-sm op65>
                         This shows config-level
                         <code>ignoreFiles</code> patterns, not entries from
-                        <code>.stylelintignore</code>.
+                        <code>.remarkignore</code>.
                     </div>
                     <div flex="~ gap-2 items-center wrap">
                         <GlobItem
@@ -596,25 +595,25 @@ async function scrollToSection(
                 </div>
             </div>
             <details
-                v-if="stylelintIgnoreInfo?.patterns.length"
-                ref="stylelintIgnoreDetailsEl"
+                v-if="ignoreFileInfo?.patterns.length"
+                ref="ignoreFileDetailsEl"
                 class="border border-fuchsia/18 rounded-lg bg-fuchsia/5 p3"
             >
                 <summary
-                    ref="stylelintIgnoreSectionEl"
+                    ref="ignoreFileSectionEl"
                     flex="~ gap-2 items-center wrap"
                     cursor-pointer
                     select-none
                 >
                     <div i-ph-file-x-duotone flex-none text-fuchsia5 />
-                    <span font-medium>.stylelintignore</span>
+                    <span font-medium>.remarkignore</span>
                     <code
                         class="rounded-full bg-fuchsia:10 px3 py0.5 text-fuchsia7 font-mono dark:text-fuchsia3"
                     >
-                        {{ stylelintIgnoreInfo.path }}
+                        {{ ignoreFileInfo.path }}
                     </code>
                     <span text-sm op60>
-                        {{ stylelintIgnoreInfo.patterns.length }} patterns
+                        {{ ignoreFileInfo.patterns.length }} patterns
                     </span>
                     <div
                         i-ph-caret-right
@@ -628,16 +627,16 @@ async function scrollToSection(
                     <div flex="~ col gap-2">
                         <div text-sm op65>
                             Workspace-level ignore patterns loaded from
-                            <code>.stylelintignore</code>.
+                            <code>.remarkignore</code>.
                         </div>
                         <div flex="~ gap-2 items-center wrap">
                             <GlobItem
                                 v-for="(
                                     glob, idx
-                                ) of stylelintIgnoreInfo.patterns"
+                                ) of ignoreFileInfo.patterns"
                                 :key="idx"
                                 :glob="glob"
-                                variant="stylelintignore"
+                                variant="ignore-file"
                                 :active="matchedGlobs?.includes(glob)"
                             />
                         </div>

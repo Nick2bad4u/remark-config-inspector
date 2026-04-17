@@ -10,7 +10,7 @@ const diagnostics = computed(() => payload.value.diagnostics ?? []);
 const configs = computed(() => payload.value.configs);
 const filesResolved = computed(() => payload.value.filesResolved);
 const extendsEntries = computed(() => payload.value.extendsInfo ?? []);
-const stylelintIgnore = computed(() => payload.value.meta.stylelintIgnore);
+const ignoreFile = computed(() => payload.value.meta.ignoreFile);
 
 const configSummary = computed(() => {
     const items = configs.value;
@@ -19,9 +19,9 @@ const configSummary = computed(() => {
         general: payload.value.configsGeneral.length,
         ignoreOnly: payload.value.configsIgnoreOnly.length,
         overrides: items.filter((config) =>
-            config.name?.startsWith("stylelint/override-")
+            config.name?.startsWith("remark/override-")
         ).length,
-        root: items.filter((config) => config.name === "stylelint/root").length,
+        root: items.filter((config) => config.name === "remark/root").length,
         withExtends: items.filter((config) => !!config.extends?.length).length,
         withPlugins: items.filter(
             (config) => Object.keys(config.plugins ?? {}).length > 0
@@ -180,9 +180,9 @@ const metadataHealth = computed(() => {
                         }}</code>
                     </div>
                     <div class="dev-kv">
-                        <span class="dev-label">.stylelintignore:</span>
+                        <span class="dev-label">.remarkignore:</span>
                         <code class="dev-value">{{
-                            payload.meta.stylelintIgnore?.path || "not found"
+                            payload.meta.ignoreFile?.path || "not found"
                         }}</code>
                     </div>
                 </div>
@@ -310,7 +310,7 @@ const metadataHealth = computed(() => {
                 <span font-medium>Metadata health</span>
             </div>
             <div mt1 text-sm op70>
-                (quality depends heavily on upstream Stylelint/plugin metadata)
+                (quality depends heavily on upstream remark/plugin metadata)
             </div>
 
             <div
@@ -554,14 +554,14 @@ const metadataHealth = computed(() => {
                     p3
                     dark:bg-white:4
                 >
-                    <div text-sm font-medium>.stylelintignore patterns</div>
+                    <div text-sm font-medium>.remarkignore patterns</div>
                     <div
-                        v-if="stylelintIgnore?.patterns.length"
+                        v-if="ignoreFile?.patterns.length"
                         mt2
                         flex="~ gap-2 wrap"
                     >
                         <code
-                            v-for="pattern in stylelintIgnore.patterns"
+                            v-for="pattern in ignoreFile.patterns"
                             :key="pattern"
                             class="rounded-full bg-fuchsia:10 px2.5 py0.5 text-xs text-fuchsia8 font-mono dark:text-fuchsia2"
                         >
@@ -569,7 +569,7 @@ const metadataHealth = computed(() => {
                         </code>
                     </div>
                     <div v-else mt2 text-sm op60>
-                        No <code>.stylelintignore</code> file was discovered.
+                        No <code>.remarkignore</code> file was discovered.
                     </div>
                 </div>
             </div>

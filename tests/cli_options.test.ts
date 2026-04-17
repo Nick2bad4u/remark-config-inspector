@@ -16,93 +16,93 @@ describe("normalizeCliInspectorOptions", () => {
     it("treats --file as an alias for --target", () => {
         expect(
             normalizeCliInspectorOptions({
-                file: "src/styles/app.css",
+                file: "docs/readme.md",
             }).target
-        ).toBe("src/styles/app.css");
+        ).toBe("docs/readme.md");
     });
 
     it("keeps explicit target over file alias input", () => {
         expect(
             normalizeCliInspectorOptions({
-                target: "src/explicit.css",
-                file: "src/alias.css",
+                target: "docs/explicit.md",
+                file: "docs/alias.md",
             }).target
-        ).toBe("src/explicit.css");
+        ).toBe("docs/explicit.md");
     });
 
-    it("uses Stylelint env vars when CLI values are absent", () => {
-        vi.stubEnv("STYLELINT_CONFIG", "stylelint.config.mjs");
-        vi.stubEnv("STYLELINT_BASE_PATH", "packages/web");
-        vi.stubEnv("STYLELINT_TARGET", "src/env.css");
+    it("uses remark env vars when CLI values are absent", () => {
+        vi.stubEnv("REMARK_CONFIG", ".remarkrc.mjs");
+        vi.stubEnv("REMARK_BASE_PATH", "packages/docs");
+        vi.stubEnv("REMARK_TARGET", "docs/env.md");
 
         expect(normalizeCliInspectorOptions({})).toMatchObject({
-            config: "stylelint.config.mjs",
-            basePath: "packages/web",
-            target: "src/env.css",
+            config: ".remarkrc.mjs",
+            basePath: "packages/docs",
+            target: "docs/env.md",
         });
     });
 
     it("prefers CLI file over env target fallback", () => {
-        vi.stubEnv("STYLELINT_TARGET", "src/from-env.css");
+        vi.stubEnv("REMARK_TARGET", "docs/from-env.md");
 
         expect(
             normalizeCliInspectorOptions({
-                file: "src/from-file.css",
+                file: "docs/from-file.md",
             }).target
-        ).toBe("src/from-file.css");
+        ).toBe("docs/from-file.md");
     });
 
     it("supports legacy ESLint env vars for compatibility", () => {
-        vi.stubEnv("ESLINT_TARGET", "src/legacy.css");
+        vi.stubEnv("ESLINT_TARGET", "docs/legacy.md");
 
-        expect(normalizeCliInspectorOptions({}).target).toBe("src/legacy.css");
+        expect(normalizeCliInspectorOptions({}).target).toBe("docs/legacy.md");
     });
 
-    it("falls back to legacy env var when primary stylelint env var is empty", () => {
-        vi.stubEnv("STYLELINT_TARGET", "");
-        vi.stubEnv("ESLINT_TARGET", "src/legacy-fallback.css");
+    it("falls back to legacy eslint env var when primary remark env var is empty", () => {
+        vi.stubEnv("REMARK_TARGET", "");
+        vi.stubEnv("ESLINT_TARGET", "docs/eslint-fallback.md");
 
         expect(normalizeCliInspectorOptions({}).target).toBe(
-            "src/legacy-fallback.css"
+            "docs/eslint-fallback.md"
         );
     });
 
     it("keeps explicit target even when env vars for config/basePath are present", () => {
-        vi.stubEnv("STYLELINT_CONFIG", "stylelint.config.mjs");
-        vi.stubEnv("STYLELINT_BASE_PATH", "packages/ui");
-        vi.stubEnv("STYLELINT_TARGET", "src/env.css");
+        vi.stubEnv("REMARK_CONFIG", ".remarkrc.mjs");
+        vi.stubEnv("REMARK_BASE_PATH", "packages/docs");
+        vi.stubEnv("REMARK_TARGET", "docs/env.md");
 
         const normalized = normalizeCliInspectorOptions({
-            target: "src/explicit.css",
+            target: "docs/explicit.md",
         });
 
-        expect(normalized.target).toBe("src/explicit.css");
-        expect(normalized.config).toBe("stylelint.config.mjs");
-        expect(normalized.basePath).toBe("packages/ui");
+        expect(normalized.target).toBe("docs/explicit.md");
+        expect(normalized.config).toBe(".remarkrc.mjs");
+        expect(normalized.basePath).toBe("packages/docs");
     });
 
     it("keeps explicit config/basePath values over env fallbacks", () => {
-        vi.stubEnv("STYLELINT_CONFIG", "stylelint.config.from-env.mjs");
-        vi.stubEnv("STYLELINT_BASE_PATH", "packages/from-env");
+        vi.stubEnv("REMARK_CONFIG", ".remarkrc.from-env.mjs");
+        vi.stubEnv("REMARK_BASE_PATH", "packages/from-env");
 
         const normalized = normalizeCliInspectorOptions({
-            config: "stylelint.config.explicit.mjs",
+            config: ".remarkrc.explicit.mjs",
             basePath: "packages/explicit",
         });
 
-        expect(normalized.config).toBe("stylelint.config.explicit.mjs");
+        expect(normalized.config).toBe(".remarkrc.explicit.mjs");
         expect(normalized.basePath).toBe("packages/explicit");
     });
 
-    it("falls back to legacy config/basePath env vars when primary vars are empty", () => {
-        vi.stubEnv("STYLELINT_CONFIG", "");
+    it("falls back to legacy eslint config/basePath env vars when primary vars are empty", () => {
+        vi.stubEnv("REMARK_CONFIG", "");
         vi.stubEnv("ESLINT_CONFIG", "eslint.compat.config.mjs");
-        vi.stubEnv("STYLELINT_BASE_PATH", "");
-        vi.stubEnv("ESLINT_BASE_PATH", "packages/legacy");
+        vi.stubEnv("REMARK_BASE_PATH", "");
+        vi.stubEnv("ESLINT_BASE_PATH", "packages/eslint-legacy");
 
         const normalized = normalizeCliInspectorOptions({});
 
         expect(normalized.config).toBe("eslint.compat.config.mjs");
-        expect(normalized.basePath).toBe("packages/legacy");
+        expect(normalized.basePath).toBe("packages/eslint-legacy");
     });
 });

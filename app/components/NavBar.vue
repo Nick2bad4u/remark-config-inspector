@@ -10,7 +10,7 @@ import { isFetching, payload } from "~/composables/payload";
 import { filtersRules as filters, stateStorage } from "~/composables/state";
 
 const lastUpdate = useTimeAgo(() => payload.value.meta.lastUpdate);
-const DEFAULT_TARGET_FILE = "stylelint-inspector-target.css";
+const DEFAULT_TARGET_FILE = "remark-inspector-target.md";
 const showTargetFile = computed(() => {
     const target = payload.value.meta.targetFilePath;
     if (!target) return false;
@@ -60,7 +60,7 @@ function showDeprecated() {
             <div flex="~ col gap-1 items-start" md:items-end md:text-right>
                 <a
                     class="inline-block text-xs font-200 font-mono op55"
-                    :href="`https://github.com/Nick2bad4u/Stylelint-Config-Inspector/releases/tag/v${version}`"
+                    :href="`https://github.com/Nick2bad4u/remark-config-inspector/releases/tag/v${version}`"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -78,21 +78,15 @@ function showDeprecated() {
                     text-violet7
                     dark:text-violet3
                 >
-                    <img
-                        src="/stylelint/stylelint-icon-black.svg"
-                        h-4.5
-                        w-4.5
-                        dark:brightness-185
-                        dark:invert
-                    />
+                    <div i-simple-icons-markdown h-4.5 w-4.5 />
                     <span>
                         Built for the
                         <a
-                            href="https://stylelint.io"
+                            href="https://github.com/remarkjs/remark-lint"
                             target="_blank"
                             rel="noopener noreferrer"
                             hover:underline
-                            >Stylelint ecosystem</a
+                            >remark ecosystem</a
                         >
                         with best-effort metadata normalization.
                     </span>
@@ -275,7 +269,7 @@ function showDeprecated() {
                 <div i-ph-sun-dim-duotone dark:i-ph-moon-stars-duotone />
             </button>
             <NuxtLink
-                href="https://github.com/Nick2bad4u/Stylelint-Config-Inspector"
+                href="https://github.com/Nick2bad4u/remark-config-inspector"
                 target="_blank"
                 btn-action
                 rounded-full

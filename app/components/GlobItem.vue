@@ -11,7 +11,7 @@ const props = withDefaults(
         glob: string;
         popup?: "files" | "configs";
         active?: boolean | null;
-        variant?: "default" | "files" | "ignore-files" | "stylelintignore";
+        variant?: "default" | "files" | "ignore-files" | "ignore-file";
     }>(),
     {
         active: null,
@@ -43,7 +43,7 @@ const variantClass = computed(() => {
         files: "border-sky/35 bg-sky:8 text-sky7 dark:text-sky3",
         "ignore-files":
             "border-purple/35 bg-purple:8 text-purple7 dark:text-purple3",
-        stylelintignore:
+        "ignore-file":
             "border-fuchsia/35 bg-fuchsia:8 text-fuchsia7 dark:text-fuchsia3",
     }[props.variant];
 });

@@ -1,102 +1,101 @@
 import type { Page } from "@playwright/test";
 import process from "node:process";
 
-export const pluginRuleName = "plugin/no-unsupported-browser-features";
-export const extendSpecifier = "stylelint-config-recommended";
-export const secondaryExtendSpecifier = "@scope/stylelint-config-team";
+export const pluginRuleName = "remark-lint-no-dead-urls";
+export const extendSpecifier = "remark-preset-lint-recommended";
+export const secondaryExtendSpecifier = "@scope/remark-preset-lint-team";
 
 export const MOCK_PAYLOAD = {
     meta: {
         basePath: process.cwd(),
-        configPath: "stylelint.config.mjs",
-        engine: "stylelint",
+        configPath: ".remarkrc.mjs",
+        engine: "remark",
         lastUpdate: Date.now(),
-        targetFilePath: "src/example.css",
+        targetFilePath: "docs/example.md",
     },
     configs: [
         {
             index: 0,
-            name: "stylelint/root",
+            name: "remark/root",
             rules: {
                 [pluginRuleName]: [
                     true,
                     {
-                        browsers: ["last 2 chrome versions"],
+                        skipOffline: true,
                     },
                 ],
-                "stylelint/color-hex-length": "short",
+                "remark-lint-final-newline": true,
             },
             plugins: {
-                "stylelint-no-unsupported-browser-features": {},
+                "remark-lint-no-dead-urls": {},
             },
             extends: [extendSpecifier],
         },
         {
             index: 1,
-            name: "stylelint/override-1",
-            files: ["**/*.css"],
+            name: "remark/override-1",
+            files: ["**/*.md"],
             rules: {
-                "stylelint/alpha-value-notation": "percentage",
+                "remark-lint-maximum-line-length": 80,
             },
             extends: [secondaryExtendSpecifier],
         },
         {
             index: 2,
-            name: "stylelint/declared-only",
-            files: ["**/*.scss"],
+            name: "remark/declared-only",
+            files: ["**/*.mdx"],
             rules: {
-                "stylelint/at-rule-no-unknown": true,
+                "remark-lint-no-undefined-references": true,
             },
         },
     ],
     rules: {
         [pluginRuleName]: {
             name: pluginRuleName,
-            plugin: "no-unsupported-browser-features",
-            pluginPackageName: "stylelint-no-unsupported-browser-features",
+            plugin: "no-dead-urls",
+            pluginPackageName: "remark-lint-no-dead-urls",
             fixable: false,
             docs: {
-                description: "Disallow unsupported browser features.",
+                description: "Disallow dead URLs.",
                 descriptionSource: "meta",
                 recommended: false,
                 url: "https://example.com/plugin-rule",
                 urlSource: "meta",
             },
         },
-        "stylelint/color-hex-length": {
-            name: "stylelint/color-hex-length",
-            plugin: "stylelint",
+        "remark-lint-final-newline": {
+            name: "remark-lint-final-newline",
+            plugin: "remark-lint",
             fixable: true,
             docs: {
-                description: "Specify short or long notation for hex colors.",
+                description: "Warn when files do not end with a final newline.",
                 descriptionSource: "meta",
                 recommended: true,
-                url: "https://example.com/color-hex-length",
+                url: "https://example.com/final-newline",
                 urlSource: "meta",
             },
         },
-        "stylelint/alpha-value-notation": {
-            name: "stylelint/alpha-value-notation",
-            plugin: "stylelint",
+        "remark-lint-maximum-line-length": {
+            name: "remark-lint-maximum-line-length",
+            plugin: "remark-lint",
             fixable: true,
             docs: {
-                description:
-                    "Specify number or percentage notation for alpha values.",
+                description: "Warn when lines exceed the configured maximum length.",
                 descriptionSource: "meta",
                 recommended: true,
-                url: "https://example.com/alpha-value-notation",
+                url: "https://example.com/maximum-line-length",
                 urlSource: "meta",
             },
         },
-        "stylelint/at-rule-no-unknown": {
-            name: "stylelint/at-rule-no-unknown",
-            plugin: "stylelint",
+        "remark-lint-no-undefined-references": {
+            name: "remark-lint-no-undefined-references",
+            plugin: "remark-lint",
             fixable: false,
             docs: {
-                description: "Disallow unknown at-rules.",
+                description: "Disallow references that were not previously defined.",
                 descriptionSource: "meta",
                 recommended: true,
-                url: "https://example.com/at-rule-no-unknown",
+                url: "https://example.com/no-undefined-references",
                 urlSource: "meta",
             },
         },
@@ -104,13 +103,13 @@ export const MOCK_PAYLOAD = {
     diagnostics: [],
     files: [
         {
-            filepath: "src/example.css",
-            globs: ["**/*.css", "src/**/*.css"],
+            filepath: "docs/example.md",
+            globs: ["**/*.md", "docs/**/*.md"],
             configs: [1],
         },
         {
-            filepath: "src/legacy.css",
-            globs: ["**/*.css", "src/**/*.css"],
+            filepath: "docs/legacy.md",
+            globs: ["**/*.md", "docs/**/*.md"],
             configs: [1],
         },
     ],
@@ -118,23 +117,20 @@ export const MOCK_PAYLOAD = {
         {
             specifier: extendSpecifier,
             source: "package",
-            packageName: "stylelint-config-recommended",
-            docsUrl: "https://example.com/stylelint-config-recommended",
+            packageName: "remark-preset-lint-recommended",
+            docsUrl: "https://example.com/remark-preset-lint-recommended",
             docsUrlSource: "meta",
             ruleCount: 2,
-            rules: [
-                "stylelint/color-hex-length",
-                "stylelint/alpha-value-notation",
-            ],
+            rules: ["remark-lint-final-newline", "remark-lint-maximum-line-length"],
             usedByConfigIndexes: [0],
         },
         {
             specifier: secondaryExtendSpecifier,
             source: "package",
-            packageName: "@scope/stylelint-config-team",
-            description: "Team conventions for stylelint baselines.",
+            packageName: "@scope/remark-preset-lint-team",
+            description: "Team conventions for markdown lint baselines.",
             ruleCount: 1,
-            rules: ["stylelint/at-rule-no-unknown"],
+            rules: ["remark-lint-no-undefined-references"],
             usedByConfigIndexes: [1],
         },
     ],

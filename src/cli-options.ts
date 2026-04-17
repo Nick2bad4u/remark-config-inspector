@@ -8,7 +8,10 @@ export interface CliInspectorOptions {
     target?: string;
 }
 
-function getEnvValue(primary: string, legacy: string): string | undefined {
+function getEnvValueWithLegacy(
+    primary: string,
+    legacy: string
+): string | undefined {
     return process.env[primary] || process.env[legacy];
 }
 
@@ -23,14 +26,15 @@ export function normalizeCliInspectorOptions<T extends CliInspectorOptions>(
     return {
         ...options,
         config:
-            options.config ?? getEnvValue("STYLELINT_CONFIG", "ESLINT_CONFIG"),
+            options.config ??
+            getEnvValueWithLegacy("REMARK_CONFIG", "ESLINT_CONFIG"),
         basePath:
             options.basePath ??
-            getEnvValue("STYLELINT_BASE_PATH", "ESLINT_BASE_PATH"),
+            getEnvValueWithLegacy("REMARK_BASE_PATH", "ESLINT_BASE_PATH"),
         target:
             options.target ??
             options.file ??
-            getEnvValue("STYLELINT_TARGET", "ESLINT_TARGET") ??
+            getEnvValueWithLegacy("REMARK_TARGET", "ESLINT_TARGET") ??
             DEFAULT_TARGET_FILE,
     };
 }

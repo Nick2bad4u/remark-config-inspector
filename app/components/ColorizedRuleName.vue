@@ -55,7 +55,7 @@ const displayScope = computed(() => {
         return undefined;
     }
 
-    if (props.hideCorePrefix && parsed.value.scope === "stylelint")
+    if (props.hideCorePrefix && parsed.value.scope === "remark-lint")
         return undefined;
 
     return parsed.value.scope;

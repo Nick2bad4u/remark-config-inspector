@@ -21,7 +21,7 @@ async function filterToRule(
 }
 
 test.describe("rules page regressions", () => {
-    test("built-in rules hide stylelint prefix and show built-in/source details in popup", async ({
+    test("built-in rules show source details in popup", async ({
         page,
     }) => {
         await openRulesPage(page);
@@ -30,17 +30,17 @@ test.describe("rules page regressions", () => {
             .locator("div")
             .filter({
                 has: page.locator(
-                    '.colorized-rule-name[title="stylelint/color-hex-length"]'
+                    '.colorized-rule-name[title="remark-lint-final-newline"]'
                 ),
             })
             .first();
         const coreRuleBadge = coreRuleRow
-            .locator('.colorized-rule-name[title="stylelint/color-hex-length"]')
+            .locator(
+                '.colorized-rule-name[title="remark-lint-final-newline"]'
+            )
             .first();
         await expect(coreRuleBadge).toBeVisible();
-        await expect(coreRuleBadge).toContainText("color-hex-length");
-        await expect(coreRuleBadge).not.toContainText("stylelint/");
-        await expect(coreRuleBadge).not.toContainText("/color-hex-length");
+        await expect(coreRuleBadge).toContainText("remark-lint-final-newline");
 
         await coreRuleBadge.click();
         const popup = page
@@ -48,9 +48,8 @@ test.describe("rules page regressions", () => {
             .filter({ hasText: "Copy name" })
             .first();
         await expect(popup).toContainText("Rule source");
-        await expect(popup).toContainText("stylelint");
-        await expect(popup).toContainText("Built-in rule · omit");
-        await expect(popup).not.toContainText("stylelint-stylelint");
+        await expect(popup).toContainText("remark-lint");
+        await expect(popup).toContainText("Built-in remark-lint rule package");
     });
 
     test("plugin chips can narrow rule list and reset back to all plugins", async ({
@@ -62,7 +61,7 @@ test.describe("rules page regressions", () => {
             hasText: "All plugins",
         });
         const pluginChip = page.locator(".plugin-filter-button", {
-            hasText: "no-unsupported-browser-features",
+            hasText: "no-dead-urls",
         });
 
         await expect(pluginChip).toBeVisible();
@@ -85,7 +84,7 @@ test.describe("rules page regressions", () => {
         await openRulesPage(page);
 
         const search = page.getByPlaceholder("Search rules...");
-        await search.fill(pluginRuleName);
+        await search.fill("dead-urls");
 
         await expect(
             page.getByRole("button", { name: /clear filter/i })
@@ -103,7 +102,7 @@ test.describe("rules page regressions", () => {
         await openRulesPage(page);
 
         const search = page.getByPlaceholder("Search rules...");
-        await search.fill(pluginRuleName.toUpperCase());
+        await search.fill("DEAD-URLS");
 
         await expect(page.locator(".colorized-rule-name")).toHaveCount(1);
         await expect(
@@ -133,12 +132,12 @@ test.describe("rules page regressions", () => {
         await expect(rulePopup).toBeVisible();
         await expect(rulePopup).toContainText("Rule name");
         await expect(rulePopup).toContainText("Plugin package");
-        await expect(rulePopup).toContainText(
-            "stylelint-no-unsupported-browser-features"
-        );
-        await expect(rulePopup).toContainText("generic plugin/ prefix");
+        await expect(rulePopup).toContainText("remark-lint-no-dead-urls");
         await expect(
-            rulePopup.locator("code").filter({ hasText: pluginRuleName })
+            rulePopup
+                .locator("code")
+                .filter({ hasText: pluginRuleName })
+                .first()
         ).toBeVisible();
     });
 

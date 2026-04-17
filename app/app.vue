@@ -67,7 +67,7 @@ init(config.app.baseURL);
         <ConfigInspectorBadge mb6 text-xl font-200 />
 
         <div text-2xl text-red5 font-bold>
-            Failed to resolve Stylelint config<br />
+            Failed to resolve remark config<br />
         </div>
 
         <div text-lg text-red font-mono>
@@ -77,10 +77,10 @@ init(config.app.baseURL);
         <div mt6 op50>
             Note that
             <a
-                href="https://stylelint.io/user-guide/configure"
+                href="https://github.com/remarkjs/remark-lint#configuration"
                 target="_blank"
                 hover:underline
-                >Stylelint configuration</a
+                >remark-lint configuration</a
             >
             must be discoverable for the selected target file.
         </div>

@@ -11,7 +11,7 @@ describe("config shape helpers", () => {
     it("treats ignore-only config with metadata as ignore-only and general", () => {
         const config = {
             index: 0,
-            name: "stylelint/root",
+            name: "remark/root",
             ignores: ["dist/**"],
         };
 
@@ -22,9 +22,9 @@ describe("config shape helpers", () => {
     it("treats configs with files constraints as non-general", () => {
         const config = {
             index: 1,
-            files: ["**/*.css"],
+            files: ["**/*.md"],
             rules: {
-                "color-no-invalid-hex": true,
+                "remark-lint-final-newline": true,
             },
         };
 
@@ -34,8 +34,8 @@ describe("config shape helpers", () => {
 
     it("matches both positive and negated globs in declaration order", () => {
         expect(
-            getMatchedGlobs("src/styles/app.css", ["**/*.css", "!src/**"])
-        ).toEqual(["**/*.css", "!src/**"]);
+            getMatchedGlobs("docs/guide.md", ["**/*.md", "!docs/**"])
+        ).toEqual(["**/*.md", "!docs/**"]);
     });
 });
 
@@ -126,12 +126,12 @@ describe("matchFile", () => {
     describe("config matching", () => {
         it("matches general configs without explicit files globs", () => {
             const result = matchFile(
-                "src/styles/app.css",
+                "docs/guide.md",
                 [
                     {
                         index: 0,
                         rules: {
-                            "color-no-invalid-hex": true,
+                            "remark-lint-final-newline": true,
                         },
                     },
                 ],
@@ -139,7 +139,7 @@ describe("matchFile", () => {
             );
 
             expect(result).toEqual({
-                filepath: "src/styles/app.css",
+                filepath: "docs/guide.md",
                 globs: [],
                 configs: [0],
             });
@@ -277,23 +277,23 @@ describe("buildConfigArray", () => {
             [
                 {
                     index: 0,
-                    files: ["**/*.css"],
+                    files: ["**/*.md"],
                     rules: {
-                        "stylelint/color-hex-length": "short",
+                        "remark-lint-final-newline": "always",
                     },
                 },
                 {
                     index: 1,
-                    files: ["src/**/*.css"],
+                    files: ["docs/**/*.md"],
                     rules: {
-                        "stylelint/alpha-value-notation": "percentage",
+                        "remark-lint-maximum-line-length": 80,
                     },
                 },
             ],
             process.cwd()
         );
 
-        const merged = configArray.getConfig("src/app.css");
+        const merged = configArray.getConfig("docs/guide.md");
         const mergedIndexes = (merged?.index ?? []).filter(
             (index): index is number => typeof index === "number"
         );
@@ -306,23 +306,23 @@ describe("buildConfigArray", () => {
             [
                 {
                     index: 0,
-                    files: ["src/**/*.css"],
+                    files: ["docs/**/*.md"],
                     rules: {
-                        "stylelint/color-hex-length": "short",
+                        "remark-lint-final-newline": "always",
                     },
                 },
                 {
                     index: 1,
-                    files: ["src/**/*.scss"],
+                    files: ["docs/**/*.mdx"],
                     rules: {
-                        "stylelint/alpha-value-notation": "percentage",
+                        "remark-lint-maximum-line-length": 80,
                     },
                 },
             ],
             process.cwd()
         );
 
-        const outsideSrc = configArray.getConfig("test/fixture.css");
+        const outsideSrc = configArray.getConfig("test/fixture.md");
 
         expect(outsideSrc).toBeUndefined();
     });

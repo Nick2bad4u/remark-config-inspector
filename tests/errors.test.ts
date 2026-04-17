@@ -28,8 +28,8 @@ describe("config inspector errors", () => {
             .spyOn(console, "error")
             .mockImplementation(() => undefined);
         const error = new ConfigPathError("/repo", [
-            "stylelint.config.js",
-            "stylelint.config.mjs",
+            ".remarkrc",
+            ".remarkrc.mjs",
         ]);
 
         error.prettyPrint();
@@ -43,18 +43,18 @@ describe("config inspector errors", () => {
             details,
         ] = spy.mock.calls[0] ?? [];
         expect(mark).toBe(MARK_ERROR);
-        expect(headline).toBe("Cannot find Stylelint config file");
+        expect(headline).toBe("Cannot find Remark config file");
         expect(typeof details).toBe("string");
         expect(details).toContain("/repo");
-        expect(details).toContain("stylelint.config.js");
-        expect(details).toContain("stylelint.config.mjs");
+        expect(details).toContain(".remarkrc");
+        expect(details).toContain(".remarkrc.mjs");
     });
 
     it("prints legacy config migration guidance with filename and docs URL", () => {
         const spy = vi
             .spyOn(console, "error")
             .mockImplementation(() => undefined);
-        const error = new ConfigPathLegacyError("/repo", ".stylelintrc");
+        const error = new ConfigPathLegacyError("/repo", ".remarkrc.json");
 
         error.prettyPrint();
 
@@ -67,10 +67,10 @@ describe("config inspector errors", () => {
             details,
         ] = spy.mock.calls[0] ?? [];
         expect(mark).toBe(MARK_ERROR);
-        expect(headline).toBe("Found legacy Stylelint config file");
+        expect(headline).toBe("Found legacy Remark config file");
         expect(typeof details).toBe("string");
-        expect(details).toContain(".stylelintrc");
+        expect(details).toContain(".remarkrc.json");
         expect(details).toContain("/repo");
-        expect(details).toContain("https://stylelint.io/user-guide/configure");
+        expect(details).toContain("github.com/remarkjs/remark");
     });
 });

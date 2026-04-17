@@ -14,7 +14,7 @@ export class ConfigPathError extends ConfigInspectorError {
         public basePath: string,
         public configFilenames: readonly string[]
     ) {
-        super("Cannot find Stylelint config file");
+        super("Cannot find Remark config file");
     }
 
     override prettyPrint(): void {
@@ -37,7 +37,7 @@ export class ConfigPathLegacyError extends ConfigInspectorError {
         public basePath: string,
         public configFilename: string
     ) {
-        super("Found legacy Stylelint config file");
+        super("Found legacy Remark config file");
     }
 
     override prettyPrint(): void {
@@ -46,10 +46,10 @@ export class ConfigPathLegacyError extends ConfigInspectorError {
             this.message,
             c.dim(`
 
-Encountered legacy Stylelint config ${c.underline(this.configFilename)} in ${c.underline(this.basePath)}
+Encountered legacy Remark config ${c.underline(this.configFilename)} in ${c.underline(this.basePath)}
 
-Prefer modern Stylelint config filenames:
-https://stylelint.io/user-guide/configure`)
+Prefer modern remark config filenames:
+https://github.com/remarkjs/remark/tree/main/packages/remark-cli#example-config-files-json-yaml-js`)
         );
     }
 }

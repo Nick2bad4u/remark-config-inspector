@@ -1,10 +1,9 @@
 import type { FlatConfigItem } from "./types";
 
 const FILE_EXTENSION_SUFFIX_RE = /\.[^.]+$/;
-const STYLELINT_PLUGIN_PREFIX_RE = /^stylelint-plugin-/;
-const STYLELINT_PACKAGE_PREFIX_RE = /^stylelint-/;
-const SCOPED_STYLELINT_PLUGIN_RE = /^(@[^/]+)\/stylelint-plugin(?:-(.+))?$/;
-const SCOPED_STYLELINT_PACKAGE_RE = /^(@[^/]+)\/stylelint-(.+)$/;
+const REMARK_LINT_PACKAGE_PREFIX_RE = /^remark-lint-.+$/;
+const SCOPED_REMARK_LINT_PACKAGE_RE = /^(@[^/]+)\/remark-lint(?:-(.+))?$/;
+const REMARK_PRESET_LINT_PREFIX_RE = /^remark-preset-lint-.+$/;
 
 function normalizePluginSet(plugins: Iterable<string>): Set<string> {
     return new Set(
@@ -16,8 +15,10 @@ function normalizePluginSet(plugins: Iterable<string>): Set<string> {
 }
 
 export function getRulePluginName(ruleName: string): string {
+    if (ruleName.startsWith("remark-lint-")) return "remark-lint";
+
     const segments = ruleName.split("/").filter(Boolean);
-    if (!segments.length) return "";
+    if (!segments.length || segments.length === 1) return "";
 
     if (segments[0]?.startsWith("@") === true) {
         const scope = segments[0];
@@ -43,7 +44,6 @@ export function getConfigRulePlugins(
 
     return new Set(
         Object.keys(rules)
-            .filter((name) => name.includes("/"))
             .map((name) => getRulePluginName(name))
             .filter(Boolean)
     );
@@ -54,14 +54,19 @@ export function toPluginFilterCandidates(name: string): string[] {
     if (trimmed.length === 0) return [];
 
     const candidates = new Set<string>([trimmed]);
-    const scopedPluginMatch = SCOPED_STYLELINT_PLUGIN_RE.exec(trimmed);
-    if (scopedPluginMatch) {
-        const scope = scopedPluginMatch[1];
-        const suffix = scopedPluginMatch[2];
+
+    const scopedRemarkLintMatch = SCOPED_REMARK_LINT_PACKAGE_RE.exec(trimmed);
+    if (scopedRemarkLintMatch) {
+        const scope = scopedRemarkLintMatch[1];
+        const suffix = scopedRemarkLintMatch[2];
 
         if (typeof scope === "string" && scope.length > 0) {
             candidates.add(scope);
+            candidates.add(`${scope}/remark-lint`);
         }
+
+        candidates.add("remark-lint");
+
         if (
             typeof scope === "string" &&
             scope.length > 0 &&
@@ -70,58 +75,31 @@ export function toPluginFilterCandidates(name: string): string[] {
         ) {
             candidates.add(`${scope}/${suffix}`);
         }
-        if (typeof suffix === "string" && suffix.length > 0) {
+
+        if (typeof suffix === "string" && suffix.length > 0)
             candidates.add(suffix);
-        }
     }
 
-    const scopedPackageMatch = SCOPED_STYLELINT_PACKAGE_RE.exec(trimmed);
-    if (scopedPackageMatch) {
-        const scope = scopedPackageMatch[1];
-        const suffix = scopedPackageMatch[2];
-        if (typeof scope === "string" && scope.length > 0) {
-            candidates.add(scope);
-        }
-        if (
-            typeof scope === "string" &&
-            scope.length > 0 &&
-            typeof suffix === "string" &&
-            suffix.length > 0
-        ) {
-            candidates.add(`${scope}/${suffix}`);
-        }
-        if (typeof suffix === "string" && suffix.length > 0) {
-            candidates.add(suffix);
-        }
+    if (REMARK_LINT_PACKAGE_PREFIX_RE.test(trimmed))
+        candidates.add("remark-lint");
+
+    if (REMARK_PRESET_LINT_PREFIX_RE.test(trimmed)) {
+        candidates.add("remark-preset-lint");
+        candidates.add("remark-lint");
     }
-
-    if (trimmed.startsWith("stylelint-plugin-"))
-        candidates.add(trimmed.replace(STYLELINT_PLUGIN_PREFIX_RE, ""));
-
-    if (trimmed.startsWith("stylelint-") && trimmed !== "stylelint")
-        candidates.add(trimmed.replace(STYLELINT_PACKAGE_PREFIX_RE, ""));
 
     const tail = trimmed.split("/").at(-1);
     if (typeof tail === "string" && tail.length > 0) {
         candidates.add(tail);
         const tailWithoutExt = tail.replace(FILE_EXTENSION_SUFFIX_RE, "");
         if (tailWithoutExt.length > 0) candidates.add(tailWithoutExt);
-        if (tail.startsWith("stylelint-plugin-"))
-            candidates.add(tail.replace(STYLELINT_PLUGIN_PREFIX_RE, ""));
-        if (tailWithoutExt.startsWith("stylelint-plugin-")) {
-            candidates.add(
-                tailWithoutExt.replace(STYLELINT_PLUGIN_PREFIX_RE, "")
-            );
-        }
-        if (tail.startsWith("stylelint-") && tail !== "stylelint")
-            candidates.add(tail.replace(STYLELINT_PACKAGE_PREFIX_RE, ""));
-        if (
-            tailWithoutExt.startsWith("stylelint-") &&
-            tailWithoutExt !== "stylelint"
-        ) {
-            candidates.add(
-                tailWithoutExt.replace(STYLELINT_PACKAGE_PREFIX_RE, "")
-            );
+
+        if (REMARK_LINT_PACKAGE_PREFIX_RE.test(tailWithoutExt))
+            candidates.add("remark-lint");
+
+        if (REMARK_PRESET_LINT_PREFIX_RE.test(tailWithoutExt)) {
+            candidates.add("remark-preset-lint");
+            candidates.add("remark-lint");
         }
     }
 

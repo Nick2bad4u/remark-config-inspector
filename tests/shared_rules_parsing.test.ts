@@ -19,7 +19,7 @@ describe("rule parsing helpers", () => {
         expect(getRuleLevel(["always", { severity: "warning" }])).toBe("warn");
     });
 
-    it("maps canonical stylelint numeric and string levels", () => {
+    it("maps canonical numeric and string levels", () => {
         expect(getRuleLevel(1)).toBe("warn");
         expect(getRuleLevel("warn")).toBe("warn");
         expect(getRuleLevel("warning")).toBe("warn");
@@ -43,6 +43,8 @@ describe("rule parsing helpers", () => {
 
         expect(getRulePrimaryOption(true)).toBe(true);
         expect(getRulePrimaryOption("always")).toBe("always");
+        expect(getRulePrimaryOption([1, 72])).toBe(72);
+        expect(getRulePrimaryOption(["warn", "*"])).toBe("*");
     });
 
     it("extracts secondary options from tuple rule entries without mutating input", () => {
@@ -56,5 +58,21 @@ describe("rule parsing helpers", () => {
         expect(options).toEqual([{ except: ["first-nested"] }, "custom"]);
         expect(options).not.toBe(entry);
         expect(getRuleOptions("always")).toBeUndefined();
+    });
+
+    it("treats severity-first tuples as remark-style entries", () => {
+        expect(getRuleLevel([1, 72])).toBe("warn");
+        expect(getRuleLevel(["error", "*"])).toBe("error");
+
+        expect(getRuleOptions([1, 72])).toEqual([]);
+        expect(
+            getRuleOptions([
+                "warn",
+                "*",
+                { allow: true },
+            ])
+        ).toEqual([
+            { allow: true },
+        ]);
     });
 });

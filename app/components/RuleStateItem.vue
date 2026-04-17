@@ -180,7 +180,7 @@ function goto() {
             <template v-if="ruleOptions.viewType === 'default'">
                 <div v-if="!hasStateOptions" op50>
                     No explicit options are configured in this state; showing
-                    Stylelint defaults.
+                    rule defaults.
                 </div>
                 <Shiki
                     v-for="(options, idx) of defaultOptions"

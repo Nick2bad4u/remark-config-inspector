@@ -1,28 +1,22 @@
 import c from "ansis";
 
-export const stylelintConfigFilenames: readonly string[] = [
-    "stylelint.config.js",
-    "stylelint.config.mjs",
-    "stylelint.config.cjs",
-    "stylelint.config.ts",
-    "stylelint.config.mts",
-    "stylelint.config.cts",
+export const remarkConfigFilenames: readonly string[] = [
+    ".remarkrc",
+    ".remarkrc.cjs",
+    ".remarkrc.json",
+    ".remarkrc.js",
+    ".remarkrc.mjs",
+    ".remarkrc.yaml",
+    ".remarkrc.yml",
+    "package.json",
 ];
 
-export const stylelintLegacyConfigFilenames: readonly string[] = [
-    ".stylelintrc",
-    ".stylelintrc.js",
-    ".stylelintrc.mjs",
-    ".stylelintrc.cjs",
-    ".stylelintrc.yaml",
-    ".stylelintrc.yml",
-    ".stylelintrc.json",
-];
+export const remarkLegacyConfigFilenames: readonly string[] = [];
 
-export const configFilenames: readonly string[] = stylelintConfigFilenames;
+export const configFilenames: readonly string[] = remarkConfigFilenames;
 export const legacyConfigFilenames: readonly string[] =
-    stylelintLegacyConfigFilenames;
-export const DEFAULT_TARGET_FILE = "stylelint-inspector-target.css";
+    remarkLegacyConfigFilenames;
+export const DEFAULT_TARGET_FILE = "remark-inspector-target.md";
 
 export const MARK_CHECK: string = c.green("✔");
 export const MARK_INFO: string = c.blue("ℹ");

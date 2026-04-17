@@ -4,7 +4,7 @@ import { ConfigArray } from "@eslint/config-array";
 import { Minimatch } from "minimatch";
 
 export const DEFAULT_WORKSPACE_SCAN_GLOBS: readonly string[] = [
-    "**/*.{css,scss,sass,less,pcss,sss,styl,stylus,vue,svelte,astro,html}",
+    "**/*.{md,markdown,mdown,mkdn,mkd,mkdown,mdx}",
 ];
 
 const minimatchOpts: MinimatchOptions = { dot: true };

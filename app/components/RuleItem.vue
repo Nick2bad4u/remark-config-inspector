@@ -15,7 +15,7 @@ import { getRuleDefaultOptions } from "~/composables/payload";
 const props = defineProps<{
     rule: RuleInfo;
     ruleStates?: RuleConfigStates;
-    value?: any;
+    value?: unknown;
     class?: string;
     gridView?: boolean;
     dimDisabled?: boolean;
@@ -226,27 +226,25 @@ const dimRuleClass = computed(() =>
 const hasRuleStates = computed(() => (props.ruleStates?.length ?? 0) > 0);
 const hasLocalValue = computed(() => props.value !== undefined);
 
-const isCoreStylelintRule = computed(() => {
-    if (props.rule.plugin === "stylelint") return true;
-
-    return props.rule.name.startsWith("stylelint/");
+const isCoreRemarkRule = computed(() => {
+    return props.rule.plugin === "remark-lint";
 });
 
 const builtInRuleHint =
-    "Built-in stylelint rule: Do not use a prefix in your config.";
+    "Built-in remark-lint rule from the core remark-lint plugin collection.";
 
 const pluginPackageName = computed(() => {
-    if (isCoreStylelintRule.value) return "stylelint";
+    if (isCoreRemarkRule.value) return "remark-lint";
 
     if (props.rule.pluginPackageName) return props.rule.pluginPackageName;
 
-    if (props.rule.plugin) return `stylelint-${props.rule.plugin}`;
+    if (props.rule.plugin) return props.rule.plugin;
 
     return undefined;
 });
 
 const pluginSourceLabel = computed(() =>
-    isCoreStylelintRule.value ? "Rule source" : "Plugin package"
+    isCoreRemarkRule.value ? "Rule source" : "Plugin package"
 );
 
 const pluginDisplayName = computed(() => {
@@ -258,7 +256,7 @@ const pluginDisplayName = computed(() => {
 });
 
 const pluginColorStyle = computed(() => {
-    const key = pluginPackageName.value || props.rule.plugin || "stylelint";
+    const key = pluginPackageName.value || props.rule.plugin || "remark-lint";
     const color = getPluginColor(key);
 
     return {
@@ -337,7 +335,7 @@ const pluginPrefixHint = computed(() => {
         <VDropdown>
             <div min-w-0 w-full inline-flex items-center gap-1>
                 <span
-                    v-if="isCoreStylelintRule"
+                    v-if="isCoreRemarkRule"
                     v-tooltip="builtInRuleHint"
                     class="inline-flex flex-none cursor-help items-center text-violet6 op75 dark:text-violet3"
                     :title="builtInRuleHint"
@@ -412,15 +410,10 @@ const pluginPrefixHint = computed(() => {
                                 {{ pluginDisplayName }}
                             </code>
                             <span
-                                v-if="isCoreStylelintRule"
+                                v-if="isCoreRemarkRule"
                                 class="inline-flex border border-violet/30 rounded-full bg-violet/8 px2 py0.5 text-xs text-violet7 dark:text-violet3"
                             >
-                                Built-in rule · omit
-                                <span
-                                    class="mx1 text-violet8 font-mono dark:text-violet2"
-                                    >stylelint/</span
-                                >
-                                in config
+                                Built-in remark-lint rule package
                             </span>
                         </div>
                         <div

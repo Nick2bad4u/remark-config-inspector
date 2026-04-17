@@ -10,142 +10,141 @@ import {
 } from "../shared/config-plugin-filters";
 
 describe("config plugin filters", () => {
-    it("maps plugin package names to the corresponding rule plugin filter", () => {
-        const knownRulePlugins = new Set(["defensive-css", "@acme/layout"]);
+    it("maps remark plugin package names to the corresponding rule plugin filter", () => {
+        const knownRulePlugins = new Set(["remark-lint", "@acme/remark-lint"]);
 
         expect(
             resolveConfigPluginFilter(
-                "stylelint-plugin-defensive-css",
+                "remark-lint-no-dead-urls",
                 knownRulePlugins
             )
-        ).toBe("defensive-css");
+        ).toBe("remark-lint");
 
         expect(
             resolveConfigPluginFilter(
-                "@acme/stylelint-plugin-layout",
+                "@acme/remark-lint-table-pipe-alignment",
                 knownRulePlugins
             )
-        ).toBe("@acme/layout");
+        ).toBe("@acme/remark-lint");
     });
 
     it("collects config plugin filters from explicit plugins and configured rule prefixes", () => {
-        const knownRulePlugins = new Set(["defensive-css", "@acme/layout"]);
+        const knownRulePlugins = new Set(["remark-lint", "@acme/remark-lint"]);
         const config = {
             index: 0,
             plugins: {
-                "stylelint-plugin-defensive-css": {},
-                "@acme/stylelint-plugin-layout": {},
+                "remark-lint-no-dead-urls": {},
+                "@acme/remark-lint-table-pipe-alignment": {},
             },
             rules: {
-                "defensive-css/require-background-repeat": true,
-                "@acme/layout/no-gap-hack": true,
-                "color-no-invalid-hex": true,
+                "remark-lint-final-newline": true,
+                "@acme/remark-lint/no-gap-hack": true,
+                "no-empty-url": true,
             },
         };
 
         expect(getConfigPluginFilters(config, knownRulePlugins)).toEqual([
-            "@acme/layout",
-            "defensive-css",
+            "@acme/remark-lint",
+            "remark-lint",
         ]);
     });
 
     it("matches configs against selected plugin filters", () => {
-        const knownRulePlugins = new Set(["defensive-css"]);
+        const knownRulePlugins = new Set(["remark-lint"]);
         const config = {
             index: 0,
             plugins: {
-                "stylelint-plugin-defensive-css": {},
+                "remark-lint-no-dead-urls": {},
             },
             rules: {
-                "defensive-css/require-background-repeat": true,
+                "remark-lint-final-newline": true,
             },
         };
 
         expect(
-            configMatchesPluginFilters(
-                config,
-                ["defensive-css"],
-                knownRulePlugins
-            )
+            configMatchesPluginFilters(config, ["remark-lint"], knownRulePlugins)
         ).toBe(true);
         expect(
-            configMatchesPluginFilters(config, ["stylelint"], knownRulePlugins)
+            configMatchesPluginFilters(config, ["remark"], knownRulePlugins)
         ).toBe(false);
     });
 
     it("matches rule names against selected plugin filters", () => {
         expect(
-            ruleMatchesPluginFilters(
-                "defensive-css/require-background-repeat",
-                ["defensive-css"]
-            )
-        ).toBe(true);
-        expect(
-            ruleMatchesPluginFilters("@acme/layout/no-gap-hack", [
-                "@acme/layout",
+            ruleMatchesPluginFilters("remark-lint-final-newline", [
+                "remark-lint",
             ])
         ).toBe(true);
         expect(
-            ruleMatchesPluginFilters("color-no-invalid-hex", ["defensive-css"])
-        ).toBe(false);
-    });
-
-    it("matches config plugin filters only when the config actually declares plugin-scoped rules", () => {
-        const config = {
-            index: 0,
-            plugins: {
-                "stylelint-plugin-use-nesting": {},
-            },
-            rules: {
-                "color-no-invalid-hex": true,
-            },
-        };
-
-        expect(configMatchesRulePluginFilters(config, ["use-nesting"])).toBe(
+            ruleMatchesPluginFilters("@acme/remark-lint/no-gap-hack", [
+                "@acme/remark-lint",
+            ])
+        ).toBe(true);
+        expect(ruleMatchesPluginFilters("no-empty-url", ["remark-lint"])).toBe(
             false
         );
     });
 
-    it("extracts scoped plugin names from scoped rules and keeps fallback behavior for malformed scoped names", () => {
-        expect(getRulePluginName("@acme/layout/no-gap-hack")).toBe(
-            "@acme/layout"
+    it("matches config plugin filters only when the config declares plugin-scoped rules", () => {
+        const config = {
+            index: 0,
+            plugins: {
+                "remark-lint-no-dead-urls": {},
+            },
+            rules: {
+                "no-empty-url": true,
+            },
+        };
+
+        expect(configMatchesRulePluginFilters(config, ["remark-lint"])).toBe(
+            false
+        );
+    });
+
+    it("extracts plugin names from scoped and remark-prefixed rules", () => {
+        expect(getRulePluginName("@acme/remark-lint/no-gap-hack")).toBe(
+            "@acme/remark-lint"
+        );
+        expect(getRulePluginName("remark-lint-final-newline")).toBe(
+            "remark-lint"
         );
         expect(getRulePluginName("@acme/no-gap-hack")).toBe("@acme");
     });
 
-    it("produces scoped plugin candidates for package names", () => {
+    it("produces scoped plugin candidates for remark package names", () => {
         const candidates = toPluginFilterCandidates(
-            "@acme/stylelint-plugin-layout"
+            "@acme/remark-lint-table-pipe-alignment"
         );
 
-        expect(candidates).toContain("@acme/layout");
+        expect(candidates).toContain("@acme/remark-lint");
         expect(candidates).toContain("@acme");
-        expect(candidates).toContain("layout");
+        expect(candidates).toContain("remark-lint");
     });
 
     it("falls back to config rule plugin names when known plugins are not pre-populated", () => {
         expect(
             resolveConfigPluginFilter(
-                "@acme/stylelint-plugin-layout",
+                "@acme/remark-lint-table-pipe-alignment",
                 [],
-                ["@acme/layout"]
+                ["@acme/remark-lint"]
             )
-        ).toBe("@acme/layout");
+        ).toBe("@acme/remark-lint");
     });
 
     it("treats empty plugin selection as a pass-through for config filtering", () => {
         const config = {
             index: 0,
             plugins: {
-                "stylelint-plugin-defensive-css": {},
+                "remark-lint-no-dead-urls": {},
             },
             rules: {
-                "defensive-css/require-background-repeat": true,
+                "remark-lint-final-newline": true,
             },
         };
 
-        expect(configMatchesPluginFilters(config, [], ["defensive-css"])).toBe(
+        expect(configMatchesPluginFilters(config, [], ["remark-lint"])).toBe(
             true
         );
     });
+
 });

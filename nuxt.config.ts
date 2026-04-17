@@ -74,7 +74,7 @@ export default defineNuxtConfig({
                 { name: "theme-color", content: "#5B21B6" },
                 {
                     name: "apple-mobile-web-app-title",
-                    content: "Stylelint Inspector",
+                    content: "Remark Inspector",
                 },
             ],
             link: [
@@ -82,19 +82,19 @@ export default defineNuxtConfig({
                 {
                     rel: "alternate icon",
                     type: "image/svg+xml",
-                    href: "/stylelint/stylelint-icon-black.svg",
+                    href: "/favicon.svg",
                 },
                 {
                     rel: "alternate icon",
                     type: "image/png",
-                    href: "/stylelint/stylelint-icon-white-512.png",
+                    href: "/favicon.svg",
                 },
                 {
                     rel: "apple-touch-icon",
-                    href: "/stylelint/stylelint-icon-white-512.png",
+                    href: "/favicon.svg",
                 },
             ],
-            title: "Stylelint Config Inspector",
+            title: "Remark Config Inspector",
         },
     },
 

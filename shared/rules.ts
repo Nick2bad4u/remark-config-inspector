@@ -13,7 +13,24 @@ export function isRuleEnabled(states: RuleConfigState[] | undefined): boolean {
 }
 
 function toRulePrimaryValue(level: RuleEntry | undefined): unknown {
-    return Array.isArray(level) ? level[0] : level;
+    if (!Array.isArray(level)) return level;
+
+    if (isSeverityToken(level[0]) && level.length > 1) return level[1];
+
+    return level[0];
+}
+
+function isSeverityToken(value: unknown): boolean {
+    return (
+        value === 0 ||
+        value === 1 ||
+        value === 2 ||
+        value === "off" ||
+        value === "warn" ||
+        value === "warning" ||
+        value === "on" ||
+        value === "error"
+    );
 }
 
 function isDisabledRuleValue(value: unknown): boolean {
@@ -36,7 +53,7 @@ export function getRuleLevel(level: RuleEntry | undefined): RuleLevel {
 
     if (first === undefined) return "off";
 
-    // Stylelint: `null` disables a rule
+    // Lint configs commonly treat `null` as rule disabled
     if (first === null) return "off";
 
     if (Array.isArray(level)) {
@@ -65,7 +82,7 @@ export function getRuleLevel(level: RuleEntry | undefined): RuleLevel {
         case "error":
             return "error";
         default:
-            // Stylelint and similar config systems treat non-null primary values as enabled.
+            // Most lint config systems treat non-null primary values as enabled.
             return "error";
     }
 }
@@ -73,5 +90,7 @@ export function getRuleLevel(level: RuleEntry | undefined): RuleLevel {
 export function getRuleOptions(
     level: RuleEntry | undefined
 ): unknown[] | undefined {
-    if (Array.isArray(level)) return level.slice(1);
+    if (!Array.isArray(level)) return undefined;
+
+    return isSeverityToken(level[0]) ? level.slice(2) : level.slice(1);
 }

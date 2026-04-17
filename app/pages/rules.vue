@@ -67,7 +67,7 @@ const hasGeneratedDescriptions = computed(() =>
     )
 );
 const descriptionsNoticeText =
-    "Descriptions are best-effort: Stylelint and many plugins do not ship consistent rule description metadata. Chat icon = message-derived, asterisk = generated fallback.";
+    "Descriptions are best-effort: remark-lint and many plugins do not ship consistent rule description metadata. Chat icon = message-derived, asterisk = generated fallback.";
 
 function hasAnyRuleState(ruleName: string): boolean {
     return (payload.value.ruleToState.get(ruleName)?.length ?? 0) > 0;
@@ -415,7 +415,7 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                     :tooltips="[
                         'Show every rule status',
                         'Rules that are enabled in at least one matched config item',
-                        'Rules recommended by Stylelint or plugin metadata',
+                        'Rules recommended by remark-lint or plugin metadata',
                         'Rules that support automatic fixes',
                         'Rules marked as deprecated by upstream metadata',
                     ]"

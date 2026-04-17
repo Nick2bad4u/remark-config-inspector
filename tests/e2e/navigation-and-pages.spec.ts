@@ -84,7 +84,7 @@ test.describe("navigation and page regressions", () => {
             "Test matching with filepath..."
         );
         const pluginChip = page.locator(".plugin-filter-button", {
-            hasText: "stylelint-no-unsupported-browser-features",
+            hasText: "no-dead-urls",
         });
         const listButton = page.getByRole("button", { name: "List" });
         const gridButton = page.getByRole("button", { name: "Grid" });
@@ -194,14 +194,14 @@ test.describe("navigation and page regressions", () => {
         await expect(
             page
                 .locator(
-                    '.colorized-rule-name[title="stylelint/color-hex-length"]'
+                    '.colorized-rule-name[title="remark-lint-final-newline"]'
                 )
                 .first()
         ).toBeVisible();
         await expect(
             page
                 .locator(
-                    '.colorized-rule-name[title="stylelint/alpha-value-notation"]'
+                    '.colorized-rule-name[title="remark-lint-maximum-line-length"]'
                 )
                 .first()
         ).toBeVisible();
@@ -245,12 +245,12 @@ test.describe("navigation and page regressions", () => {
         await expect(secondaryButton).toHaveClass(/bg-active/);
         await expect(
             rulesListContainer.locator(
-                '.colorized-rule-name[title="stylelint/at-rule-no-unknown"]'
+                '.colorized-rule-name[title="remark-lint-no-undefined-references"]'
             )
         ).toBeVisible();
         await expect(
             rulesListContainer.locator(
-                '.colorized-rule-name[title="stylelint/color-hex-length"]'
+                '.colorized-rule-name[title="remark-lint-final-newline"]'
             )
         ).toHaveCount(0);
         await expect(
@@ -278,7 +278,7 @@ test.describe("navigation and page regressions", () => {
         await expect(docsButton).toBeVisible();
         await expect(docsButton).toHaveAttribute(
             "href",
-            "https://example.com/stylelint-config-recommended"
+            "https://example.com/remark-preset-lint-recommended"
         );
 
         await secondaryButton.click();

@@ -4,9 +4,9 @@ import type {
     ResolveConfigPathOptions,
     ResolvedConfigPath,
 } from "./inspectors/contracts";
-import { createStylelintInspectorAdapter } from "./inspectors/stylelint";
+import { createRemarkInspectorAdapter } from "./inspectors/remark";
 
-const adapter = createStylelintInspectorAdapter();
+const adapter = createRemarkInspectorAdapter();
 
 export type { ReadConfigOptions, ResolveConfigPathOptions };
 
@@ -16,7 +16,7 @@ export type { ReadConfigOptions, ResolveConfigPathOptions };
 export type InspectorConfig = InspectorReadResult;
 
 /**
- * Search and resolve the Stylelint config location metadata.
+ * Search and resolve the remark config location metadata.
  */
 export function resolveConfigPath(
     options: ResolveConfigPathOptions
@@ -25,7 +25,7 @@ export function resolveConfigPath(
 }
 
 /**
- * Read and normalize the Stylelint config into inspector payload.
+ * Read and normalize the remark config into inspector payload.
  */
 export function readConfig(
     options: ReadConfigOptions

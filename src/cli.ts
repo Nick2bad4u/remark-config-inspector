@@ -18,7 +18,7 @@ import { createHostServer } from "./server";
 
 const RE_CONSECUTIVE_SLASHES = /\/+/g;
 
-const cli = cac("stylelint-config-inspector");
+const cli = cac("remark-config-inspector");
 
 cli.command(
     "build",
@@ -40,13 +40,13 @@ cli.command(
     // Build specific options
     .option("--base <baseURL>", "Base URL for deployment", { default: "/" })
     .option("--outDir <dir>", "Output directory", {
-        default: ".stylelint-config-inspector",
+        default: ".remark-config-inspector",
     })
     // Action
     .action(async (rawOptions) => {
         const options = normalizeCliInspectorOptions(rawOptions);
 
-        console.log(MARK_INFO, "Building static Stylelint config inspector...");
+        console.log(MARK_INFO, "Building static remark config inspector...");
 
         const cwd = process.cwd();
         const outDir = resolve(cwd, options.outDir);
@@ -143,7 +143,7 @@ cli.command("", "Start dev inspector")
 
         console.log(
             MARK_INFO,
-            `Starting Stylelint config inspector at`,
+            `Starting remark config inspector at`,
             c.green`http://${host === "127.0.0.1" ? "localhost" : host}:${port}`,
             "\n"
         );

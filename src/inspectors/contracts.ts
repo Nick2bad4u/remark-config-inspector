@@ -30,13 +30,9 @@ export interface ReadConfigOptions extends ResolveConfigPathOptions {
     /**
      * Target file path used to resolve the effective config.
      *
-     * @default "stylelint-inspector-target.css"
+     * @default "remark-inspector-target.md"
      */
     targetFilePath?: string;
-    /**
-     * Optional custom syntax passed to stylelint.resolveConfig.
-     */
-    customSyntax?: string;
 }
 
 export interface ResolvedConfigPath {
@@ -51,7 +47,7 @@ export interface InspectorReadResult {
 }
 
 export interface InspectorAdapter {
-    readonly engine: "stylelint";
+    readonly engine: "remark";
     resolveConfigPath: (
         options: ResolveConfigPathOptions
     ) => Promise<ResolvedConfigPath>;

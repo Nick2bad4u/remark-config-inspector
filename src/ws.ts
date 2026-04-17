@@ -11,9 +11,9 @@ import { readConfig, resolveConfigPath } from "./configs";
 import { MARK_CHECK } from "./constants";
 import { ConfigInspectorError } from "./errors";
 
-const readErrorWarning = `Failed to load Stylelint configuration.
-Please ensure a valid Stylelint config can be resolved:
-https://stylelint.io/user-guide/configure`;
+const readErrorWarning = `Failed to load Remark configuration.
+Please ensure a valid remark config can be resolved:
+https://github.com/remarkjs/remark/tree/main/packages/remark-cli#example-config-files-json-yaml-js`;
 
 export interface CreateWsServerOptions extends ReadConfigOptions {}
 
@@ -69,7 +69,7 @@ export async function createWsServer(
             diagnostics: [readErrorWarning, diagnostic],
             meta: {
                 wsPort: port,
-                engine: "stylelint",
+                engine: "remark",
                 ...(options.targetFilePath !== undefined && {
                     targetFilePath: options.targetFilePath,
                 }),

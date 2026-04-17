@@ -11,17 +11,17 @@ describe("rewriteStaticHtmlWithBase", () => {
 
         const rewritten = rewriteStaticHtmlWithBase(
             html,
-            "/eslint-plugin-typefest/stylelint-inspector/"
+            "/eslint-plugin-typefest/remark-inspector/"
         );
 
         expect(rewritten).toContain(
-            'href="/eslint-plugin-typefest/stylelint-inspector/_nuxt/app.css"'
+            'href="/eslint-plugin-typefest/remark-inspector/_nuxt/app.css"'
         );
         expect(rewritten).toContain(
-            'src="/eslint-plugin-typefest/stylelint-inspector/logo.svg"'
+            'src="/eslint-plugin-typefest/remark-inspector/logo.svg"'
         );
         expect(rewritten).toContain(
-            'baseURL:"/eslint-plugin-typefest/stylelint-inspector/"'
+            'baseURL:"/eslint-plugin-typefest/remark-inspector/"'
         );
     });
 
@@ -31,11 +31,11 @@ describe("rewriteStaticHtmlWithBase", () => {
 
         const rewritten = rewriteStaticHtmlWithBase(
             html,
-            "/eslint-plugin-typefest/stylelint-inspector/"
+            "/eslint-plugin-typefest/remark-inspector/"
         );
 
         expect(rewritten).toContain(
-            '"#entry":"/eslint-plugin-typefest/stylelint-inspector/_nuxt/T86v09Lr.js"'
+            '"#entry":"/eslint-plugin-typefest/remark-inspector/_nuxt/T86v09Lr.js"'
         );
     });
 

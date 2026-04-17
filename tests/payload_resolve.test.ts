@@ -21,8 +21,8 @@ function createBasePayload(configCount = 1): Payload {
         meta: {
             lastUpdate: Date.now(),
             basePath: process.cwd(),
-            configPath: "stylelint.config.mjs",
-            engine: "stylelint",
+            configPath: ".remarkrc.mjs",
+            engine: "remark",
         },
         configs: Array.from({ length: configCount }, (_, index) => ({
             index,
@@ -68,13 +68,13 @@ describe("resolvePayload", () => {
                 {
                     index: 0,
                     rules: {
-                        "stylelint/color-hex-length": "short",
-                        "stylelint/block-no-empty": [
+                        "remark-lint-final-newline": "always",
+                        "remark-lint-maximum-line-length": [
                             true,
                             { severity: "warning" },
                             { ignore: ["comments"] },
                         ],
-                        "stylelint/custom-off": false,
+                        "remark-lint-no-dead-urls": false,
                     },
                 },
             ],
@@ -82,19 +82,21 @@ describe("resolvePayload", () => {
 
         const resolved = resolvePayload(payload);
 
-        expect(resolved.ruleToState.get("stylelint/color-hex-length")).toEqual([
+        expect(resolved.ruleToState.get("remark-lint-final-newline")).toEqual([
             {
-                name: "stylelint/color-hex-length",
+                name: "remark-lint-final-newline",
                 configIndex: 0,
                 level: "error",
-                primaryOption: "short",
+                primaryOption: "always",
                 options: undefined,
             },
         ]);
 
-        expect(resolved.ruleToState.get("stylelint/block-no-empty")).toEqual([
+        expect(
+            resolved.ruleToState.get("remark-lint-maximum-line-length")
+        ).toEqual([
             {
-                name: "stylelint/block-no-empty",
+                name: "remark-lint-maximum-line-length",
                 configIndex: 0,
                 level: "warn",
                 primaryOption: true,
@@ -102,9 +104,9 @@ describe("resolvePayload", () => {
             },
         ]);
 
-        expect(resolved.ruleToState.get("stylelint/custom-off")).toEqual([
+        expect(resolved.ruleToState.get("remark-lint-no-dead-urls")).toEqual([
             {
-                name: "stylelint/custom-off",
+                name: "remark-lint-no-dead-urls",
                 configIndex: 0,
                 level: "off",
                 primaryOption: undefined,
@@ -119,22 +121,22 @@ describe("resolvePayload", () => {
             configs: [
                 {
                     index: 0,
-                    files: ["src/**/*.css"],
+                    files: ["docs/**/*.md"],
                     ignores: ["dist/**"],
                     rules: {},
                 },
                 {
                     index: 1,
-                    files: ["src/**/*.css", "packages/**/*.scss"],
+                    files: ["docs/**/*.md", "packages/**/*.md"],
                     rules: {},
                 },
             ],
             extendsInfo: [
                 {
-                    specifier: "stylelint-config-recommended",
+                    specifier: "remark-preset-lint-recommended",
                     source: "package",
                     ruleCount: 1,
-                    rules: ["stylelint/color-hex-length"],
+                    rules: ["remark-lint-final-newline"],
                     usedByConfigIndexes: [0],
                 },
             ],
@@ -143,11 +145,12 @@ describe("resolvePayload", () => {
         const resolved = resolvePayload(payload);
 
         expect(
-            resolved.extendsInfoMap.get("stylelint-config-recommended")?.source
+            resolved.extendsInfoMap.get("remark-preset-lint-recommended")
+                ?.source
         ).toBe("package");
         expect(
             resolved.globToConfigs
-                .get("src/**/*.css")
+                .get("docs/**/*.md")
                 ?.map((config) => config.index)
         ).toEqual([0, 1]);
         expect(
@@ -155,7 +158,7 @@ describe("resolvePayload", () => {
         ).toEqual([0]);
         expect(
             resolved.globToConfigs
-                .get("packages/**/*.scss")
+                .get("packages/**/*.md")
                 ?.map((config) => config.index)
         ).toEqual([1]);
     });
@@ -168,15 +171,15 @@ describe("resolvePayload", () => {
                     index: 0,
                     name: "general-root",
                     rules: {
-                        "stylelint/color-hex-length": "short",
+                        "remark-lint-final-newline": "always",
                     },
                 },
                 {
                     index: 1,
-                    name: "src-css",
-                    files: ["src/**/*.css", "src/unused/**/*.css"],
+                    name: "docs-markdown",
+                    files: ["docs/**/*.md", "docs/unused/**/*.md"],
                     rules: {
-                        "stylelint/alpha-value-notation": "percentage",
+                        "remark-lint-maximum-line-length": 80,
                     },
                 },
                 {
@@ -186,26 +189,26 @@ describe("resolvePayload", () => {
                 },
                 {
                     index: 3,
-                    name: "scss-override",
-                    files: ["packages/**/*.scss"],
+                    name: "markdown-override",
+                    files: ["packages/**/*.md"],
                     rules: {
-                        "stylelint/at-rule-no-unknown": true,
+                        "remark-lint-no-undefined-references": true,
                     },
                 },
             ],
             files: [
                 {
-                    filepath: "src/app.css",
-                    globs: ["src/**/*.css", "!src/excluded/**"],
+                    filepath: "docs/guide.md",
+                    globs: ["docs/**/*.md", "!docs/excluded/**"],
                     configs: [0, 1],
                 },
                 {
-                    filepath: "src/other.css",
-                    globs: ["src/**/*.css"],
+                    filepath: "docs/other.md",
+                    globs: ["docs/**/*.md"],
                     configs: [0, 1],
                 },
                 {
-                    filepath: "src/general.css",
+                    filepath: "docs/general.md",
                     globs: [],
                     configs: [0],
                 },
@@ -225,19 +228,19 @@ describe("resolvePayload", () => {
 
         expect(groupsById.get("configs:1")?.kind).toBe("matched");
         expect(groupsById.get("configs:1")?.files).toEqual([
-            "src/app.css",
-            "src/other.css",
+            "docs/guide.md",
+            "docs/other.md",
         ]);
 
         expect(groupsById.get("globs:<general>")?.kind).toBe("matched");
         expect(groupsById.get("globs:<general>")?.files).toEqual([
-            "src/general.css",
+            "docs/general.md",
         ]);
 
-        expect(groupsById.get("declared-glob:src/unused/**/*.css")?.kind).toBe(
+        expect(groupsById.get("declared-glob:docs/unused/**/*.md")?.kind).toBe(
             "declared"
         );
-        expect(groupsById.get("declared-glob:packages/**/*.scss")?.kind).toBe(
+        expect(groupsById.get("declared-glob:packages/**/*.md")?.kind).toBe(
             "declared"
         );
 
@@ -251,7 +254,7 @@ describe("resolvePayload", () => {
 
         expect(
             filesResolved.fileToConfigs
-                .get("src/app.css")
+                .get("docs/guide.md")
                 ?.map((config) => config.index)
         ).toEqual([0, 1]);
 
@@ -269,15 +272,15 @@ describe("resolvePayload", () => {
                     index: 0,
                     name: "general-root",
                     rules: {
-                        "stylelint/color-hex-length": "short",
+                        "remark-lint-final-newline": "always",
                     },
                 },
                 {
                     index: 1,
-                    name: "declared-css",
-                    files: ["src/**/*.css"],
+                    name: "declared-markdown",
+                    files: ["docs/**/*.md"],
                     rules: {
-                        "stylelint/alpha-value-notation": "percentage",
+                        "remark-lint-maximum-line-length": 80,
                     },
                 },
                 {
@@ -288,12 +291,12 @@ describe("resolvePayload", () => {
             ],
             files: [
                 {
-                    filepath: "src/real.css",
-                    globs: ["src/**/*.css"],
+                    filepath: "docs/real.md",
+                    globs: ["docs/**/*.md"],
                     configs: [0, 1],
                 },
                 {
-                    filepath: "src/scan-hit.css",
+                    filepath: "docs/scan-hit.md",
                     globs: [matchedDefaultGlob],
                     configs: [0],
                 },
@@ -307,7 +310,7 @@ describe("resolvePayload", () => {
             )
         );
 
-        expect(groupsById.has("declared-glob:src/**/*.css")).toBe(false);
+        expect(groupsById.has("declared-glob:docs/**/*.md")).toBe(false);
         expect(groupsById.has(`default-scan:${matchedDefaultGlob}`)).toBe(
             false
         );
