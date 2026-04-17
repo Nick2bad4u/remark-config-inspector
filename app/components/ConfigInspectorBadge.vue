@@ -17,10 +17,10 @@ withDefaults(
             href="https://github.com/Nick2bad4u/remark-config-inspector"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-3 border border-violet/25 rounded-2xl bg-violet/8 px-3 py-2 shadow-sm hover:border-violet/35 hover:bg-violet/12"
+            class="inline-flex items-center gap-3 border border-primary/45 rounded-2xl bg-zinc-950/80 px-3 py-2 shadow-sm hover:border-primary/70 hover:bg-zinc-900/90"
         >
             <span
-                class="flex items-center justify-center border border-violet/30 rounded-full bg-violet/16 p-2"
+                class="flex items-center justify-center border border-primary/45 rounded-full bg-zinc-900/85 p-2"
             >
                 <img
                     src="/remark/remarklint.svg"

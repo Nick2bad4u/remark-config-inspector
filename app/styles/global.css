@@ -13,22 +13,17 @@ summary::-webkit-details-marker {
 body {
     --at-apply: bg-base color-base font-sans;
     background-attachment: fixed;
-    background-color: #fff4f4;
+    background-color: #060607;
     background-image:
-        linear-gradient(
-            180deg,
-            #fffdfd 0%,
-            #fff3f3 38%,
-            #ffe1e1 68%,
-            #ffc8c8 100%
-        ),
+        linear-gradient(180deg, #0a0a0d 0%, #070709 40%, #050506 100%),
         radial-gradient(
             115% 120% at 50% 118%,
-            #d8030321 0%,
-            #b3000018 46%,
+            #d8030317 0%,
+            #d8030310 42%,
             #00000000 78%
         ),
-        radial-gradient(80% 68% at 10% 18%, #00000008 0%, #00000000 70%);
+        radial-gradient(80% 68% at 10% 18%, #0000004f 0%, #00000000 70%);
+    color-scheme: dark;
     font-size: calc(16px * var(--inspector-font-scale, 1));
 }
 
@@ -36,20 +31,14 @@ html.dark {
     color-scheme: dark;
 
     & body {
-        background-color: #05020a;
+        background-color: #050506;
         background-image:
-            linear-gradient(
-                180deg,
-                #0f0a0a 0%,
-                #180c0c 36%,
-                #2b0f0f 66%,
-                #3b0c0c 100%
-            ),
+            linear-gradient(180deg, #09090b 0%, #070709 40%, #050506 100%),
             radial-gradient(
                 120% 125% at 52% 118%,
-                #d8030360 0%,
-                #b300004b 44%,
-                #8f00003f 64%,
+                #d803032d 0%,
+                #d803031f 44%,
+                #8f000018 64%,
                 #00000000 84%
             ),
             radial-gradient(110% 95% at 8% 8%, #00000073 0%, #00000000 72%);
@@ -87,10 +76,10 @@ html.dark {
 
 .config-plugin-filter-pill {
     padding: 0.125rem 0.625rem;
-    border: 1px solid rgb(216 3 3 / 0.25);
+    border: 1px solid rgb(216 3 3 / 0.45);
     border-radius: 9999px;
-    background: rgb(216 3 3 / 0.1);
-    color: rgb(179 0 0);
+    background: rgb(12 12 14 / 0.78);
+    color: rgb(255 170 170);
 
     html.dark & {
         color: rgb(255 170 170);
@@ -107,9 +96,9 @@ html.dark {
     &:hover,
     &:focus-visible {
         box-shadow:
-            0 0 0 1px rgb(216 3 3 / 0.36),
-            0 6px 14px rgb(179 0 0 / 0.2);
-        filter: saturate(1.08);
+            0 0 0 1px rgb(216 3 3 / 0.5),
+            0 4px 12px rgb(216 3 3 / 0.16);
+        filter: saturate(1.02);
         transform: translateY(-1px);
     }
 
@@ -145,10 +134,10 @@ html.dark {
 }
 
 .dev-value {
-    color: rgb(184 0 0);
+    color: rgb(228 228 236);
 
     html.dark & {
-        color: rgb(255 170 170);
+        color: rgb(228 228 236);
     }
 }
 
@@ -159,27 +148,33 @@ html.dark {
         shadow dark: shadow-2xl;
     border-color: color-mix(in srgb, var(--c-fg) 18%, transparent);
     backdrop-filter: blur(6px);
-    background: rgb(252 249 255 / 0.97);
-    box-shadow: 0 10px 30px rgb(0 0 0 / 0.28);
-    color: rgb(24 24 27);
+    background: rgb(12 12 15 / 0.96);
+    box-shadow:
+        0 10px 30px rgb(0 0 0 / 0.45),
+        0 0 0 1px rgb(216 3 3 / 0.18);
+    color: rgb(228 228 231);
 }
 
 [id^="popper_"] .v-popper__inner,
 [id="popper_inner"] {
-    border: 1px solid color-mix(in srgb, var(--c-fg) 18%, transparent);
+    border: 1px solid rgb(216 3 3 / 0.22);
     backdrop-filter: blur(6px);
-    background: rgb(252 249 255 / 0.97);
-    box-shadow: 0 10px 30px rgb(0 0 0 / 0.28);
-    color: rgb(24 24 27);
+    background: rgb(12 12 15 / 0.96);
+    box-shadow:
+        0 10px 30px rgb(0 0 0 / 0.45),
+        0 0 0 1px rgb(216 3 3 / 0.12);
+    color: rgb(228 228 231);
 }
 
 .v-popper--theme-tooltip .v-popper__inner {
     --at-apply: font-sans rounded border border-base;
     padding: 0.5rem 0.65rem;
-    border-color: color-mix(in srgb, var(--c-fg) 20%, transparent);
-    background: rgb(252 249 255 / 0.97);
-    box-shadow: 0 8px 20px rgb(0 0 0 / 0.26);
-    color: rgb(24 24 27);
+    border-color: rgb(216 3 3 / 0.22);
+    background: rgb(12 12 15 / 0.96);
+    box-shadow:
+        0 8px 20px rgb(0 0 0 / 0.42),
+        0 0 0 1px rgb(216 3 3 / 0.1);
+    color: rgb(228 228 231);
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -200,15 +195,15 @@ html.dark {
 
 html.dark [id^="popper_"] .v-popper__inner,
 html.dark [id="popper_inner"] {
-    border-color: color-mix(in srgb, #fecaca 30%, transparent);
-    background: rgb(20 16 33 / 0.97);
+    border-color: rgb(216 3 3 / 0.26);
+    background: rgb(12 12 15 / 0.96);
     color: rgb(228 228 231);
 }
 
 html.dark .v-popper--theme-dropdown .v-popper__inner,
 html.dark .v-popper--theme-tooltip .v-popper__inner {
     backdrop-filter: blur(6px);
-    background: rgb(20 16 33 / 0.97);
+    background: rgb(12 12 15 / 0.96);
     color: rgb(228 228 231);
 }
 
@@ -235,15 +230,15 @@ html:not(.dark)
         .text-zinc-300\/75,
         .text-zinc-300\/85
     ) {
-    color: rgb(82 82 91);
+    color: rgb(212 212 216);
 }
 
 html:not(.dark) .text-zinc-400 {
-    color: rgb(63 63 70);
+    color: rgb(181 181 191);
 }
 
 html:not(.dark) .text-zinc-500 {
-    color: rgb(39 39 42);
+    color: rgb(151 151 164);
 }
 
 html:not(.dark) .bg-zinc-900\/30,
@@ -251,5 +246,5 @@ html:not(.dark) .bg-zinc-900\/35,
 html:not(.dark) .bg-zinc-900\/50,
 html:not(.dark) .bg-zinc-950\/25,
 html:not(.dark) .bg-zinc-950\/35 {
-    background-color: rgb(244 244 245 / 0.82);
+    background-color: rgb(20 20 24 / 0.82);
 }

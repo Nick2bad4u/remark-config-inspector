@@ -12,21 +12,21 @@ import {
 
 export default defineConfig({
     shortcuts: {
-        "color-base": "color-neutral-800 dark:color-neutral-300",
-        "bg-base": "bg-white dark:bg-neutral-900",
-        "border-base": "border-#aaa3",
+        "color-base": "color-neutral-200",
+        "bg-base": "bg-neutral-950",
+        "border-base": "border-neutral-700/55",
 
-        "bg-tooltip": "bg-white:75 dark:bg-neutral-900:75 backdrop-blur-8",
-        "bg-glass": "bg-white:75 dark:bg-neutral-900:75 backdrop-blur-5",
-        "bg-code": "bg-gray5:5",
-        "bg-hover": "bg-primary-400:5",
+        "bg-tooltip": "bg-neutral-950:92 backdrop-blur-8",
+        "bg-glass": "bg-neutral-900:72 backdrop-blur-5",
+        "bg-code": "bg-neutral-100:7",
+        "bg-hover": "bg-primary-500:7",
 
-        "color-active": "color-primary-600 dark:color-primary-400",
-        "border-active": "border-primary-600/25 dark:border-primary-400/25",
-        "bg-active": "bg-primary-400:10",
+        "color-active": "color-primary-300",
+        "border-active": "border-primary-500/50",
+        "bg-active": "bg-primary-500:7",
 
         "btn-action":
-            "border border-base rounded flex gap-2 items-center px2 py1 op75 hover:op100 hover:bg-hover",
+            "border border-base rounded flex gap-2 items-center px2 py1 op90 hover:op100 hover:bg-hover",
         "btn-action-sm": "btn-action text-sm",
         "btn-action-active": "color-active border-active! bg-active op100!",
 
@@ -35,8 +35,8 @@ export default defineConfig({
         "btn-badge": "badge hover:bg-active",
     },
     theme: {
-        // Remarklint-aligned palette (red/ink) used by brand surfaces and
-        // retrofitted utility classes originally authored with violet tokens.
+        // Dark-first remarklint palette: black/neutral UI with restrained red
+        // highlights for outlines, focus, and active states.
         colors: {
             neutral: {
                 25: "#FCFCFD",
@@ -54,61 +54,61 @@ export default defineConfig({
 
             primary: {
                 DEFAULT: "#D80303",
-                25: "#FFF5F5",
-                50: "#FFE8E8",
-                100: "#FFCFCF",
-                200: "#FFAAAA",
-                300: "#FF7F7F",
-                400: "#F55151",
-                500: "#E52E2E",
+                25: "#FFEBEB",
+                50: "#FFD9D9",
+                100: "#FFC2C2",
+                200: "#FF9A9A",
+                300: "#FF7373",
+                400: "#F24C4C",
+                500: "#E12626",
                 600: "#D80303",
                 700: "#B30000",
                 800: "#8F0000",
                 900: "#690000",
             },
 
-            // Backfill legacy utility tokens with the same red-centered brand
-            // family so existing classes automatically match remarklint theming.
+            // Legacy hue tokens are now neutralized to avoid purple/red wash.
+            // This keeps old utility classes readable on black surfaces.
             violet: {
-                25: "#FFF5F5",
-                50: "#FFE8E8",
-                100: "#FFCFCF",
-                200: "#FFAAAA",
-                300: "#FF7F7F",
-                400: "#F55151",
-                500: "#E52E2E",
-                600: "#D80303",
-                700: "#B30000",
-                800: "#8F0000",
-                900: "#690000",
+                25: "#F4F4F7",
+                50: "#ECECF1",
+                100: "#E1E1E8",
+                200: "#D3D3DD",
+                300: "#C5C5D2",
+                400: "#B8B8C7",
+                500: "#A9A9BA",
+                600: "#9898A9",
+                700: "#C7C7D3",
+                800: "#D3D3DD",
+                900: "#E0E0E8",
             },
 
             purple: {
-                25: "#FFF5F5",
-                50: "#FFE8E8",
-                100: "#FFCFCF",
-                200: "#FFAAAA",
-                300: "#FF7F7F",
-                400: "#F55151",
-                500: "#E52E2E",
-                600: "#D80303",
-                700: "#B30000",
-                800: "#8F0000",
-                900: "#690000",
+                25: "#F4F4F7",
+                50: "#ECECF1",
+                100: "#E1E1E8",
+                200: "#D3D3DD",
+                300: "#C5C5D2",
+                400: "#B8B8C7",
+                500: "#A9A9BA",
+                600: "#9898A9",
+                700: "#C7C7D3",
+                800: "#D3D3DD",
+                900: "#E0E0E8",
             },
 
             fuchsia: {
-                25: "#FFF5F5",
-                50: "#FFE8E8",
-                100: "#FFCFCF",
-                200: "#FFAAAA",
-                300: "#FF7F7F",
-                400: "#F55151",
-                500: "#E52E2E",
-                600: "#D80303",
-                700: "#B30000",
-                800: "#8F0000",
-                900: "#690000",
+                25: "#F4F4F7",
+                50: "#ECECF1",
+                100: "#E1E1E8",
+                200: "#D3D3DD",
+                300: "#C5C5D2",
+                400: "#B8B8C7",
+                500: "#A9A9BA",
+                600: "#9898A9",
+                700: "#C7C7D3",
+                800: "#D3D3DD",
+                900: "#E0E0E8",
             },
 
             warning: {

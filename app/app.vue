@@ -49,7 +49,7 @@ init(config.app.baseURL);
 
     <div
         v-if="isRouteNavigating && !isLoading && !errorInfo"
-        class="pointer-events-none fixed right-3 top-3 z-60 inline-flex items-center gap-2 border border-violet-300/45 rounded-full bg-white/85 px-3 py-1.5 text-xs text-violet-700 shadow-lg backdrop-blur-sm dark:border-violet-300/25 dark:bg-zinc-950/70 dark:text-violet-200"
+        class="pointer-events-none fixed right-3 top-3 z-60 inline-flex items-center gap-2 border border-primary/45 rounded-full bg-zinc-950/86 px-3 py-1.5 text-xs text-zinc-200 shadow-lg backdrop-blur-sm"
     >
         <div i-svg-spinners-90-ring-with-bg text-sm />
         Loading view...

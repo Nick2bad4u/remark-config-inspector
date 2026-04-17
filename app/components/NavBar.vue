@@ -67,16 +67,7 @@ function showDeprecated() {
                     v{{ version }}
                 </a>
                 <div
-                    border="~ violet/20 rounded-full"
-                    inline-flex
-                    items-center
-                    gap-2
-                    bg-violet:8
-                    px3
-                    py1
-                    text-xs
-                    text-violet7
-                    dark:text-violet3
+                    class="inline-flex items-center gap-2 border border-primary/45 rounded-full bg-zinc-950/80 px3 py1 text-xs text-zinc-200"
                 >
                     <img
                         src="/remark/remarklint.svg"
