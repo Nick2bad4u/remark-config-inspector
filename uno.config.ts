@@ -35,7 +35,8 @@ export default defineConfig({
         "btn-badge": "badge hover:bg-active",
     },
     theme: {
-        // Purple-first palette to better align with Stylelint branding.
+        // Remarklint-aligned palette (red/ink) used by brand surfaces and
+        // retrofitted utility classes originally authored with violet tokens.
         colors: {
             neutral: {
                 25: "#FCFCFD",
@@ -52,18 +53,62 @@ export default defineConfig({
             },
 
             primary: {
-                DEFAULT: "#7C3AED",
-                25: "#FBF8FF",
-                50: "#F5EEFF",
-                100: "#EDE0FF",
-                200: "#DCC2FF",
-                300: "#C6A1FF",
-                400: "#AE7AFF",
-                500: "#9553FA",
-                600: "#7C3AED",
-                700: "#6D28D9",
-                800: "#5B21B6",
-                900: "#4C1D95",
+                DEFAULT: "#D80303",
+                25: "#FFF5F5",
+                50: "#FFE8E8",
+                100: "#FFCFCF",
+                200: "#FFAAAA",
+                300: "#FF7F7F",
+                400: "#F55151",
+                500: "#E52E2E",
+                600: "#D80303",
+                700: "#B30000",
+                800: "#8F0000",
+                900: "#690000",
+            },
+
+            // Backfill legacy utility tokens with the same red-centered brand
+            // family so existing classes automatically match remarklint theming.
+            violet: {
+                25: "#FFF5F5",
+                50: "#FFE8E8",
+                100: "#FFCFCF",
+                200: "#FFAAAA",
+                300: "#FF7F7F",
+                400: "#F55151",
+                500: "#E52E2E",
+                600: "#D80303",
+                700: "#B30000",
+                800: "#8F0000",
+                900: "#690000",
+            },
+
+            purple: {
+                25: "#FFF5F5",
+                50: "#FFE8E8",
+                100: "#FFCFCF",
+                200: "#FFAAAA",
+                300: "#FF7F7F",
+                400: "#F55151",
+                500: "#E52E2E",
+                600: "#D80303",
+                700: "#B30000",
+                800: "#8F0000",
+                900: "#690000",
+            },
+
+            fuchsia: {
+                25: "#FFF5F5",
+                50: "#FFE8E8",
+                100: "#FFCFCF",
+                200: "#FFAAAA",
+                300: "#FF7F7F",
+                400: "#F55151",
+                500: "#E52E2E",
+                600: "#D80303",
+                700: "#B30000",
+                800: "#8F0000",
+                900: "#690000",
             },
 
             warning: {

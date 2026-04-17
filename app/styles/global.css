@@ -13,19 +13,19 @@ summary::-webkit-details-marker {
 body {
     --at-apply: bg-base color-base font-sans;
     background-attachment: fixed;
-    background-color: #f8f3ff;
+    background-color: #fff4f4;
     background-image:
         linear-gradient(
             180deg,
-            #fefcff 0%,
-            #f7f0ff 38%,
-            #eddfff 68%,
-            #d6bdff 100%
+            #fffdfd 0%,
+            #fff3f3 38%,
+            #ffe1e1 68%,
+            #ffc8c8 100%
         ),
         radial-gradient(
             115% 120% at 50% 118%,
-            #7c3aed29 0%,
-            #6d28d91b 46%,
+            #d8030321 0%,
+            #b3000018 46%,
             #00000000 78%
         ),
         radial-gradient(80% 68% at 10% 18%, #00000008 0%, #00000000 70%);
@@ -40,16 +40,16 @@ html.dark {
         background-image:
             linear-gradient(
                 180deg,
-                #05030a 0%,
-                #090510 36%,
-                #170826 66%,
-                #240b4e 100%
+                #0f0a0a 0%,
+                #180c0c 36%,
+                #2b0f0f 66%,
+                #3b0c0c 100%
             ),
             radial-gradient(
                 120% 125% at 52% 118%,
-                #7c3aed66 0%,
-                #6d28d94b 44%,
-                #4c1d953f 64%,
+                #d8030360 0%,
+                #b300004b 44%,
+                #8f00003f 64%,
                 #00000000 84%
             ),
             radial-gradient(110% 95% at 8% 8%, #00000073 0%, #00000000 72%);
@@ -87,13 +87,13 @@ html.dark {
 
 .config-plugin-filter-pill {
     padding: 0.125rem 0.625rem;
-    border: 1px solid rgb(139 92 246 / 0.25);
+    border: 1px solid rgb(216 3 3 / 0.25);
     border-radius: 9999px;
-    background: rgb(139 92 246 / 0.1);
-    color: rgb(109 40 217);
+    background: rgb(216 3 3 / 0.1);
+    color: rgb(179 0 0);
 
     html.dark & {
-        color: rgb(196 181 253);
+        color: rgb(255 170 170);
     }
 }
 
@@ -107,14 +107,14 @@ html.dark {
     &:hover,
     &:focus-visible {
         box-shadow:
-            0 0 0 1px rgb(124 58 237 / 0.36),
-            0 6px 14px rgb(109 40 217 / 0.18);
+            0 0 0 1px rgb(216 3 3 / 0.36),
+            0 6px 14px rgb(179 0 0 / 0.2);
         filter: saturate(1.08);
         transform: translateY(-1px);
     }
 
     &:active {
-        box-shadow: 0 0 0 1px rgb(124 58 237 / 0.3);
+        box-shadow: 0 0 0 1px rgb(216 3 3 / 0.3);
         transform: translateY(0);
     }
 
@@ -122,8 +122,8 @@ html.dark {
         &:hover,
         &:focus-visible {
             box-shadow:
-                0 0 0 1px rgb(167 139 250 / 0.36),
-                0 6px 14px rgb(91 33 182 / 0.32);
+                0 0 0 1px rgb(255 127 127 / 0.36),
+                0 6px 14px rgb(143 0 0 / 0.32);
         }
     }
 }
@@ -145,10 +145,10 @@ html.dark {
 }
 
 .dev-value {
-    color: rgb(67 56 202);
+    color: rgb(184 0 0);
 
     html.dark & {
-        color: rgb(196 181 253);
+        color: rgb(255 170 170);
     }
 }
 
@@ -200,7 +200,7 @@ html.dark {
 
 html.dark [id^="popper_"] .v-popper__inner,
 html.dark [id="popper_inner"] {
-    border-color: color-mix(in srgb, #ddd6fe 30%, transparent);
+    border-color: color-mix(in srgb, #fecaca 30%, transparent);
     background: rgb(20 16 33 / 0.97);
     color: rgb(228 228 231);
 }

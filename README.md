@@ -36,7 +36,7 @@ remark-config-inspector build [options]
 ### Dev-server options
 
 - `--host <host>`
-- `--port <port>`
+- `--port <port>` (default: `9999`)
 - `--open`
 
 ### Build options

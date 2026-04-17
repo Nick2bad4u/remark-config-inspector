@@ -16,8 +16,8 @@ import type {
 } from "./contracts";
 import { readFile, stat } from "node:fs/promises";
 import { isAbsolute } from "node:path";
-import { pathToFileURL } from "node:url";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 import { findUp } from "find-up";
 import { basename, dirname, join, normalize, relative, resolve } from "pathe";
 import { glob } from "tinyglobby";
@@ -76,7 +76,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isJavaScriptConfigPath(path: string): boolean {
-    return /\.(?:[cm]?js|mjs)$/u.test(path);
+    return /\.[cm]?js$/u.test(path);
 }
 
 function toLoadedRemarkConfig(

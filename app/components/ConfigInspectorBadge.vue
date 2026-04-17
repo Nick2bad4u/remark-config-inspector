@@ -22,12 +22,20 @@ withDefaults(
             <span
                 class="flex items-center justify-center border border-violet/30 rounded-full bg-violet/16 p-2"
             >
-                <span i-simple-icons-markdown class="h-1.15em w-1.15em" />
+                <img
+                    src="/remark/remarklint.svg"
+                    alt="remarklint logo"
+                    class="h-1.15em w-auto"
+                />
             </span>
 
             <span class="flex flex-col gap-0.5">
                 <span class="flex items-center gap-2">
-                    <span class="font-semibold">Remark</span>
+                    <img
+                        src="/remark/remarklint2.svg"
+                        alt="remarklint"
+                        class="h-0.95em w-auto"
+                    />
                     <span class="text-xs font-medium op70"
                         >Config Inspector</span
                     >

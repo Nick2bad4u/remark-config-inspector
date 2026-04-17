@@ -78,7 +78,11 @@ function showDeprecated() {
                     text-violet7
                     dark:text-violet3
                 >
-                    <div i-simple-icons-markdown h-4.5 w-4.5 />
+                    <img
+                        src="/remark/remarklint.svg"
+                        alt="remarklint logo"
+                        class="h-4.5 w-auto"
+                    />
                     <span>
                         Built for the
                         <a

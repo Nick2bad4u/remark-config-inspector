@@ -33,14 +33,14 @@ const predefinedColorMap = {
     js: 50,
     javascript: 50,
     antfu: 170,
-    markdown: 270,
-    remark: 270,
-    "remark-lint": 270,
-    "remark-preset-lint": 255,
+    markdown: 4,
+    remark: 0,
+    "remark-lint": 0,
+    "remark-preset-lint": 6,
     "@stylistic": 285,
-    "remark-lint-directive": 245,
-    "remark-lint-list-item-indent": 300,
-    "remark-lint-no-dead-urls": 185,
+    "remark-lint-directive": 12,
+    "remark-lint-list-item-indent": 354,
+    "remark-lint-no-dead-urls": 24,
 } as Record<string, string | number>;
 
 export function getHashColorFromString(

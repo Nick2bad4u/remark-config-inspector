@@ -71,18 +71,22 @@ export default defineNuxtConfig({
         head: {
             viewport: "width=device-width,initial-scale=1",
             meta: [
-                { name: "theme-color", content: "#5B21B6" },
+                { name: "theme-color", content: "#D80303" },
                 {
                     name: "apple-mobile-web-app-title",
                     content: "Remark Inspector",
                 },
             ],
             link: [
-                { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+                {
+                    rel: "icon",
+                    type: "image/svg+xml",
+                    href: "/remark/remarklint.svg",
+                },
                 {
                     rel: "alternate icon",
                     type: "image/svg+xml",
-                    href: "/favicon.svg",
+                    href: "/remark/remarklint2.svg",
                 },
                 {
                     rel: "alternate icon",

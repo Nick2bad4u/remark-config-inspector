@@ -128,7 +128,7 @@ cli.command("", "Start dev inspector")
     .option("--host <host>", "Host", {
         default: process.env["HOST"] || "127.0.0.1",
     })
-    .option("--port <port>", "Port", { default: process.env["PORT"] || 8888 })
+    .option("--port <port>", "Port", { default: process.env["PORT"] || 9999 })
     .option("--open", "Open browser", { default: true })
     // Action
     .action(async (rawOptions) => {
@@ -137,7 +137,7 @@ cli.command("", "Start dev inspector")
         const host = options.host;
         const port = await getPort({
             port: options.port,
-            portRange: [8888, 10000],
+            portRange: [9999, 12000],
             host,
         });
 

@@ -44,7 +44,7 @@ init(config.app.baseURL);
     <NuxtLoadingIndicator
         :height="3"
         :throttle="0"
-        color="repeating-linear-gradient(90deg, #8b5cf6 0px, #a78bfa 32px, #8b5cf6 64px)"
+        color="repeating-linear-gradient(90deg, #d80303 0px, #f97373 32px, #d80303 64px)"
     />
 
     <div
