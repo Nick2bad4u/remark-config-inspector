@@ -178,6 +178,38 @@ describe("resolvePayload", () => {
         ]);
     });
 
+    it("reconciles canonical rule state aliases when metadata uses short rule keys", () => {
+        const payload: Payload = {
+            ...createBasePayload(1),
+            configs: [
+                {
+                    index: 0,
+                    rules: {
+                        "remark-lint-correct-media-syntax": true,
+                    },
+                },
+            ],
+            rules: {
+                "correct-media-syntax": {
+                    name: "correct-media-syntax",
+                    plugin: "remark-lint",
+                },
+            },
+        };
+
+        const resolved = resolvePayload(payload);
+
+        expect(resolved.ruleToState.get("correct-media-syntax")).toEqual([
+            {
+                name: "correct-media-syntax",
+                configIndex: 0,
+                level: "error",
+                primaryOption: true,
+                options: undefined,
+            },
+        ]);
+    });
+
     it("builds extends info and glob maps from config files and ignores", () => {
         const payload: Payload = {
             ...createBasePayload(2),
