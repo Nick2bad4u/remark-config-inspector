@@ -244,17 +244,19 @@ export default {
   plugins: ['remark-preset-lint-recommended']
 }
 `,
-            "node_modules/remark-preset-lint-recommended/package.json": JSON.stringify(
-                {
-                    name: "remark-preset-lint-recommended",
-                    version: "1.0.0",
-                    main: "index.js",
-                    description: "Recommended markdown lint preset",
-                    repository: "git+https://github.com/acme/remark-preset-lint-recommended.git",
-                },
-                null,
-                2
-            ),
+            "node_modules/remark-preset-lint-recommended/package.json":
+                JSON.stringify(
+                    {
+                        name: "remark-preset-lint-recommended",
+                        version: "1.0.0",
+                        main: "index.js",
+                        description: "Recommended markdown lint preset",
+                        repository:
+                            "git+https://github.com/acme/remark-preset-lint-recommended.git",
+                    },
+                    null,
+                    2
+                ),
             "node_modules/remark-preset-lint-recommended/index.js": `
 function preset() {
   return () => {};
@@ -290,8 +292,7 @@ module.exports = {
             packageName: "remark-preset-lint-recommended",
             source: "package",
             description: "Recommended markdown lint preset",
-            docsUrl:
-                "https://github.com/acme/remark-preset-lint-recommended",
+            docsUrl: "https://github.com/acme/remark-preset-lint-recommended",
             docsUrlSource: "meta",
             customSyntax: "mdx",
             ruleCount: 2,

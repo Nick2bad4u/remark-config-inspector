@@ -452,9 +452,9 @@ function inferPresetDocsUrl(specifier: string): string {
     return `https://www.npmjs.com/package/${specifier}`;
 }
 
-function extractCustomSyntax(settings: Record<string, unknown>):
-    | string
-    | undefined {
+function extractCustomSyntax(
+    settings: Record<string, unknown>
+): string | undefined {
     const syntax = settings["syntax"];
     if (typeof syntax === "string" && syntax.length > 0) return syntax;
 
