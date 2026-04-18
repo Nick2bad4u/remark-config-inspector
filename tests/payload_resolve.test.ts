@@ -144,6 +144,40 @@ describe("resolvePayload", () => {
         ).toBe(1);
     });
 
+    it("reconciles canonical rule state aliases when config uses short rule keys", () => {
+        const payload: Payload = {
+            ...createBasePayload(1),
+            configs: [
+                {
+                    index: 0,
+                    rules: {
+                        "correct-media-syntax": true,
+                    },
+                },
+            ],
+            rules: {
+                "remark-lint-correct-media-syntax": {
+                    name: "remark-lint-correct-media-syntax",
+                    plugin: "remark-lint",
+                },
+            },
+        };
+
+        const resolved = resolvePayload(payload);
+
+        expect(
+            resolved.ruleToState.get("remark-lint-correct-media-syntax")
+        ).toEqual([
+            {
+                name: "remark-lint-correct-media-syntax",
+                configIndex: 0,
+                level: "error",
+                primaryOption: true,
+                options: undefined,
+            },
+        ]);
+    });
+
     it("builds extends info and glob maps from config files and ignores", () => {
         const payload: Payload = {
             ...createBasePayload(2),

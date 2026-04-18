@@ -82,6 +82,8 @@ interface PackageBugsField {
 }
 
 interface PackageMetadata {
+    name?: unknown;
+    description?: unknown;
     homepage?: unknown;
     repository?: unknown;
     bugs?: unknown;
@@ -90,6 +92,12 @@ interface PackageMetadata {
 interface RuleDocsResolution {
     url: string;
     urlSource: "meta" | "inferred";
+}
+
+interface ExtendsInfoOptions {
+    specifier: string;
+    basePath: string;
+    usedByConfigIndexes: number[];
 }
 
 const requireForResolution = createRequire(import.meta.url);
@@ -355,41 +363,56 @@ async function resolveRuleDocsFromPackageMetadata(
     packageName: string,
     basePath: string
 ): Promise<RuleDocsResolution | undefined> {
+    const metadata = await readPackageMetadata(packageName, basePath);
+    if (!metadata) return undefined;
+
+    return resolveDocsFromPackageMetadata(metadata);
+}
+
+function resolveDocsFromPackageMetadata(
+    metadata: PackageMetadata
+): RuleDocsResolution | undefined {
+    const homepage = metadata.homepage;
+
+    if (typeof homepage === "string" && homepage.length > 0) {
+        return {
+            url: homepage,
+            urlSource: "meta",
+        };
+    }
+
+    const repositoryUrl = resolveRepositoryUrlFromMetadata(metadata);
+    if (repositoryUrl) {
+        return {
+            url: repositoryUrl,
+            urlSource: "meta",
+        };
+    }
+
+    const bugsUrl = resolveBugsUrlFromMetadata(metadata);
+    if (bugsUrl) {
+        return {
+            url: bugsUrl,
+            urlSource: "meta",
+        };
+    }
+
+    return undefined;
+}
+
+async function readPackageMetadata(
+    packageName: string,
+    basePath: string
+): Promise<PackageMetadata | undefined> {
     const packageJsonPath = resolvePackageJsonPath(packageName, basePath);
     if (!packageJsonPath) return undefined;
 
     try {
-        const raw = await readFile(packageJsonPath, "utf8");
-        const parsed = JSON.parse(raw) as unknown;
-        if (!isRecord(parsed)) return undefined;
+        const rawMetadata = await readFile(packageJsonPath, "utf8");
+        const parsedMetadata = JSON.parse(rawMetadata) as unknown;
+        if (!isRecord(parsedMetadata)) return undefined;
 
-        const metadata = parsed as PackageMetadata;
-        const homepage = metadata.homepage;
-
-        if (typeof homepage === "string" && homepage.length > 0) {
-            return {
-                url: homepage,
-                urlSource: "meta",
-            };
-        }
-
-        const repositoryUrl = resolveRepositoryUrlFromMetadata(metadata);
-        if (repositoryUrl) {
-            return {
-                url: repositoryUrl,
-                urlSource: "meta",
-            };
-        }
-
-        const bugsUrl = resolveBugsUrlFromMetadata(metadata);
-        if (bugsUrl) {
-            return {
-                url: bugsUrl,
-                urlSource: "meta",
-            };
-        }
-
-        return undefined;
+        return parsedMetadata as PackageMetadata;
     } catch {
         return undefined;
     }
@@ -426,22 +449,104 @@ function createRuleInfo(ruleName: string, docs: RuleDocsResolution): RuleInfo {
 }
 
 function inferPresetDocsUrl(specifier: string): string {
-    if (specifier.startsWith("remark-preset-lint-")) {
-        return `https://github.com/remarkjs/remark-lint/tree/main/packages/${specifier}`;
-    }
-
     return `https://www.npmjs.com/package/${specifier}`;
 }
 
-function createPresetExtendsInfo(specifier: string): ExtendsInfo {
+function extractCustomSyntax(settings: Record<string, unknown>):
+    | string
+    | undefined {
+    const syntax = settings["syntax"];
+    if (typeof syntax === "string" && syntax.length > 0) return syntax;
+
+    const customSyntax = settings["customSyntax"];
+    if (typeof customSyntax === "string" && customSyntax.length > 0)
+        return customSyntax;
+
+    return undefined;
+}
+
+async function loadPresetConfig(
+    specifier: string,
+    basePath: string
+): Promise<LoadedRemarkConfig | undefined> {
+    for (const rootPath of [basePath, process.cwd()]) {
+        try {
+            const resolvedModulePath = requireForResolution.resolve(specifier, {
+                paths: [rootPath],
+            });
+
+            return await loadRemarkConfigFromModule(resolvedModulePath);
+        } catch {
+            continue;
+        }
+    }
+
+    return undefined;
+}
+
+async function createPresetExtendsInfo(
+    options: ExtendsInfoOptions
+): Promise<ExtendsInfo> {
+    const { specifier, basePath, usedByConfigIndexes } = options;
+    const packageMetadata = await readPackageMetadata(specifier, basePath);
+    const packageDocs = packageMetadata
+        ? resolveDocsFromPackageMetadata(packageMetadata)
+        : undefined;
+    const loadedPreset = await loadPresetConfig(specifier, basePath);
+
+    const pluginIds = new Set<string>();
+    const ruleNames = new Set<string>();
+    const directExtends = new Set<string>();
+
+    for (const pluginEntry of loadedPreset?.plugins ?? []) {
+        const [plugin] = normalizePluginEntry(pluginEntry);
+        const pluginId = extractPluginId(plugin);
+        if (!pluginId) continue;
+
+        pluginIds.add(pluginId);
+
+        if (isRemarkPreset(pluginId) && pluginId !== specifier)
+            directExtends.add(pluginId);
+
+        if (isRemarkLintRule(pluginId)) ruleNames.add(pluginId);
+    }
+
+    const rules = [...ruleNames].toSorted((left, right) =>
+        left.localeCompare(right)
+    );
+    const plugins = [...pluginIds].toSorted((left, right) =>
+        left.localeCompare(right)
+    );
+
     return {
         specifier,
-        packageName: specifier,
+        packageName:
+            typeof packageMetadata?.name === "string" &&
+            packageMetadata.name.length > 0
+                ? packageMetadata.name
+                : specifier,
         source: "package",
-        description: `Preset package ${specifier}`,
-        docsUrl: inferPresetDocsUrl(specifier),
-        docsUrlSource: "inferred",
-        usedByConfigIndexes: [0],
+        description:
+            typeof packageMetadata?.description === "string" &&
+            packageMetadata.description.length > 0
+                ? packageMetadata.description
+                : `Preset package ${specifier}`,
+        docsUrl: packageDocs?.url ?? inferPresetDocsUrl(specifier),
+        docsUrlSource: packageDocs?.urlSource ?? "inferred",
+        ...(directExtends.size > 0
+            ? {
+                  directExtends: [...directExtends].toSorted((left, right) =>
+                      left.localeCompare(right)
+                  ),
+              }
+            : {}),
+        ...(plugins.length > 0 ? { plugins } : {}),
+        ...(loadedPreset
+            ? { customSyntax: extractCustomSyntax(loadedPreset.settings) }
+            : {}),
+        ruleCount: rules.length,
+        ...(rules.length > 0 ? { rules } : {}),
+        usedByConfigIndexes,
     };
 }
 
@@ -699,7 +804,20 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
 
             const extendsInfo = [...presetSpecifiers]
                 .toSorted((left, right) => left.localeCompare(right))
-                .map((specifier) => createPresetExtendsInfo(specifier));
+                .map((specifier) => {
+                    const usedByConfigIndexes = configs
+                        .filter((config) => config.extends?.includes(specifier))
+                        .map((config) => config.index)
+                        .toSorted((left, right) => left - right);
+
+                    return createPresetExtendsInfo({
+                        specifier,
+                        basePath,
+                        usedByConfigIndexes,
+                    });
+                });
+
+            const resolvedExtendsInfo = await Promise.all(extendsInfo);
 
             const payload: Payload = {
                 configs,
@@ -715,7 +833,9 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
                         : {}),
                 },
                 ...(files ? { files } : {}),
-                ...(extendsInfo.length > 0 ? { extendsInfo } : {}),
+                ...(resolvedExtendsInfo.length > 0
+                    ? { extendsInfo: resolvedExtendsInfo }
+                    : {}),
                 ...(diagnostics.length > 0
                     ? {
                           diagnostics: [

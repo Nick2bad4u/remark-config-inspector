@@ -236,6 +236,74 @@ module.exports = function remarkLintWriteGood() {
         ).toBe("meta");
     });
 
+    it("extracts preset extends metadata from package metadata and exported preset config", async () => {
+        const cwd = await createTempDir();
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
+export default {
+  plugins: ['remark-preset-lint-recommended']
+}
+`,
+            "node_modules/remark-preset-lint-recommended/package.json": JSON.stringify(
+                {
+                    name: "remark-preset-lint-recommended",
+                    version: "1.0.0",
+                    main: "index.js",
+                    description: "Recommended markdown lint preset",
+                    repository: "git+https://github.com/acme/remark-preset-lint-recommended.git",
+                },
+                null,
+                2
+            ),
+            "node_modules/remark-preset-lint-recommended/index.js": `
+function preset() {
+  return () => {};
+}
+preset.pluginId = 'remark-preset-lint-recommended';
+
+module.exports = {
+  plugins: [
+    'remark-lint-final-newline',
+    ['remark-lint-maximum-line-length', 80],
+    'remark-gfm'
+  ],
+  settings: {
+    customSyntax: 'mdx'
+  }
+};
+`,
+        });
+
+        const adapter = createRemarkInspectorAdapter();
+        const result = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        const recommended = result.payload.extendsInfo?.find(
+            (entry) => entry.specifier === "remark-preset-lint-recommended"
+        );
+
+        expect(recommended).toMatchObject({
+            packageName: "remark-preset-lint-recommended",
+            source: "package",
+            description: "Recommended markdown lint preset",
+            docsUrl:
+                "https://github.com/acme/remark-preset-lint-recommended",
+            docsUrlSource: "meta",
+            customSyntax: "mdx",
+            ruleCount: 2,
+            usedByConfigIndexes: [0],
+        });
+        expect(recommended?.plugins).toContain("remark-gfm");
+        expect(recommended?.rules).toEqual([
+            "remark-lint-final-newline",
+            "remark-lint-maximum-line-length",
+        ]);
+    });
+
     it("continues loading when process.chdir is unavailable in workers", async () => {
         const cwd = await createTempDir();
         await writeFiles(cwd, {

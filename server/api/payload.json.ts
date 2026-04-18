@@ -1,34 +1,15 @@
 import process from "node:process";
 import { createWsServer } from "~~/src/ws";
 
-function getEnvValueWithLegacy(
-    primary: string,
-    legacy: string
-): string | undefined {
-    const primaryValue = process.env[primary];
-    if (typeof primaryValue === "string" && primaryValue.length > 0)
-        return primaryValue;
-
-    const legacyValue = process.env[legacy];
-    if (typeof legacyValue === "string" && legacyValue.length > 0)
-        return legacyValue;
-
-    return undefined;
+function getEnvValue(name: string): string | undefined {
+    const value = process.env[name];
+    return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 export default lazyEventHandler(async () => {
-    const userConfigPath = getEnvValueWithLegacy(
-        "REMARK_CONFIG",
-        "ESLINT_CONFIG"
-    );
-    const userBasePath = getEnvValueWithLegacy(
-        "REMARK_BASE_PATH",
-        "ESLINT_BASE_PATH"
-    );
-    const targetFilePath = getEnvValueWithLegacy(
-        "REMARK_TARGET",
-        "ESLINT_TARGET"
-    );
+    const userConfigPath = getEnvValue("REMARK_CONFIG");
+    const userBasePath = getEnvValue("REMARK_BASE_PATH");
+    const targetFilePath = getEnvValue("REMARK_TARGET");
 
     const ws = await createWsServer({
         cwd: process.cwd(),

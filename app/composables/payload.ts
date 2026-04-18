@@ -175,6 +175,39 @@ function appendRuleStatesForConfig(
     }
 }
 
+function canonicalRuleCandidates(ruleName: string): string[] {
+    const candidates = new Set<string>([ruleName]);
+
+    if (ruleName.startsWith("remark-lint-"))
+        candidates.add(ruleName.slice("remark-lint-".length));
+    else candidates.add(`remark-lint-${ruleName}`);
+
+    return [...candidates];
+}
+
+function reconcileRuleStateAliases(
+    ruleToState: Map<string, RuleConfigStates>,
+    rules: Record<string, RuleInfo>
+): void {
+    for (const [ruleName] of Object.entries(rules)) {
+        if (ruleToState.has(ruleName)) continue;
+
+        for (const candidate of canonicalRuleCandidates(ruleName)) {
+            const states = ruleToState.get(candidate);
+            if (!states?.length) continue;
+
+            ruleToState.set(
+                ruleName,
+                states.map((state) => ({
+                    ...state,
+                    name: ruleName,
+                }))
+            );
+            break;
+        }
+    }
+}
+
 function appendGlobMappingsForConfig(
     config: FlatConfigItem,
     globToConfigs: Map<string, FlatConfigItem[]>
@@ -214,6 +247,8 @@ export function resolvePayload(payload: Payload): ResolvedPayload {
         appendRuleStatesForConfig(config, index, ruleToState);
         appendGlobMappingsForConfig(config, globToConfigs);
     });
+
+    reconcileRuleStateAliases(ruleToState, normalizedRules);
 
     // Collapse all if there are too many items.
     syncConfigsOpenState(payload.configs.length);
