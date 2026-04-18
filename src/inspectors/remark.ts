@@ -517,6 +517,9 @@ async function createPresetExtendsInfo(
     const plugins = [...pluginIds].toSorted((left, right) =>
         left.localeCompare(right)
     );
+    const customSyntax = loadedPreset
+        ? extractCustomSyntax(loadedPreset.settings)
+        : undefined;
 
     return {
         specifier,
@@ -541,9 +544,7 @@ async function createPresetExtendsInfo(
               }
             : {}),
         ...(plugins.length > 0 ? { plugins } : {}),
-        ...(loadedPreset
-            ? { customSyntax: extractCustomSyntax(loadedPreset.settings) }
-            : {}),
+        ...(customSyntax ? { customSyntax } : {}),
         ruleCount: rules.length,
         ...(rules.length > 0 ? { rules } : {}),
         usedByConfigIndexes,
