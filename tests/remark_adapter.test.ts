@@ -246,16 +246,14 @@ export default {
 `,
         });
 
-        const chdirSpy = vi
-            .spyOn(process, "chdir")
-            .mockImplementation((() => {
-                throw Object.assign(
-                    new Error("process.chdir() is not supported in workers"),
-                    {
-                        code: "ERR_WORKER_UNSUPPORTED_OPERATION",
-                    }
-                );
-            }) as typeof process.chdir);
+        const chdirSpy = vi.spyOn(process, "chdir").mockImplementation((() => {
+            throw Object.assign(
+                new Error("process.chdir() is not supported in workers"),
+                {
+                    code: "ERR_WORKER_UNSUPPORTED_OPERATION",
+                }
+            );
+        }) as typeof process.chdir);
 
         try {
             const adapter = createRemarkInspectorAdapter();
@@ -273,12 +271,12 @@ export default {
         }
     });
 
-        it("handles symbol plugin ids, multi-argument rule values, and sorted presets", async () => {
-                const cwd = await createTempDir();
-                const absoluteTarget = join(cwd, "docs/z.md");
+    it("handles symbol plugin ids, multi-argument rule values, and sorted presets", async () => {
+        const cwd = await createTempDir();
+        const absoluteTarget = join(cwd, "docs/z.md");
 
-                await writeFiles(cwd, {
-                        ".remarkrc.mjs": `
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
 import symbolRule from './plugins/symbol-rule.mjs'
 import emptyRule from './plugins/empty-rule.mjs'
 import presetZeta from './plugins/remark-preset-lint-zeta.mjs'
@@ -294,84 +292,85 @@ export default {
     ]
 }
 `,
-                        "plugins/symbol-rule.mjs": `
+            "plugins/symbol-rule.mjs": `
 function plugin() {
     return () => {}
 }
 plugin.pluginId = Symbol('remark-lint-symbol-rule')
 export default plugin
 `,
-                        "plugins/empty-rule.mjs": `
+            "plugins/empty-rule.mjs": `
 function plugin() {
     return () => {}
 }
 plugin.pluginId = ''
 export default plugin
 `,
-                        "plugins/remark-preset-lint-zeta.mjs": `
+            "plugins/remark-preset-lint-zeta.mjs": `
 function plugin() {
     return () => {}
 }
 plugin.pluginId = 'remark-preset-lint-zeta'
 export default plugin
 `,
-                        "plugins/remark-preset-lint-alpha.mjs": `
+            "plugins/remark-preset-lint-alpha.mjs": `
 function plugin() {
     return () => {}
 }
 plugin.pluginId = 'remark-preset-lint-alpha'
 export default plugin
 `,
-                        "docs/a.md": "# A\n",
-                        "docs/z.md": "# Z\n",
-                });
-
-                const adapter = createRemarkInspectorAdapter();
-                const result = await adapter.readConfig({
-                        cwd,
-                        userConfigPath: ".remarkrc.mjs",
-                        targetFilePath: absoluteTarget,
-                        globMatchedFiles: true,
-                        chdir: false,
-                });
-
-                expect(result.payload.meta.targetFilePath).toBe(absoluteTarget);
-                expect(result.payload.meta.ignoreFile).toBeUndefined();
-                expect(result.payload.configs[0]?.rules).toMatchObject({
-                    "remark-lint-symbol-rule": [2, { allow: true }],
-                });
-                expect(result.payload.configs[0]?.extends).toEqual([
-                        "remark-preset-lint-alpha",
-                        "remark-preset-lint-zeta",
-                ]);
-                expect(result.payload.rules["remark-lint-symbol-rule"]?.docs?.url).toBe(
-                    "https://www.npmjs.com/package/remark-lint-symbol-rule"
-                );
-
-                const files = result.payload.files?.map((entry) => entry.filepath) ?? [];
-                expect(files).toEqual(["docs/a.md", "docs/z.md"]);
+            "docs/a.md": "# A\n",
+            "docs/z.md": "# Z\n",
         });
 
-        it("can skip file matching when globMatchedFiles is disabled", async () => {
-                const cwd = await createTempDir();
+        const adapter = createRemarkInspectorAdapter();
+        const result = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            targetFilePath: absoluteTarget,
+            globMatchedFiles: true,
+            chdir: false,
+        });
 
-                await writeFiles(cwd, {
-                        ".remarkrc.mjs": `
+        expect(result.payload.meta.targetFilePath).toBe(absoluteTarget);
+        expect(result.payload.meta.ignoreFile).toBeUndefined();
+        expect(result.payload.configs[0]?.rules).toMatchObject({
+            "remark-lint-symbol-rule": [2, { allow: true }],
+        });
+        expect(result.payload.configs[0]?.extends).toEqual([
+            "remark-preset-lint-alpha",
+            "remark-preset-lint-zeta",
+        ]);
+        expect(result.payload.rules["remark-lint-symbol-rule"]?.docs?.url).toBe(
+            "https://www.npmjs.com/package/remark-lint-symbol-rule"
+        );
+
+        const files =
+            result.payload.files?.map((entry) => entry.filepath) ?? [];
+        expect(files).toEqual(["docs/a.md", "docs/z.md"]);
+    });
+
+    it("can skip file matching when globMatchedFiles is disabled", async () => {
+        const cwd = await createTempDir();
+
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
 export default {
     plugins: []
 }
 `,
-                });
-
-                const adapter = createRemarkInspectorAdapter();
-                const result = await adapter.readConfig({
-                        cwd,
-                        userConfigPath: ".remarkrc.mjs",
-                        globMatchedFiles: false,
-                        chdir: false,
-                });
-
-                expect(result.payload.files).toBeUndefined();
-                expect(result.payload.meta.targetFilePath).toBe(DEFAULT_TARGET_FILE);
         });
+
+        const adapter = createRemarkInspectorAdapter();
+        const result = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        expect(result.payload.files).toBeUndefined();
+        expect(result.payload.meta.targetFilePath).toBe(DEFAULT_TARGET_FILE);
+    });
 });

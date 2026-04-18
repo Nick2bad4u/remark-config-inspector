@@ -8,6 +8,7 @@
 
 /**
  * @param {unknown} _options
+ *
  * @returns {(tree: unknown) => void}
  */
 export default function remarkLintRuleDocHeadings(_options = undefined) {

@@ -106,7 +106,8 @@ function isWorkerUnsupportedChdirError(error: unknown): boolean {
 
     return (
         "code" in error &&
-        (error as { code?: unknown }).code === "ERR_WORKER_UNSUPPORTED_OPERATION"
+        (error as { code?: unknown }).code ===
+            "ERR_WORKER_UNSUPPORTED_OPERATION"
     );
 }
 
@@ -295,9 +296,9 @@ function normalizeRepositoryUrl(url: string): string {
     return normalized;
 }
 
-function resolveRepositoryUrlFromMetadata(metadata: PackageMetadata):
-    | string
-    | undefined {
+function resolveRepositoryUrlFromMetadata(
+    metadata: PackageMetadata
+): string | undefined {
     const repository = metadata.repository;
     if (typeof repository === "string" && repository.length > 0) {
         return normalizeRepositoryUrl(repository);
@@ -317,9 +318,9 @@ function resolveRepositoryUrlFromMetadata(metadata: PackageMetadata):
     return undefined;
 }
 
-function resolveBugsUrlFromMetadata(metadata: PackageMetadata):
-    | string
-    | undefined {
+function resolveBugsUrlFromMetadata(
+    metadata: PackageMetadata
+): string | undefined {
     const bugs = metadata.bugs;
 
     if (typeof bugs === "string" && bugs.length > 0) return bugs;
@@ -337,10 +338,7 @@ function resolvePackageJsonPath(
     packageName: string,
     basePath: string
 ): string | undefined {
-    for (const rootPath of [
-        basePath,
-        process.cwd(),
-    ]) {
+    for (const rootPath of [basePath, process.cwd()]) {
         try {
             return requireForResolution.resolve(`${packageName}/package.json`, {
                 paths: [rootPath],
@@ -641,11 +639,12 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
 
             const ruleDocsByName = new Map<string, RuleDocsResolution>(
                 await Promise.all(
-                    [...configuredRuleNames].map(async (ruleName) =>
-                        [
-                            ruleName,
-                            await resolveRuleDocs(ruleName, basePath),
-                        ] as const
+                    [...configuredRuleNames].map(
+                        async (ruleName) =>
+                            [
+                                ruleName,
+                                await resolveRuleDocs(ruleName, basePath),
+                            ] as const
                     )
                 )
             );
@@ -711,7 +710,9 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
                     lastUpdate: Date.now(),
                     basePath,
                     configPath: toRelativePath(cwd, loaded.filePath),
-                    ...(remarkIgnore.info ? { ignoreFile: remarkIgnore.info } : {}),
+                    ...(remarkIgnore.info
+                        ? { ignoreFile: remarkIgnore.info }
+                        : {}),
                 },
                 ...(files ? { files } : {}),
                 ...(extendsInfo.length > 0 ? { extendsInfo } : {}),

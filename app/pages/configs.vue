@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import type { FuseResultMatch } from "fuse.js";
 import type { ComponentPublicInstance, PropType, VNode } from "vue";
-import type {
-    FlatConfigItem,
-    MatchedFile,
-    RulesRecord,
-} from "~~/shared/types";
+import type { FlatConfigItem, MatchedFile, RulesRecord } from "~~/shared/types";
 import { useRoute } from "#app/composables/router";
 import { debouncedWatch } from "@vueuse/core";
 import Fuse from "fuse.js";
@@ -135,7 +131,8 @@ const configPluginNames = computed(() => {
     const pluginNames = new Set<string>();
 
     for (const pluginPackages of configPluginPackagesByIndex.value.values()) {
-        for (const pluginPackage of pluginPackages) pluginNames.add(pluginPackage);
+        for (const pluginPackage of pluginPackages)
+            pluginNames.add(pluginPackage);
     }
 
     return [...pluginNames].toSorted((left, right) =>
@@ -559,7 +556,7 @@ onMounted(async () => {
                         </div>
                         <button
                             type="button"
-                            class="inline-flex items-center gap-1 rounded-full border border-base px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            class="inline-flex items-center gap-1 border border-base rounded-full px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
                             @click="togglePluginFilterPanel"
                         >
                             <span
@@ -572,7 +569,7 @@ onMounted(async () => {
                             <span>
                                 {{
                                     shouldShowPluginFilterChips
-                                        ? 'Hide plugin filters'
+                                        ? "Hide plugin filters"
                                         : hasSelectedPlugin
                                           ? `Show plugin filters (${pluginOptions.length}, ${filters.plugins.length} selected)`
                                           : `Show plugin filters (${pluginOptions.length})`
@@ -590,7 +587,7 @@ onMounted(async () => {
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
                             :class="[
                                 !hasSelectedPlugin
-                                    ? 'bg-rose-100 text-rose-800 dark:bg-zinc-700/45 dark:text-zinc-100'
+                                    ? 'border-rose-300/70 bg-rose-100 text-rose-900 dark:border-rose-500/45 dark:bg-rose-900/35 dark:text-rose-100'
                                     : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
                             ]"
                             @click="clearPluginSelection"
@@ -604,9 +601,9 @@ onMounted(async () => {
                             class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
                             :class="[
                                 isPluginSelected(pluginOption.value)
-                                                                        ? 'bg-rose-100 text-rose-800 opacity-100 dark:bg-zinc-700/45 dark:text-zinc-100'
+                                    ? 'border-rose-300/70 bg-rose-100 text-rose-900 opacity-100 dark:border-rose-500/45 dark:bg-rose-900/35 dark:text-rose-100'
                                     : hasSelectedPlugin
-                                      ? 'bg-white/65 text-zinc-700 opacity-55 hover:opacity-85 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-45 dark:hover:opacity-80'
+                                      ? 'bg-white/65 text-zinc-700 opacity-75 hover:opacity-100 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-70 dark:hover:opacity-100'
                                       : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
                             ]"
                             :style="pluginOption.style"

@@ -136,12 +136,11 @@ describe("resolvePayload", () => {
 
         const resolved = resolvePayload(payload);
 
+        expect(resolved.rules["remark-lint-correct-media-syntax"]?.name).toBe(
+            "remark-lint-correct-media-syntax"
+        );
         expect(
-            resolved.rules["remark-lint-correct-media-syntax"]?.name
-        ).toBe("remark-lint-correct-media-syntax");
-        expect(
-            resolved.ruleToState.get("remark-lint-correct-media-syntax")
-                ?.length
+            resolved.ruleToState.get("remark-lint-correct-media-syntax")?.length
         ).toBe(1);
     });
 

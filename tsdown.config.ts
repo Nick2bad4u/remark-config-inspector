@@ -2,7 +2,9 @@ import { defineConfig } from "tsdown";
 
 export default defineConfig({
     entry: ["src/cli.ts"],
-    attw: true,
+    // Run ATTW via dedicated lint/package scripts instead of tsdown build-time
+    // packing to avoid platform-specific temp tarball detection failures.
+    attw: false,
     failOnWarn: true,
     checks: {
         cannotCallNamespace: true,

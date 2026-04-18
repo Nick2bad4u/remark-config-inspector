@@ -72,12 +72,13 @@ function resolveRulePluginPackageName(ruleName: string): string {
     return ruleName;
 }
 
-const configRulePluginPackages = computed(() =>
-    new Set(
-        Object.keys(props.config.rules ?? {})
-            .map((ruleName) => resolveRulePluginPackageName(ruleName))
-            .filter((pluginPackage) => pluginPackage.length > 0)
-    )
+const configRulePluginPackages = computed(
+    () =>
+        new Set(
+            Object.keys(props.config.rules ?? {})
+                .map((ruleName) => resolveRulePluginPackageName(ruleName))
+                .filter((pluginPackage) => pluginPackage.length > 0)
+        )
 );
 
 const configRuleListColumns =
@@ -222,7 +223,8 @@ const sourceBadge = computed(() => {
 });
 
 function togglePluginList(): void {
-    stateStorage.configPluginListExpanded = !stateStorage.configPluginListExpanded;
+    stateStorage.configPluginListExpanded =
+        !stateStorage.configPluginListExpanded;
 }
 
 function togglePluginFilterFromConfig(pluginName: string): void {
@@ -499,7 +501,7 @@ async function scrollToSection(
                         <span>Plugins ({{ pluginEntries.length }})</span>
                         <button
                             type="button"
-                            class="inline-flex items-center gap-1 rounded-full border border-base px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            class="inline-flex items-center gap-1 border border-base rounded-full px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
                             @click="togglePluginList"
                         >
                             <span
@@ -675,9 +677,7 @@ async function scrollToSection(
                         </div>
                         <div flex="~ gap-2 items-center wrap">
                             <GlobItem
-                                v-for="(
-                                    glob, idx
-                                ) of ignoreFileInfo.patterns"
+                                v-for="(glob, idx) of ignoreFileInfo.patterns"
                                 :key="idx"
                                 :glob="glob"
                                 variant="ignore-file"
@@ -700,11 +700,7 @@ async function scrollToSection(
                         </template>
                         <template v-else> ({{ totalRuleCount }}) </template>
                     </div>
-                    <div
-                        v-if="hasMatchingRuleScopedPluginFilter"
-                        text-sm
-                        op60
-                    >
+                    <div v-if="hasMatchingRuleScopedPluginFilter" text-sm op60>
                         filtered by the page plugin filter
                     </div>
                     <div v-else-if="hasGlobalPluginFilter" text-sm op60>
@@ -766,7 +762,11 @@ async function scrollToSection(
                 </div>
             </div>
 
-            <div v-if="extraConfigEntries.length" ref="optionsSectionEl" flex="~ gap-2">
+            <div
+                v-if="extraConfigEntries.length"
+                ref="optionsSectionEl"
+                flex="~ gap-2"
+            >
                 <div i-ph-sliders-duotone my1 flex-none />
 
                 <div flex="~ col gap-2" w-full>
@@ -775,7 +775,9 @@ async function scrollToSection(
                         @click="showAdditionalConfigs = !showAdditionalConfigs"
                     >
                         <span
-                            >Additional configurations ({{ extraConfigEntries.length }})</span
+                            >Additional configurations ({{
+                                extraConfigEntries.length
+                            }})</span
                         >
                         <span
                             i-ph-caret-down-fill
@@ -791,10 +793,10 @@ async function scrollToSection(
                         <div
                             v-for="entry of extraConfigEntries"
                             :key="entry.key"
-                            class="rounded-lg border border-base bg-black/2 p2 dark:bg-zinc-900/15"
+                            class="border border-base rounded-lg bg-black/2 p2 dark:bg-zinc-900/15"
                         >
                             <div
-                                class="mb-1 text-zinc-700 text-xs font-semibold tracking-wide uppercase dark:text-zinc-300"
+                                class="mb-1 text-xs text-zinc-700 font-semibold tracking-wide uppercase dark:text-zinc-300"
                             >
                                 {{ entry.key }}
                             </div>

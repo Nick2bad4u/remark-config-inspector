@@ -62,7 +62,11 @@ describe("config plugin filters", () => {
         };
 
         expect(
-            configMatchesPluginFilters(config, ["remark-lint"], knownRulePlugins)
+            configMatchesPluginFilters(
+                config,
+                ["remark-lint"],
+                knownRulePlugins
+            )
         ).toBe(true);
         expect(
             configMatchesPluginFilters(config, ["remark"], knownRulePlugins)
@@ -146,5 +150,4 @@ describe("config plugin filters", () => {
             true
         );
     });
-
 });

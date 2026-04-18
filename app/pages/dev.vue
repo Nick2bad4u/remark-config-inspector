@@ -4,11 +4,36 @@ import { payload } from "~/composables/payload";
 import { stateStorage } from "~/composables/state";
 
 const PLACEHOLDER_DESCRIPTION_RE = /<value>|‹[^›]+›/u;
-const ANSI_ESCAPE_RE = /\u001B\[[0-?]*[ -/]*[@-~]/gu;
 
 const rules = computed(() => Object.values(payload.value.rules));
 function stripAnsiSequences(input: string): string {
-    const stripped = input.replaceAll(ANSI_ESCAPE_RE, "").trim();
+    let output = "";
+
+    for (let index = 0; index < input.length; index += 1) {
+        const code = input.charCodeAt(index);
+
+        if (code !== 27) {
+            output += input[index] ?? "";
+            continue;
+        }
+
+        const next = input[index + 1];
+        if (next !== "[") continue;
+
+        let cursor = index + 2;
+        while (cursor < input.length) {
+            const unit = input.charCodeAt(cursor);
+
+            if (unit >= 64 && unit <= 126) {
+                index = cursor;
+                break;
+            }
+
+            cursor += 1;
+        }
+    }
+
+    const stripped = output.trim();
     return stripped.length > 0 ? stripped : input;
 }
 
@@ -311,11 +336,7 @@ const metadataHealth = computed(() => {
         </section>
 
         <section border="~ rose/20 rounded-xl" bg-rose:6 p4>
-            <div
-                flex="~ items-center gap-2 wrap"
-                text-rose8
-                dark:text-rose3
-            >
+            <div flex="~ items-center gap-2 wrap" text-rose8 dark:text-rose3>
                 <div i-ph-flask-duotone flex-none />
                 <span font-medium>Metadata health</span>
             </div>

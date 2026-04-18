@@ -82,7 +82,8 @@ export const MOCK_PAYLOAD = {
             pluginPackageName: "remark-lint-maximum-line-length",
             fixable: true,
             docs: {
-                description: "Warn when lines exceed the configured maximum length.",
+                description:
+                    "Warn when lines exceed the configured maximum length.",
                 descriptionSource: "meta",
                 recommended: true,
                 url: "https://example.com/maximum-line-length",
@@ -95,7 +96,8 @@ export const MOCK_PAYLOAD = {
             pluginPackageName: "remark-lint-no-undefined-references",
             fixable: false,
             docs: {
-                description: "Disallow references that were not previously defined.",
+                description:
+                    "Disallow references that were not previously defined.",
                 descriptionSource: "meta",
                 recommended: true,
                 url: "https://example.com/no-undefined-references",
@@ -124,7 +126,10 @@ export const MOCK_PAYLOAD = {
             docsUrl: "https://example.com/remark-preset-lint-recommended",
             docsUrlSource: "meta",
             ruleCount: 2,
-            rules: ["remark-lint-final-newline", "remark-lint-maximum-line-length"],
+            rules: [
+                "remark-lint-final-newline",
+                "remark-lint-maximum-line-length",
+            ],
             usedByConfigIndexes: [0],
         },
         {

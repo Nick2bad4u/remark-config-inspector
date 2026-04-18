@@ -21,9 +21,7 @@ async function filterToRule(
 }
 
 test.describe("rules page regressions", () => {
-    test("rule package metadata is shown in popup", async ({
-        page,
-    }) => {
+    test("rule package metadata is shown in popup", async ({ page }) => {
         await openRulesPage(page);
 
         const coreRuleRow = page
@@ -35,9 +33,7 @@ test.describe("rules page regressions", () => {
             })
             .first();
         const coreRuleBadge = coreRuleRow
-            .locator(
-                '.colorized-rule-name[title="remark-lint-final-newline"]'
-            )
+            .locator('.colorized-rule-name[title="remark-lint-final-newline"]')
             .first();
         await expect(coreRuleBadge).toBeVisible();
         await expect(coreRuleBadge).toContainText("remark-lint-final-newline");

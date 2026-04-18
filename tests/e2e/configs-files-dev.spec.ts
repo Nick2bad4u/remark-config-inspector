@@ -137,7 +137,9 @@ test.describe("configs/files/dev regressions", () => {
     test("config-item plugin list toggle is shared at user level", async ({
         page,
     }) => {
-        const payload = JSON.parse(JSON.stringify(MOCK_PAYLOAD)) as typeof MOCK_PAYLOAD;
+        const payload = JSON.parse(
+            JSON.stringify(MOCK_PAYLOAD)
+        ) as typeof MOCK_PAYLOAD;
         payload.configs[1] = {
             ...payload.configs[1],
             plugins: {
@@ -203,7 +205,9 @@ test.describe("configs/files/dev regressions", () => {
         await page.goto("/files");
 
         await expect(
-            page.getByText("File matching data is unavailable in the current payload")
+            page.getByText(
+                "File matching data is unavailable in the current payload"
+            )
         ).toBeVisible();
         await expect(page.getByText("--files")).toBeVisible();
     });
@@ -294,15 +298,11 @@ test.describe("configs/files/dev regressions", () => {
             .first()
             .click();
 
-        await page
-            .locator('a[href="/configs?index=2"]')
-            .first()
-            .click();
+        await page.locator('a[href="/configs?index=2"]').first().click();
 
         await expect(page).toHaveURL(/\/configs\?index=2$/);
-        await expect(page.locator('[data-config-item-index="1"]')).toHaveAttribute(
-            "open",
-            ""
-        );
+        await expect(
+            page.locator('[data-config-item-index="1"]')
+        ).toHaveAttribute("open", "");
     });
 });

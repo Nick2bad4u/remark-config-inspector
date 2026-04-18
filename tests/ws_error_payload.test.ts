@@ -45,7 +45,9 @@ afterEach(async () => {
 
 describe("ws payload and server contract", () => {
     it("returns a valid payload shape when readConfig throws generic errors", async () => {
-        const cwd = await mkdtemp(join(tmpdir(), "remark-config-inspector-ws-"));
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
         tempDirs.push(cwd);
         const consoleErrorSpy = vi
             .spyOn(console, "error")
@@ -89,7 +91,9 @@ describe("ws payload and server contract", () => {
     });
 
     it("caches payloads, invalidates on watcher change, and notifies websocket clients", async () => {
-        const cwd = await mkdtemp(join(tmpdir(), "remark-config-inspector-ws-"));
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
         tempDirs.push(cwd);
 
         resolveConfigPathMock.mockResolvedValue({
@@ -178,13 +182,17 @@ describe("ws payload and server contract", () => {
             expect(readConfigMock).toHaveBeenCalledTimes(2);
         } finally {
             ws.close();
-            await new Promise<void>((resolve) => ws.once("close", () => resolve()));
+            await new Promise<void>((resolve) =>
+                ws.once("close", () => resolve())
+            );
             await closeServer(server);
         }
     });
 
     it("prints ConfigInspectorError details when readConfig throws a typed config error", async () => {
-        const cwd = await mkdtemp(join(tmpdir(), "remark-config-inspector-ws-"));
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
         tempDirs.push(cwd);
 
         resolveConfigPathMock.mockResolvedValue({
@@ -223,7 +231,9 @@ describe("ws payload and server contract", () => {
     });
 
     it("exits when resolveConfigPath throws ConfigInspectorError during startup", async () => {
-        const cwd = await mkdtemp(join(tmpdir(), "remark-config-inspector-ws-"));
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
         tempDirs.push(cwd);
 
         const resolveError = new ConfigPathError(cwd, [".remarkrc"]);
@@ -231,11 +241,9 @@ describe("ws payload and server contract", () => {
         resolveConfigPathMock.mockRejectedValue(resolveError);
 
         const exitError = new Error("__EXIT__");
-        vi.spyOn(process, "exit").mockImplementation(
-            (() => {
-                throw exitError;
-            }) as (code?: string | number | null | undefined) => never
-        );
+        vi.spyOn(process, "exit").mockImplementation((() => {
+            throw exitError;
+        }) as (code?: string | number | null | undefined) => never);
 
         const { createWsServer } = await import("../src/ws");
 
@@ -250,7 +258,9 @@ describe("ws payload and server contract", () => {
     });
 
     it("rethrows unexpected resolveConfigPath startup errors", async () => {
-        const cwd = await mkdtemp(join(tmpdir(), "remark-config-inspector-ws-"));
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
         tempDirs.push(cwd);
 
         const startupError = new Error("unexpected-startup-failure");

@@ -220,7 +220,7 @@ const isDimmedRule = computed(() => {
 });
 
 const dimRuleClass = computed(() =>
-    isDimmedRule.value ? "op55 hover:op100 transition-opacity" : ""
+    isDimmedRule.value ? "op65 hover:op100 transition-opacity" : ""
 );
 
 const hasRuleStates = computed(() => (props.ruleStates?.length ?? 0) > 0);
