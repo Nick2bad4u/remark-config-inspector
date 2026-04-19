@@ -394,7 +394,7 @@
     ],
     "imageSize": 80,
     "linkToUsage": false,
-    "projectName": "Stylelint-Config-Inspector",
+    "projectName": "remark-config-inspector",
     "projectOwner": "Nick2bad4u",
     "repoHost": "https://github.com",
     "repoType": "github",
