@@ -1,4 +1,4 @@
-import type { RuleConfigState, RuleEntry, RuleLevel } from "./types";
+import type { RuleConfigState, RuleLevel } from "./types";
 
 export function isRuleConfigured(
     states: RuleConfigState[] | undefined
@@ -12,7 +12,7 @@ export function isRuleEnabled(states: RuleConfigState[] | undefined): boolean {
     return states.some((state) => state.level !== "off");
 }
 
-function toRulePrimaryValue(level: RuleEntry | undefined): unknown {
+function toRulePrimaryValue(level: unknown): unknown {
     if (!Array.isArray(level)) return level;
 
     if (isSeverityToken(level[0]) && level.length > 1) return level[1];
@@ -43,12 +43,12 @@ function isDisabledRuleValue(value: unknown): boolean {
     );
 }
 
-export function getRulePrimaryOption(level: RuleEntry | undefined): unknown {
+export function getRulePrimaryOption(level: unknown): unknown {
     const primary = toRulePrimaryValue(level);
     return isDisabledRuleValue(primary) ? undefined : primary;
 }
 
-export function getRuleLevel(level: RuleEntry | undefined): RuleLevel {
+export function getRuleLevel(level: unknown): RuleLevel {
     const first = Array.isArray(level) ? level[0] : level;
 
     if (first === undefined) return "off";
@@ -87,9 +87,7 @@ export function getRuleLevel(level: RuleEntry | undefined): RuleLevel {
     }
 }
 
-export function getRuleOptions(
-    level: RuleEntry | undefined
-): unknown[] | undefined {
+export function getRuleOptions(level: unknown): unknown[] | undefined {
     if (!Array.isArray(level)) return undefined;
 
     return isSeverityToken(level[0]) ? level.slice(2) : level.slice(1);

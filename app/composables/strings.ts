@@ -19,7 +19,7 @@ export function stringifyOptions(object: unknown): string {
      * Lines with the [!code muted] comment will be processed by Shiki's diff
      * notation transformer and have the `.line.muted` classes applied
      */
-    return stringifyUnquoted(object).replace(
+    return stringifyUnquoted(object).replaceAll(
         MUTED_ARRAY_MARKER_RE,
         "$1, // [!code muted]"
     );

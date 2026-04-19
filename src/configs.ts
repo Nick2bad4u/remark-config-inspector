@@ -8,7 +8,10 @@ import { createRemarkInspectorAdapter } from "./inspectors/remark";
 
 const adapter = createRemarkInspectorAdapter();
 
-export type { ReadConfigOptions, ResolveConfigPathOptions };
+export type {
+    ReadConfigOptions,
+    ResolveConfigPathOptions,
+} from "./inspectors/contracts";
 
 /**
  * Alias for inspector config read results.

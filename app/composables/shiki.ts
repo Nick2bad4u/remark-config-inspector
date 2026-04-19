@@ -9,7 +9,7 @@ const HTML_GT_RE = />/g;
 
 export const shiki = shallowRef<HighlighterCore>();
 
-createHighlighterCore({
+shiki.value = await createHighlighterCore({
     themes: [
         import("@shikijs/themes/vitesse-light"),
         import("@shikijs/themes/vitesse-dark"),
@@ -20,8 +20,6 @@ createHighlighterCore({
         import("textmate-grammar-glob/grammars/glob.json") as any,
     ],
     engine: createJavaScriptRegexEngine(),
-}).then((highlighter) => {
-    shiki.value = highlighter;
 });
 
 export function useHighlightedGlob(code: () => string) {

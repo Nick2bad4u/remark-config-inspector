@@ -138,11 +138,13 @@ async function loadRemarkConfigFromModule(
     filePath: string
 ): Promise<LoadedRemarkConfig> {
     const module = await import(pathToFileURL(filePath).href);
-    const config = isRecord(module.default)
-        ? (module.default as RemarkModuleConfig)
-        : isRecord(module)
-          ? (module as unknown as RemarkModuleConfig)
-          : undefined;
+    let config: RemarkModuleConfig | undefined;
+
+    if (isRecord(module.default)) {
+        config = module.default as RemarkModuleConfig;
+    } else if (isRecord(module)) {
+        config = module as unknown as RemarkModuleConfig;
+    }
 
     if (!config)
         throw new Error(`Cannot parse given file \`${basename(filePath)}\``);

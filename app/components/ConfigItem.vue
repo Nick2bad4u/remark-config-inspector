@@ -171,7 +171,7 @@ const affectedFilesCount = computed(() => {
 });
 
 const extraConfigs = computed(() => {
-    const ignoredKeys = [
+    const ignoredKeys = new Set([
         "files",
         "plugins",
         "ignores",
@@ -180,10 +180,10 @@ const extraConfigs = computed(() => {
         "customSyntax",
         "name",
         "index",
-    ];
+    ]);
     return Object.fromEntries(
         Object.entries(props.config).filter(
-            ([key]) => !ignoredKeys.includes(key)
+            ([key]) => !ignoredKeys.has(key)
         )
     );
 });

@@ -137,9 +137,7 @@ test.describe("configs/files/dev regressions", () => {
     test("config-item plugin list toggle is shared at user level", async ({
         page,
     }) => {
-        const payload = JSON.parse(
-            JSON.stringify(MOCK_PAYLOAD)
-        ) as typeof MOCK_PAYLOAD;
+        const payload = structuredClone(MOCK_PAYLOAD);
         payload.configs[1] = {
             ...payload.configs[1],
             plugins: {

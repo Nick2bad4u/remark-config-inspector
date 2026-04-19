@@ -26,7 +26,6 @@ import {
     stateStorage,
 } from "~/composables/state";
 
-// TODO: fix the lint
 // eslint-disable-next-line unimport/auto-insert
 definePageMeta({
     scrollToTop(to) {

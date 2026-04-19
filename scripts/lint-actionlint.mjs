@@ -114,9 +114,9 @@ if (useDefaultFiles && targetFiles.length === 0) {
 }
 
 if (useDefaultFiles) {
-    const scopeText = overrideExcluded
-        ? "including" + ` ${pc.magenta([...excludedFiles].join(", "))}`
-        : "excluding" + ` ${pc.magenta([...excludedFiles].join(", "))}`;
+    const scopeMode = overrideExcluded ? "including" : "excluding";
+    const scopeFiles = pc.magenta([...excludedFiles].join(", "));
+    const scopeText = `${scopeMode} ${scopeFiles}`;
     console.log(
         `${pc.bold(pc.cyan("Running actionlint on"))} ${pc.magenta(
             String(targetFiles.length)

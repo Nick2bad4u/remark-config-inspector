@@ -63,7 +63,7 @@ export interface ViewerStateStorage {
 
 const STATE_STORAGE_KEY = "stateStorage";
 
-const RULE_STATE_FILTER_VALUES: readonly RuleStateFilter[] = [
+const RULE_STATE_FILTER_VALUES: ReadonlySet<RuleStateFilter> = new Set([
     "",
     "using",
     "unused",
@@ -72,15 +72,15 @@ const RULE_STATE_FILTER_VALUES: readonly RuleStateFilter[] = [
     "warn",
     "off-only",
     "overloads",
-];
+]);
 
-const RULE_STATUS_FILTER_VALUES: readonly RuleStatusFilter[] = [
+const RULE_STATUS_FILTER_VALUES: ReadonlySet<RuleStatusFilter> = new Set([
     "",
     "active",
     "recommended",
     "fixable",
     "deprecated",
-];
+]);
 
 const FONT_SCALE_VALUES: ReadonlySet<FontScale> = new Set([
     "sm",
@@ -185,14 +185,14 @@ function getStoredStateStorage(): Partial<ViewerStateStorage> {
 function isRuleStateFilter(value: unknown): value is RuleStateFilter {
     return (
         typeof value === "string" &&
-        RULE_STATE_FILTER_VALUES.includes(value as RuleStateFilter)
+        RULE_STATE_FILTER_VALUES.has(value as RuleStateFilter)
     );
 }
 
 function isRuleStatusFilter(value: unknown): value is RuleStatusFilter {
     return (
         typeof value === "string" &&
-        RULE_STATUS_FILTER_VALUES.includes(value as RuleStatusFilter)
+        RULE_STATUS_FILTER_VALUES.has(value as RuleStatusFilter)
     );
 }
 

@@ -8,28 +8,34 @@ const PLACEHOLDER_DESCRIPTION_RE = /<value>|‹[^›]+›/u;
 const rules = computed(() => Object.values(payload.value.rules));
 function stripAnsiSequences(input: string): string {
     let output = "";
+    let index = 0;
 
-    for (let index = 0; index < input.length; index += 1) {
-        const code = input.charCodeAt(index);
+    while (index < input.length) {
+        const code = input.codePointAt(index) ?? 0;
 
         if (code !== 27) {
             output += input[index] ?? "";
+            index += 1;
             continue;
         }
 
         const next = input[index + 1];
-        if (next !== "[") continue;
+        if (next !== "[") {
+            index += 1;
+            continue;
+        }
 
-        let cursor = index + 2;
-        while (cursor < input.length) {
-            const unit = input.charCodeAt(cursor);
+        index += 2;
+
+        while (index < input.length) {
+            const unit = input.codePointAt(index) ?? 0;
 
             if (unit >= 64 && unit <= 126) {
-                index = cursor;
+                index += 1;
                 break;
             }
 
-            cursor += 1;
+            index += 1;
         }
     }
 

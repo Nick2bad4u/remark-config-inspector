@@ -16,20 +16,23 @@ export default defineComponent({
         const parts = computed(() =>
             props.name?.split(CONFIG_NAME_SPLIT_RE).filter(Boolean)
         );
+
+        function getPartStyle(part: string, index: number) {
+            if (part === ":" || part === "/")
+                return { style: { opacity: 0.35, margin: "0 1px" } };
+
+            const isLastPart = index === (parts.value?.length ?? 0) - 1;
+            if (isLastPart) return null;
+
+            return { style: { color: getPluginColor(part) } };
+        }
+
         return () => {
             if (parts.value) {
                 return h(
                     "span",
                     parts.value.map((part, i) =>
-                        h(
-                            "span",
-                            [":", "/"].includes(part)
-                                ? { style: { opacity: 0.35, margin: "0 1px" } }
-                                : i !== parts.value!.length - 1
-                                  ? { style: { color: getPluginColor(part) } }
-                                  : null,
-                            part
-                        )
+                        h("span", getPartStyle(part, i), part)
                     )
                 );
             } else {

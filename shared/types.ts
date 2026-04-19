@@ -1,13 +1,10 @@
-export type GlobPattern = string;
-
-export type RuleEntry = unknown;
-export type RulesRecord = Record<string, RuleEntry>;
+export type RulesRecord = Record<string, unknown>;
 
 export interface FlatConfigItem extends Record<string, unknown> {
     index: number;
     name?: string;
-    files?: GlobPattern[];
-    ignores?: GlobPattern[];
+    files?: string[];
+    ignores?: string[];
     rules?: RulesRecord;
     plugins?: Record<string, unknown>;
     extends?: string[];
