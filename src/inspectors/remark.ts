@@ -100,6 +100,13 @@ interface ExtendsInfoOptions {
     usedByConfigIndexes: number[];
 }
 
+interface CollectedPluginData {
+    pluginPackages: Set<string>;
+    configuredRules: RulesRecord;
+    presetSpecifiers: Set<string>;
+    configuredRuleNames: Set<string>;
+}
+
 const requireForResolution = createRequire(import.meta.url);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -553,6 +560,122 @@ async function createPresetExtendsInfo(
     };
 }
 
+function collectPluginData(plugins: unknown[]): CollectedPluginData {
+    const pluginPackages = new Set<string>();
+    const configuredRules: RulesRecord = {};
+    const presetSpecifiers = new Set<string>();
+    const configuredRuleNames = new Set<string>();
+
+    for (const pluginEntry of plugins) {
+        const [plugin, ...parameters] = normalizePluginEntry(pluginEntry);
+        const pluginId = extractPluginId(plugin);
+        if (!pluginId) continue;
+
+        pluginPackages.add(pluginId);
+        if (isRemarkPreset(pluginId)) presetSpecifiers.add(pluginId);
+
+        if (!isRemarkLintRule(pluginId)) continue;
+
+        configuredRules[pluginId] = toRuleValue(parameters);
+        configuredRuleNames.add(pluginId);
+    }
+
+    return {
+        pluginPackages,
+        configuredRules,
+        presetSpecifiers,
+        configuredRuleNames,
+    };
+}
+
+async function buildRuleInfos(
+    configuredRuleNames: Set<string>,
+    basePath: string
+): Promise<Record<string, RuleInfo>> {
+    const ruleDocsByName = new Map<string, RuleDocsResolution>(
+        await Promise.all(
+            [...configuredRuleNames].map(
+                async (ruleName) =>
+                    [
+                        ruleName,
+                        await resolveRuleDocs(ruleName, basePath),
+                    ] as const
+            )
+        )
+    );
+
+    const rules: Record<string, RuleInfo> = {};
+    for (const ruleName of configuredRuleNames) {
+        const docs = ruleDocsByName.get(ruleName) ?? {
+            url: inferRuleDocsUrl(ruleName),
+            urlSource: "inferred" as const,
+        };
+
+        rules[ruleName] = createRuleInfo(ruleName, docs);
+    }
+
+    return rules;
+}
+
+function buildPluginMap(pluginPackages: Set<string>): Record<string, true> {
+    return Object.fromEntries(
+        [...pluginPackages]
+            .toSorted((left, right) => left.localeCompare(right))
+            .map((pluginName) => [pluginName, true])
+    );
+}
+
+function buildRootConfig(options: {
+    pluginMap: Record<string, true>;
+    configuredRules: RulesRecord;
+    settings: Record<string, unknown>;
+    presetSpecifiers: Set<string>;
+}): FlatConfigItem {
+    const { pluginMap, configuredRules, settings, presetSpecifiers } = options;
+
+    return {
+        index: 0,
+        name: "remark/root",
+        ...(Object.keys(pluginMap).length > 0 ? { plugins: pluginMap } : {}),
+        ...(Object.keys(configuredRules).length > 0
+            ? { rules: configuredRules }
+            : {}),
+        ...(Object.keys(settings).length > 0 ? { settings } : {}),
+        ...(presetSpecifiers.size > 0
+            ? {
+                  extends: [...presetSpecifiers].toSorted((left, right) =>
+                      left.localeCompare(right)
+                  ),
+              }
+            : {}),
+    };
+}
+
+async function buildExtendsInfo(options: {
+    presetSpecifiers: Set<string>;
+    configs: FlatConfigItem[];
+    basePath: string;
+}): Promise<ExtendsInfo[]> {
+    const { presetSpecifiers, configs, basePath } = options;
+
+    const extendPromises = [...presetSpecifiers]
+        .toSorted((left, right) => left.localeCompare(right))
+        .map((specifier) => {
+            const usedByConfigIndexes = configs
+                .filter((config) => config.extends?.includes(specifier))
+                .map((config) => config.index)
+                .toSorted((left, right) => left - right);
+
+            return createPresetExtendsInfo({
+                specifier,
+                basePath,
+                usedByConfigIndexes,
+            });
+        });
+
+    return await Promise.all(extendPromises);
+}
+
 async function loadRemarkConfig(options: {
     cwd: string;
     targetFilePath: string;
@@ -723,75 +846,22 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
 
             if (!loaded) throw new ConfigPathError(basePath, configFilenames);
 
-            const pluginPackages = new Set<string>();
-            const configuredRules: RulesRecord = {};
-            const rules: Record<string, RuleInfo> = {};
-            const presetSpecifiers = new Set<string>();
-            const configuredRuleNames = new Set<string>();
+            const {
+                pluginPackages,
+                configuredRules,
+                presetSpecifiers,
+                configuredRuleNames,
+            } = collectPluginData(loaded.plugins);
 
-            for (const pluginEntry of loaded.plugins) {
-                const [plugin, ...parameters] =
-                    normalizePluginEntry(pluginEntry);
-                const pluginId = extractPluginId(plugin);
-                if (!pluginId) continue;
+            const rules = await buildRuleInfos(configuredRuleNames, basePath);
+            const pluginMap = buildPluginMap(pluginPackages);
 
-                pluginPackages.add(pluginId);
-
-                if (isRemarkPreset(pluginId)) presetSpecifiers.add(pluginId);
-
-                if (!isRemarkLintRule(pluginId)) continue;
-
-                configuredRules[pluginId] = toRuleValue(parameters);
-                configuredRuleNames.add(pluginId);
-            }
-
-            const ruleDocsByName = new Map<string, RuleDocsResolution>(
-                await Promise.all(
-                    [...configuredRuleNames].map(
-                        async (ruleName) =>
-                            [
-                                ruleName,
-                                await resolveRuleDocs(ruleName, basePath),
-                            ] as const
-                    )
-                )
-            );
-
-            for (const ruleName of configuredRuleNames) {
-                const docs = ruleDocsByName.get(ruleName) ?? {
-                    url: inferRuleDocsUrl(ruleName),
-                    urlSource: "inferred" as const,
-                };
-
-                rules[ruleName] = createRuleInfo(ruleName, docs);
-            }
-
-            const pluginMap = Object.fromEntries(
-                [...pluginPackages]
-                    .toSorted((left, right) => left.localeCompare(right))
-                    .map((pluginName) => [pluginName, true])
-            );
-
-            const rootConfig: FlatConfigItem = {
-                index: 0,
-                name: "remark/root",
-                ...(Object.keys(pluginMap).length > 0
-                    ? { plugins: pluginMap }
-                    : {}),
-                ...(Object.keys(configuredRules).length > 0
-                    ? { rules: configuredRules }
-                    : {}),
-                ...(Object.keys(loaded.settings).length > 0
-                    ? { settings: loaded.settings }
-                    : {}),
-                ...(presetSpecifiers.size > 0
-                    ? {
-                          extends: [...presetSpecifiers].toSorted(
-                              (left, right) => left.localeCompare(right)
-                          ),
-                      }
-                    : {}),
-            };
+            const rootConfig = buildRootConfig({
+                pluginMap,
+                configuredRules,
+                settings: loaded.settings,
+                presetSpecifiers,
+            });
 
             const configs: FlatConfigItem[] = [rootConfig];
             const diagnostics: string[] = [];
@@ -805,22 +875,11 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
             if (remarkIgnore.absolutePath)
                 dependencies.add(remarkIgnore.absolutePath);
 
-            const extendsInfo = [...presetSpecifiers]
-                .toSorted((left, right) => left.localeCompare(right))
-                .map((specifier) => {
-                    const usedByConfigIndexes = configs
-                        .filter((config) => config.extends?.includes(specifier))
-                        .map((config) => config.index)
-                        .toSorted((left, right) => left - right);
-
-                    return createPresetExtendsInfo({
-                        specifier,
-                        basePath,
-                        usedByConfigIndexes,
-                    });
-                });
-
-            const resolvedExtendsInfo = await Promise.all(extendsInfo);
+            const resolvedExtendsInfo = await buildExtendsInfo({
+                presetSpecifiers,
+                configs,
+                basePath,
+            });
 
             const payload: Payload = {
                 configs,

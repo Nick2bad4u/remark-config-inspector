@@ -27,6 +27,16 @@ export default defineComponent({
             return { style: { color: getPluginColor(part) } };
         }
 
+        function renderAnonymousIndexTag() {
+            if (typeof props.index !== "number") return null;
+
+            return h(
+                "span",
+                { class: "op50 text-sm" },
+                ` #${props.index + 1}`
+            );
+        }
+
         return () => {
             if (parts.value) {
                 return h(
@@ -38,13 +48,7 @@ export default defineComponent({
             } else {
                 return h("span", [
                     h("span", { class: "op50 italic" }, "anonymous"),
-                    props.index != null
-                        ? h(
-                              "span",
-                              { class: "op50 text-sm" },
-                              ` #${props.index + 1}`
-                          )
-                        : null,
+                    renderAnonymousIndexTag(),
                 ]);
             }
         };

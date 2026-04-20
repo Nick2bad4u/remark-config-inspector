@@ -211,6 +211,47 @@ function applyFontScale(scale: FontScale): void {
     );
 }
 
+function toStringList(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+
+    return value.filter(
+        (entry: unknown): entry is string =>
+            typeof entry === "string" && entry.length > 0
+    );
+}
+
+function resolveTheme(value: unknown): UserTheme {
+    return value === "auto" || value === "light" || value === "dark"
+        ? value
+        : DEFAULT_STATE_STORAGE.theme;
+}
+
+function resolveSearchMode(value: unknown): SearchMode {
+    return value === "advanced" || value === "native"
+        ? value
+        : DEFAULT_STATE_STORAGE.searchMode;
+}
+
+function resolveViewFileMatchType(value: unknown): ViewFileMatchType {
+    return value === "all" || value === "configs" || value === "merged"
+        ? value
+        : DEFAULT_STATE_STORAGE.viewFileMatchType;
+}
+
+function resolveViewType(value: unknown, fallback: ViewType): ViewType {
+    return value === "list" || value === "grid" ? value : fallback;
+}
+
+function resolveViewFilesTab(value: unknown): ViewFilesTab {
+    return value === "list" || value === "group"
+        ? value
+        : DEFAULT_STATE_STORAGE.viewFilesTab;
+}
+
+function resolveBoolean(value: unknown, fallback: boolean): boolean {
+    return typeof value === "boolean" ? value : fallback;
+}
+
 function buildInitialStateStorage(): ViewerStateStorage {
     const stored = getStoredStateStorage();
     const storedFiltersConfigs = (stored.filtersConfigs ??
@@ -218,64 +259,34 @@ function buildInitialStateStorage(): ViewerStateStorage {
     const storedFiltersRules = (stored.filtersRules ??
         {}) as Partial<FiltersRulesPage>;
 
-    const normalizedConfigPlugins = Array.isArray(storedFiltersConfigs.plugins)
-        ? storedFiltersConfigs.plugins.filter(
-              (value: unknown): value is string =>
-                  typeof value === "string" && value.length > 0
-          )
-        : [];
-
-    const normalizedRulesPlugins = Array.isArray(storedFiltersRules.plugins)
-        ? storedFiltersRules.plugins.filter(
-              (value: unknown): value is string =>
-                  typeof value === "string" && value.length > 0
-          )
-        : [];
+    const normalizedConfigPlugins = toStringList(storedFiltersConfigs.plugins);
+    const normalizedRulesPlugins = toStringList(storedFiltersRules.plugins);
 
     return {
-        theme:
-            stored.theme === "auto" ||
-            stored.theme === "light" ||
-            stored.theme === "dark"
-                ? stored.theme
-                : DEFAULT_STATE_STORAGE.theme,
+        theme: resolveTheme(stored.theme),
         fontScale: isFontScale(stored.fontScale)
             ? stored.fontScale
             : DEFAULT_STATE_STORAGE.fontScale,
-        searchMode:
-            stored.searchMode === "advanced" || stored.searchMode === "native"
-                ? stored.searchMode
-                : DEFAULT_STATE_STORAGE.searchMode,
-        viewFileMatchType:
-            stored.viewFileMatchType === "all" ||
-            stored.viewFileMatchType === "configs" ||
-            stored.viewFileMatchType === "merged"
-                ? stored.viewFileMatchType
-                : DEFAULT_STATE_STORAGE.viewFileMatchType,
-        showSpecificOnly:
-            typeof stored.showSpecificOnly === "boolean"
-                ? stored.showSpecificOnly
-                : DEFAULT_STATE_STORAGE.showSpecificOnly,
-        viewType:
-            stored.viewType === "list" || stored.viewType === "grid"
-                ? stored.viewType
-                : DEFAULT_STATE_STORAGE.viewType,
-        rulesViewType:
-            stored.rulesViewType === "list" || stored.rulesViewType === "grid"
-                ? stored.rulesViewType
-                : DEFAULT_STATE_STORAGE.rulesViewType,
-        viewFilesTab:
-            stored.viewFilesTab === "list" || stored.viewFilesTab === "group"
-                ? stored.viewFilesTab
-                : DEFAULT_STATE_STORAGE.viewFilesTab,
-        dimDisabledRules:
-            typeof stored.dimDisabledRules === "boolean"
-                ? stored.dimDisabledRules
-                : DEFAULT_STATE_STORAGE.dimDisabledRules,
-        configPluginListExpanded:
-            typeof stored.configPluginListExpanded === "boolean"
-                ? stored.configPluginListExpanded
-                : DEFAULT_STATE_STORAGE.configPluginListExpanded,
+        searchMode: resolveSearchMode(stored.searchMode),
+        viewFileMatchType: resolveViewFileMatchType(stored.viewFileMatchType),
+        showSpecificOnly: resolveBoolean(
+            stored.showSpecificOnly,
+            DEFAULT_STATE_STORAGE.showSpecificOnly
+        ),
+        viewType: resolveViewType(stored.viewType, DEFAULT_STATE_STORAGE.viewType),
+        rulesViewType: resolveViewType(
+            stored.rulesViewType,
+            DEFAULT_STATE_STORAGE.rulesViewType
+        ),
+        viewFilesTab: resolveViewFilesTab(stored.viewFilesTab),
+        dimDisabledRules: resolveBoolean(
+            stored.dimDisabledRules,
+            DEFAULT_STATE_STORAGE.dimDisabledRules
+        ),
+        configPluginListExpanded: resolveBoolean(
+            stored.configPluginListExpanded,
+            DEFAULT_STATE_STORAGE.configPluginListExpanded
+        ),
         filtersConfigs: {
             filepath:
                 typeof storedFiltersConfigs.filepath === "string"

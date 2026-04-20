@@ -5,6 +5,50 @@ const REMARK_LINT_PACKAGE_PREFIX_RE = /^remark-lint-.+$/;
 const SCOPED_REMARK_LINT_PACKAGE_RE = /^(@[^/]+)\/remark-lint(?:-(.+))?$/;
 const REMARK_PRESET_LINT_PREFIX_RE = /^remark-preset-lint-.+$/;
 
+function addScopedRemarkLintCandidates(
+    candidates: Set<string>,
+    scopedMatch: RegExpExecArray
+): void {
+    const scope = scopedMatch[1];
+    const suffix = scopedMatch[2];
+
+    if (typeof scope === "string" && scope.length > 0) {
+        candidates.add(scope);
+        candidates.add(`${scope}/remark-lint`);
+    }
+
+    candidates.add("remark-lint");
+
+    if (
+        typeof scope === "string" &&
+        scope.length > 0 &&
+        typeof suffix === "string" &&
+        suffix.length > 0
+    ) {
+        candidates.add(`${scope}/${suffix}`);
+    }
+
+    if (typeof suffix === "string" && suffix.length > 0)
+        candidates.add(suffix);
+}
+
+function addTailCandidates(candidates: Set<string>, trimmed: string): void {
+    const tail = trimmed.split("/").at(-1);
+    if (typeof tail !== "string" || tail.length === 0) return;
+
+    candidates.add(tail);
+    const tailWithoutExt = tail.replace(FILE_EXTENSION_SUFFIX_RE, "");
+    if (tailWithoutExt.length > 0) candidates.add(tailWithoutExt);
+
+    if (REMARK_LINT_PACKAGE_PREFIX_RE.test(tailWithoutExt))
+        candidates.add("remark-lint");
+
+    if (REMARK_PRESET_LINT_PREFIX_RE.test(tailWithoutExt)) {
+        candidates.add("remark-preset-lint");
+        candidates.add("remark-lint");
+    }
+}
+
 function normalizePluginSet(plugins: Iterable<string>): Set<string> {
     return new Set(
         [...plugins].filter(
@@ -56,29 +100,8 @@ export function toPluginFilterCandidates(name: string): string[] {
     const candidates = new Set<string>([trimmed]);
 
     const scopedRemarkLintMatch = SCOPED_REMARK_LINT_PACKAGE_RE.exec(trimmed);
-    if (scopedRemarkLintMatch) {
-        const scope = scopedRemarkLintMatch[1];
-        const suffix = scopedRemarkLintMatch[2];
-
-        if (typeof scope === "string" && scope.length > 0) {
-            candidates.add(scope);
-            candidates.add(`${scope}/remark-lint`);
-        }
-
-        candidates.add("remark-lint");
-
-        if (
-            typeof scope === "string" &&
-            scope.length > 0 &&
-            typeof suffix === "string" &&
-            suffix.length > 0
-        ) {
-            candidates.add(`${scope}/${suffix}`);
-        }
-
-        if (typeof suffix === "string" && suffix.length > 0)
-            candidates.add(suffix);
-    }
+    if (scopedRemarkLintMatch)
+        addScopedRemarkLintCandidates(candidates, scopedRemarkLintMatch);
 
     if (REMARK_LINT_PACKAGE_PREFIX_RE.test(trimmed))
         candidates.add("remark-lint");
@@ -88,20 +111,7 @@ export function toPluginFilterCandidates(name: string): string[] {
         candidates.add("remark-lint");
     }
 
-    const tail = trimmed.split("/").at(-1);
-    if (typeof tail === "string" && tail.length > 0) {
-        candidates.add(tail);
-        const tailWithoutExt = tail.replace(FILE_EXTENSION_SUFFIX_RE, "");
-        if (tailWithoutExt.length > 0) candidates.add(tailWithoutExt);
-
-        if (REMARK_LINT_PACKAGE_PREFIX_RE.test(tailWithoutExt))
-            candidates.add("remark-lint");
-
-        if (REMARK_PRESET_LINT_PREFIX_RE.test(tailWithoutExt)) {
-            candidates.add("remark-preset-lint");
-            candidates.add("remark-lint");
-        }
-    }
+    addTailCandidates(candidates, trimmed);
 
     return [...candidates];
 }
