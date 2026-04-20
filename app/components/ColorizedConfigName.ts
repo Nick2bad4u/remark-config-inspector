@@ -30,11 +30,7 @@ export default defineComponent({
         function renderAnonymousIndexTag() {
             if (typeof props.index !== "number") return null;
 
-            return h(
-                "span",
-                { class: "op50 text-sm" },
-                ` #${props.index + 1}`
-            );
+            return h("span", { class: "op50 text-sm" }, ` #${props.index + 1}`);
         }
 
         return () => {

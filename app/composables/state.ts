@@ -273,7 +273,10 @@ function buildInitialStateStorage(): ViewerStateStorage {
             stored.showSpecificOnly,
             DEFAULT_STATE_STORAGE.showSpecificOnly
         ),
-        viewType: resolveViewType(stored.viewType, DEFAULT_STATE_STORAGE.viewType),
+        viewType: resolveViewType(
+            stored.viewType,
+            DEFAULT_STATE_STORAGE.viewType
+        ),
         rulesViewType: resolveViewType(
             stored.rulesViewType,
             DEFAULT_STATE_STORAGE.rulesViewType

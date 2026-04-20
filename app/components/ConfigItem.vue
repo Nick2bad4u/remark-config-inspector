@@ -182,9 +182,7 @@ const extraConfigs = computed(() => {
         "index",
     ]);
     return Object.fromEntries(
-        Object.entries(props.config).filter(
-            ([key]) => !ignoredKeys.has(key)
-        )
+        Object.entries(props.config).filter(([key]) => !ignoredKeys.has(key))
     );
 });
 

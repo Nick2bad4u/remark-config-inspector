@@ -28,8 +28,7 @@ function addScopedRemarkLintCandidates(
         candidates.add(`${scope}/${suffix}`);
     }
 
-    if (typeof suffix === "string" && suffix.length > 0)
-        candidates.add(suffix);
+    if (typeof suffix === "string" && suffix.length > 0) candidates.add(suffix);
 }
 
 function addTailCandidates(candidates: Set<string>, trimmed: string): void {

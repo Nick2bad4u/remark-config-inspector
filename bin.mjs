@@ -5,24 +5,28 @@ import process from "node:process";
 
 const cliEntrypoint = new URL("./dist/cli.mjs", import.meta.url);
 
-try {
-    await access(cliEntrypoint);
-    await import(cliEntrypoint.href);
-} catch (error) {
-    if (
-        error &&
-        typeof error === "object" &&
-        "code" in error &&
-        error.code === "ENOENT"
-    ) {
-        console.error(
-            "Remark Config Inspector build output is missing (dist/cli.mjs)."
-        );
-        console.error(
-            "Run `npm run build` in this repository, then rerun the command."
-        );
+async function main() {
+    try {
+        await access(cliEntrypoint);
+        await import(cliEntrypoint.href);
+    } catch (error) {
+        if (
+            error &&
+            typeof error === "object" &&
+            "code" in error &&
+            error.code === "ENOENT"
+        ) {
+            console.error(
+                "Remark Config Inspector build output is missing (dist/cli.mjs)."
+            );
+            console.error(
+                "Run `npm run build` in this repository, then rerun the command."
+            );
+            process.exit(1);
+        }
+        console.error(error);
         process.exit(1);
     }
-    console.error(error);
-    process.exit(1);
 }
+
+void main();
