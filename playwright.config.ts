@@ -41,7 +41,8 @@ export default defineConfig({
             : []),
     ],
     webServer: {
-        command: "npm run dev -- --host 127.0.0.1 --port 4173",
+        command:
+            "node scripts/serve-static-dist.mjs --host 127.0.0.1 --port 4173 --dir dist/public",
         url: "http://127.0.0.1:4173",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
