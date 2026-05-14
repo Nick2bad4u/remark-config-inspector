@@ -5,11 +5,11 @@ import process from "node:process";
 
 const cliEntrypoint = new URL("./dist/cli.mjs", import.meta.url);
 
-async function main() {
-    try {
-        await access(cliEntrypoint);
+void access(cliEntrypoint)
+    .then(async () => {
         await import(cliEntrypoint.href);
-    } catch (error) {
+    })
+    .catch((error) => {
         if (
             error &&
             typeof error === "object" &&
@@ -26,7 +26,4 @@ async function main() {
         }
         console.error(error);
         process.exit(1);
-    }
-}
-
-void main();
+    });

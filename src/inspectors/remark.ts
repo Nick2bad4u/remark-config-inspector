@@ -148,9 +148,9 @@ async function loadRemarkConfigFromModule(
     let config: RemarkModuleConfig | undefined;
 
     if (isRecord(module.default)) {
-        config = module.default as RemarkModuleConfig;
+        config = module.default;
     } else if (isRecord(module)) {
-        config = module as unknown as RemarkModuleConfig;
+        config = module;
     }
 
     if (!config)
@@ -421,7 +421,7 @@ async function readPackageMetadata(
         const parsedMetadata = JSON.parse(rawMetadata) as unknown;
         if (!isRecord(parsedMetadata)) return undefined;
 
-        return parsedMetadata as PackageMetadata;
+        return parsedMetadata;
     } catch {
         return undefined;
     }
