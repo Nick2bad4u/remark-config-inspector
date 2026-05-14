@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "types": ["vitest/globals", "node"],
+        "noEmit": true
+    },
+    "exclude": [
+        "../.nuxt/**",
+        "../dist/**",
+        "../node_modules/**",
+        "../playwright-report/**",
+        "../test-results/**"
+    ],
+    "extends": "../tsconfig.cli.json",
+    "include": [
+        "./**/*.ts",
+        "../app/**/*.ts",
+        "../server/**/*.ts",
+        "../shared/**/*.ts",
+        "../src/**/*.ts"
+    ]
+}

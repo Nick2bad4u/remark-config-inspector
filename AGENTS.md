@@ -270,11 +270,11 @@ applyTo: "**"
     ```ts
     import type { SetRequired, Simplify } from "type-fest";
 
-    type User = {
+    interface User {
       id?: string;
       name: string;
       email?: string;
-    };
+    }
 
     type PersistedUser = Simplify<SetRequired<User, "id" | "email">>;
     ```

@@ -27,6 +27,14 @@ export default await nuxt()
         },
     })
     .append({
+        files: ["app/composables/**/*.ts"],
+        rules: {
+            // Nuxt auto-import declaration files are providers, not consumers.
+            // Enforcing unimport auto-insert here causes invalid self-import fixes.
+            "unimport/auto-insert": "off",
+        },
+    })
+    .append({
         files: [
             "**/.github/instructions/Docs-Folder.instructions.md",
             ".checkov.yml",
@@ -58,6 +66,7 @@ export default await nuxt()
             "scripts/**",
             "stryker.config.mjs",
             "stylelint.config.mjs",
+            "tests/tsconfig.json",
             "tsconfig.build.json",
             "tsconfig.cli.json",
             "tsconfig.eslint.json",

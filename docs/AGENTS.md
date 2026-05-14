@@ -142,11 +142,11 @@ const retryIndex = arrayFindLastIndex(attempts, (attempt) => !attempt.success);
 ## ESLint flat config example
 
 ```ts
-import etc-misc from "eslint-plugin-etc-misc";
+import etcMisc from "eslint-plugin-etc-misc";
 
 export default [
     {
-        plugins: { etc-misc },
+        plugins: { "etc-misc": etcMisc },
         rules: {
             "etc-misc/prefer-ts-extras-array-find-last-index": "error",
         },
