@@ -241,9 +241,9 @@ describe("ws payload and server contract", () => {
         resolveConfigPathMock.mockRejectedValue(resolveError);
 
         const exitError = new Error("__EXIT__");
-        vi.spyOn(process, "exit").mockImplementation((() => {
+        vi.spyOn(process, "exit").mockImplementation(() => {
             throw exitError;
-        }) as (code?: string | number | null | undefined) => never);
+        });
 
         const { createWsServer } = await import("../src/ws");
 

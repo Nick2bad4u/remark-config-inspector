@@ -1,6 +1,6 @@
 {
     "name": "remark-config-inspector",
-    "version": "2.2.2",
+    "version": "2.2.3",
     "private": false,
     "description": "A visual tool for inspecting and understanding your remark and remark-lint configs",
     "keywords": [
