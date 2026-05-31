@@ -1,3 +1,5 @@
+import process from "node:process";
+
 interface NuxtLike {
     options: {
         experimental: Record<string, unknown>;
@@ -7,6 +9,9 @@ interface NuxtLike {
 function forcePayloadExtraction(_options: unknown, nuxt: NuxtLike) {
     nuxt.options.experimental.payloadExtraction = true;
 }
+
+const isProduction = process.env.NODE_ENV === "production";
+const appBaseURL = isProduction ? "./" : "/";
 
 export default defineNuxtConfig({
     ssr: false,
@@ -30,13 +35,30 @@ export default defineNuxtConfig({
         typedPages: true,
         clientNodeCompat: true,
         componentIslands: false,
+        viteEnvironmentApi: true,
     },
 
     features: {
         inlineStyles: false,
     },
 
-    css: ["@unocss/reset/tailwind.css"],
+    hooks: {
+        "vite:extendConfig": function viteExtendConfig(config, { isClient }) {
+            if (!isClient) return;
+
+            if (config.build) {
+                config.build.modulePreload = {
+                    polyfill: false,
+                };
+            }
+        },
+    },
+
+    css: [
+        "@unocss/reset/tailwind.css",
+        "floating-vue/dist/style.css",
+        "~/styles/global.css",
+    ],
 
     nitro: {
         preset: "static",
@@ -67,7 +89,7 @@ export default defineNuxtConfig({
     },
 
     app: {
-        baseURL: "./",
+        baseURL: appBaseURL,
         head: {
             viewport: "width=device-width,initial-scale=1",
             meta: [
@@ -103,7 +125,6 @@ export default defineNuxtConfig({
     },
 
     vite: {
-        base: "./",
         optimizeDeps: {
             include: [
                 "fuse.js",

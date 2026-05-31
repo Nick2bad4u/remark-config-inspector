@@ -13,19 +13,25 @@ function expandAll() {
 function collapseAll() {
     fileGroupsOpenState.value = fileGroupsOpenState.value.map(() => false);
 }
+
+function setListFilesOpen(event: Event): void {
+    const target = event.target;
+    if (target instanceof HTMLDetailsElement) listFilesOpen.value = target.open;
+}
 </script>
 
 <template>
     <div flex="~ col gap-4" my4>
-        <div text-gray:75>
-            This tab shows a preview of file matches from the workspace. This
-            feature is <span text-amber>experimental</span> and may not be 100%
-            accurate.
+        <div class="inspector-experimental-pill">
+            <div i-ph-flask-duotone flex-none />
+            <span>Experimental file match preview</span>
         </div>
         <template v-if="payload.filesResolved">
             <div flex="~ gap-2 items-center">
-                <div border="~ base rounded" flex="~ inline">
+                <div class="inspector-segmented-control">
                     <button
+                        type="button"
+                        :aria-pressed="stateStorage.viewFilesTab === 'list'"
                         :class="
                             stateStorage.viewFilesTab === 'list'
                                 ? 'btn-action-active'
@@ -41,6 +47,8 @@ function collapseAll() {
                     </button>
                     <div border="l base" />
                     <button
+                        type="button"
+                        :aria-pressed="stateStorage.viewFilesTab === 'group'"
                         :class="
                             stateStorage.viewFilesTab === 'group'
                                 ? 'btn-action-active'
@@ -57,10 +65,10 @@ function collapseAll() {
                 </div>
                 <div flex-auto />
                 <template v-if="stateStorage.viewFilesTab === 'group'">
-                    <button btn-action px3 @click="expandAll">
+                    <button type="button" btn-action px3 @click="expandAll">
                         Expand All
                     </button>
-                    <button btn-action px3 @click="collapseAll">
+                    <button type="button" btn-action px3 @click="collapseAll">
                         Collapse All
                     </button>
                 </template>
@@ -82,11 +90,8 @@ function collapseAll() {
                 <details
                     :open="listFilesOpen"
                     :data-testid="testIds.files.matchedListDetails"
-                    class="border border-base rounded-xl bg-black:4 p3 dark:bg-white:3"
-                    @toggle="
-                        listFilesOpen = ($event.target as HTMLDetailsElement)
-                            .open
-                    "
+                    class="inspector-panel p3"
+                    @toggle="setListFilesOpen"
                 >
                     <summary
                         :data-testid="testIds.files.matchedListSummary"
@@ -117,7 +122,7 @@ function collapseAll() {
                 </details>
             </div>
         </template>
-        <div v-else rounded border="~ base" bg-gray:5 p3 text-sm>
+        <div v-else class="inspector-empty-state" text-sm>
             File matching data is unavailable in the current payload. In CLI
             mode, enable file matching with <code font-mono>--files</code> to
             populate this tab.

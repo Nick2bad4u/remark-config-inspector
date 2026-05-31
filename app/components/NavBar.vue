@@ -117,8 +117,9 @@ function showDeprecated() {
                 Fetching updates...
             </div>
         </div>
-        <div
+        <nav
             :data-testid="testIds.nav.tabs"
+            aria-label="Inspector sections"
             flex="~ gap-3 items-center wrap"
             py4
         >
@@ -196,6 +197,7 @@ function showDeprecated() {
             </NuxtLink>
             <VDropdown>
                 <button
+                    type="button"
                     btn-action
                     rounded-full
                     :title="`Font size: ${activeFontScaleLabel}`"
@@ -208,6 +210,7 @@ function showDeprecated() {
                         <button
                             v-for="option in fontScaleOptions"
                             :key="option.value"
+                            type="button"
                             btn-action
                             justify-between
                             :class="{
@@ -231,6 +234,7 @@ function showDeprecated() {
                 </template>
             </VDropdown>
             <button
+                type="button"
                 btn-action
                 rounded-full
                 :class="{
@@ -256,9 +260,11 @@ function showDeprecated() {
                 />
             </button>
             <button
+                type="button"
                 btn-action
                 rounded-full
                 title="Toggle Dark Mode"
+                aria-label="Toggle dark mode"
                 @click="toggleDark()"
             >
                 <div i-ph-sun-dim-duotone dark:i-ph-moon-stars-duotone />
@@ -266,16 +272,18 @@ function showDeprecated() {
             <NuxtLink
                 href="https://github.com/Nick2bad4u/remark-config-inspector"
                 target="_blank"
+                rel="noopener noreferrer"
                 btn-action
                 rounded-full
                 title="GitHub repository"
+                aria-label="GitHub repository"
             >
                 <div i-carbon-logo-github text-lg />
             </NuxtLink>
             <template v-if="deprecatedUsing.length">
                 <div border="l base" ml3 mr2 h-5 w-1px />
                 <button
-                    to="/configs"
+                    type="button"
                     border="~ orange/20 rounded-full"
                     flex="~ gap-2 items-center"
                     bg-orange:5
@@ -290,6 +298,6 @@ function showDeprecated() {
                     Using {{ deprecatedUsing.length }} deprecated rules
                 </button>
             </template>
-        </div>
+        </nav>
     </div>
 </template>

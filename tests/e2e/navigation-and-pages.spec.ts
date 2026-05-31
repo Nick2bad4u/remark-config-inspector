@@ -118,7 +118,7 @@ test.describe("navigation and page regressions", () => {
 
         await expect(filepathInput).toHaveValue("");
         await expect(clearFiltersButton).toHaveCount(0);
-        await expect(allPluginsButton).toHaveClass(/bg-rose-100/);
+        await expect(allPluginsButton).toHaveAttribute("aria-pressed", "true");
     });
 
     test("files page supports collapsible matched-file sections", async ({

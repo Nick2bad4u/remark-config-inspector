@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FiltersConfigsPage, FlatConfigItem } from "~~/shared/types";
-import { computed, nextTick, ref, watchEffect } from "vue";
+import { computed, nextTick, ref, useId, watchEffect } from "vue";
 import {
     getRuleLevel,
     getRuleOptions,
@@ -44,6 +44,8 @@ const open = defineModel("open", {
 
 const hasShown = ref(open.value);
 const showAdditionalConfigs = ref(false);
+const pluginEntriesPanelId = useId();
+const additionalConfigsPanelId = useId();
 
 if (!hasShown.value) {
     const stop = watchEffect(() => {
@@ -90,9 +92,9 @@ const pluginEntries = computed(() => {
             hasPluginScopedRules: configRulePluginPackages.value.has(name),
             isSelected: selectedPluginPackages.value.includes(name),
             style: {
-                color: getPluginColor(name),
-                borderColor: getPluginColor(name, 0.55),
-                backgroundColor: getPluginColor(name, 0.1),
+                "--plugin-color": getPluginColor(name),
+                "--plugin-border-color": getPluginColor(name, 0.55),
+                "--plugin-bg-color": getPluginColor(name, 0.1),
             },
         };
     });
@@ -351,16 +353,21 @@ async function scrollToSection(
 
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
+
+function setOpenFromToggle(event: Event): void {
+    const target = event.target;
+    if (target instanceof HTMLDetailsElement) open.value = target.open;
+}
 </script>
 
 <template>
     <details
-        class="flat-config-item"
+        class="flat-config-item inspector-panel"
         :open="open"
         border="~ rounded-lg"
         relative
         :class="active ? 'border-yellow:70' : 'border-base'"
-        @toggle="open = ($event.target as any).open"
+        @toggle="setOpenFromToggle"
     >
         <summary block>
             <div
@@ -427,7 +434,7 @@ async function scrollToSection(
 
                     <div
                         :data-testid="testIds.configs.summaryGrid"
-                        class="grid grid-cols-7 items-center justify-items-end gap-2"
+                        class="config-summary-grid flex items-center justify-end gap-2"
                     >
                         <SummarizeItem
                             v-for="item of summaryItems"
@@ -499,7 +506,9 @@ async function scrollToSection(
                         <span>Plugins ({{ pluginEntries.length }})</span>
                         <button
                             type="button"
-                            class="inline-flex items-center gap-1 border border-base rounded-full px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            class="inspector-toggle-button px-2.5 py-0.5 text-xs"
+                            :aria-controls="pluginEntriesPanelId"
+                            :aria-expanded="shouldShowPluginEntries"
                             @click="togglePluginList"
                         >
                             <span
@@ -530,13 +539,15 @@ async function scrollToSection(
                     </div>
                     <div
                         v-if="shouldShowPluginEntries"
+                        :id="pluginEntriesPanelId"
                         flex="~ gap-2 items-center wrap"
                     >
                         <button
                             v-for="entry of pluginEntries"
                             :key="entry.name"
                             type="button"
-                            class="badge border border-transparent rounded-full px-2.5 py-0.5 text-sm leading-4"
+                            :aria-pressed="entry.isSelected"
+                            class="plugin-filter-button badge rounded-full px-2.5 py-0.5 text-sm leading-4"
                             :class="[
                                 entry.hasPluginScopedRules
                                     ? 'ring-1 ring-teal/25 shadow-sm'
@@ -735,6 +746,7 @@ async function scrollToSection(
                     <template #popup-actions="{ ruleName }">
                         <button
                             v-close-popper
+                            type="button"
                             btn-action-sm
                             @click="emit('badgeClick', ruleName)"
                         >
@@ -746,6 +758,7 @@ async function scrollToSection(
                 <div>
                     <button
                         v-if="filters?.rule"
+                        type="button"
                         ml8
                         op50
                         @click="emit('badgeClick', '')"
@@ -769,6 +782,9 @@ async function scrollToSection(
 
                 <div flex="~ col gap-2" w-full>
                     <button
+                        type="button"
+                        :aria-controls="additionalConfigsPanelId"
+                        :aria-expanded="showAdditionalConfigs"
                         class="w-fit flex items-center gap-1 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100"
                         @click="showAdditionalConfigs = !showAdditionalConfigs"
                     >
@@ -786,6 +802,7 @@ async function scrollToSection(
 
                     <div
                         v-if="showAdditionalConfigs"
+                        :id="additionalConfigsPanelId"
                         class="flex flex-col gap-2"
                     >
                         <div

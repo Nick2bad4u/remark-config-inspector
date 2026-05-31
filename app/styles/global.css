@@ -11,6 +11,13 @@ summary::-webkit-details-marker {
 }
 
 body {
+    --inspector-surface: rgb(12 12 15 / 0.72);
+    --inspector-surface-strong: rgb(12 12 15 / 0.92);
+    --inspector-surface-hover: rgb(20 20 24 / 0.82);
+    --inspector-border: rgb(248 113 113 / 0.18);
+    --inspector-border-strong: rgb(248 113 113 / 0.34);
+    --inspector-accent: rgb(216 3 3);
+    --inspector-focus-ring: rgb(216 3 3 / 0.18);
     --at-apply: bg-base color-base font-sans;
     background-attachment: fixed;
     background-color: #060607;
@@ -25,6 +32,228 @@ body {
         radial-gradient(80% 68% at 10% 18%, #0000004f 0%, #00000000 70%);
     color-scheme: dark;
     font-size: calc(16px * var(--inspector-font-scale, 1));
+}
+
+.inspector-input {
+    border-color: rgb(216 3 3 / 0.24);
+    background: var(--inspector-surface);
+    transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease;
+
+    &:hover {
+        border-color: rgb(248 113 113 / 0.36);
+        background: var(--inspector-surface-hover);
+    }
+
+    &:focus,
+    &:focus-visible {
+        border-color: rgb(248 113 113 / 0.54);
+        background: var(--inspector-surface-strong);
+        box-shadow: 0 0 0 3px var(--inspector-focus-ring);
+    }
+}
+
+.inspector-autocomplete {
+    border-color: var(--inspector-border);
+    background: rgb(12 12 15 / 0.96);
+    box-shadow:
+        0 12px 30px rgb(0 0 0 / 0.38),
+        0 0 0 1px rgb(216 3 3 / 0.1);
+}
+
+.inspector-autocomplete-option {
+    color: rgb(228 228 236);
+    transition:
+        background 120ms ease,
+        color 120ms ease;
+
+    &[aria-selected="true"],
+    &:hover,
+    &:focus-visible {
+        background: rgb(216 3 3 / 0.16);
+        color: rgb(254 226 226);
+    }
+
+    &:focus-visible {
+        background: rgb(216 3 3 / 0.16);
+        color: rgb(254 226 226);
+        outline: 2px solid rgb(248 113 113 / 0.58);
+        outline-offset: -2px;
+    }
+}
+
+.inspector-summary-pill {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgb(216 3 3 / 0.2);
+    border-radius: 9999px;
+    background: rgb(12 12 14 / 0.72);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+    color: rgb(228 228 236);
+    gap: 0.5rem;
+    min-block-size: 2rem;
+}
+
+.inspector-summary-pill--accent {
+    border-color: rgb(248 113 113 / 0.3);
+    background: rgb(127 29 29 / 0.44);
+    color: rgb(254 226 226);
+}
+
+.inspector-choice-pill {
+    cursor: pointer;
+    transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease,
+        color 140ms ease,
+        opacity 140ms ease;
+
+    &:hover,
+    &:focus-within {
+        border-color: rgb(248 113 113 / 0.34);
+    }
+
+    &:focus-within {
+        border-color: rgb(248 113 113 / 0.52);
+        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.14);
+    }
+}
+
+.inspector-toggle-button {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--inspector-border);
+    border-radius: 9999px;
+    background: rgb(12 12 14 / 0.72);
+    color: rgb(228 228 236);
+    gap: 0.25rem;
+    transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease,
+        color 140ms ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--inspector-border-strong);
+        background: var(--inspector-surface-hover);
+        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.12);
+        outline: none;
+    }
+}
+
+.inspector-segmented-control {
+    display: inline-flex;
+    overflow: hidden;
+    align-items: center;
+    border: 1px solid var(--inspector-border);
+    border-radius: 0.5rem;
+    background: rgb(12 12 15 / 0.62);
+}
+
+.inspector-section {
+    border: 1px solid var(--inspector-border);
+    border-radius: 0.75rem;
+    background: rgb(12 12 15 / 0.52);
+}
+
+.inspector-band {
+    background: linear-gradient(
+        90deg,
+        rgb(216 3 3 / 0.045),
+        rgb(12 12 15 / 0.12),
+        rgb(216 3 3 / 0.035)
+    );
+    border-block: 1px solid var(--inspector-border);
+}
+
+.config-summary-grid {
+    max-inline-size: 100%;
+    overflow-inline: auto;
+    padding-block: 0.125rem;
+    scrollbar-width: thin;
+}
+
+.inspector-experimental-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid rgb(217 119 6 / 0.28);
+    border-radius: 9999px;
+    background: rgb(245 158 11 / 0.12);
+    color: rgb(254 240 138);
+    font-size: 0.875rem;
+    gap: 0.5rem;
+    inline-size: fit-content;
+}
+
+.inspector-panel {
+    border: 1px solid var(--inspector-border);
+    border-radius: 0.75rem;
+    background: var(--inspector-surface);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+.inspector-popover-panel {
+    border: 1px solid rgb(248 113 113 / 0.2);
+    border-radius: 0.75rem;
+    background: rgb(12 12 15 / 0.98);
+    box-shadow: 0 18px 45px rgb(0 0 0 / 0.42);
+    color: rgb(244 244 245);
+}
+
+.inspector-popover-header {
+    background: rgb(216 3 3 / 0.08);
+    border-block-end: 1px solid rgb(248 113 113 / 0.16);
+}
+
+.inspector-popover-section {
+    border-color: rgb(248 113 113 / 0.16);
+    background: rgb(216 3 3 / 0.075);
+}
+
+.inspector-popover-action {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid rgb(248 113 113 / 0.24);
+    border-radius: 9999px;
+    background: rgb(20 20 24 / 0.72);
+    color: inherit;
+    font-size: 0.875rem;
+    gap: 0.375rem;
+    text-decoration: none;
+    transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease;
+
+    @media screen and (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+
+    &:hover,
+    &:focus-visible {
+        border-color: rgb(248 113 113 / 0.42);
+        background: rgb(216 3 3 / 0.16);
+        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.14);
+    }
+}
+
+.inspector-popover-chip {
+    border-color: rgb(248 113 113 / 0.24);
+    background: rgb(127 29 29 / 0.38);
+    color: rgb(254 226 226);
+}
+
+.inspector-empty-state {
+    padding: 1rem;
+    border: 1px solid rgb(217 119 6 / 0.28);
+    border-radius: 0.75rem;
+    background: rgb(245 158 11 / 0.1);
 }
 
 html.dark {
@@ -87,14 +316,37 @@ html.dark {
 }
 
 .plugin-filter-button {
+    border-color: var(--plugin-border-color, var(--inspector-border));
+    background: var(--plugin-bg-color, var(--inspector-surface));
+    color: var(--plugin-color, rgb(228 228 236));
     cursor: pointer;
     transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        color 140ms ease,
         transform 140ms ease,
         box-shadow 180ms ease,
         filter 180ms ease;
 
+    &[aria-pressed="true"] {
+        border-color: rgb(248 113 113 / 0.5);
+        background: color-mix(
+            in srgb,
+            var(--plugin-color, var(--inspector-accent)) 18%,
+            rgb(12 12 15)
+        );
+        box-shadow:
+            0 0 0 1px rgb(248 113 113 / 0.32),
+            0 4px 12px rgb(216 3 3 / 0.16);
+        color: rgb(254 226 226);
+    }
+
     &:hover,
     &:focus-visible {
+        border-color: var(
+            --plugin-border-color,
+            var(--inspector-border-strong)
+        );
         box-shadow:
             0 0 0 1px rgb(216 3 3 / 0.5),
             0 4px 12px rgb(216 3 3 / 0.16);

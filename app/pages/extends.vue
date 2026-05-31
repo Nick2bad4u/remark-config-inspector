@@ -43,22 +43,9 @@ const activeRules = computed(() => {
 
 <template>
     <div flex="~ col gap-4" my4>
-        <div
-            border="~ amber/20 rounded-full"
-            flex="~ inline gap-2 items-center"
-            w-fit
-            bg-amber:8
-            px3
-            py1
-            text-sm
-            text-amber7
-            dark:text-amber3
-        >
+        <div class="inspector-experimental-pill">
             <div i-ph-flask-duotone flex-none />
-            <span
-                >This view is experimental and based on best-effort
-                package/config loading.</span
-            >
+            <span>Experimental extends trace</span>
         </div>
 
         <template v-if="extendsEntries.length">
@@ -66,6 +53,8 @@ const activeRules = computed(() => {
                 <button
                     v-for="entry in extendsEntries"
                     :key="entry.specifier"
+                    type="button"
+                    :aria-pressed="selectedSpecifier === entry.specifier"
                     :data-testid="testIds.extends.specifierButton"
                     border="~ base rounded-full"
                     px3
@@ -86,11 +75,9 @@ const activeRules = computed(() => {
 
             <div
                 v-if="activeEntry"
-                border="~ base rounded-xl"
+                class="inspector-band"
                 flex="~ col gap-4"
-                bg-black:4
                 p4
-                dark:bg-white:3
             >
                 <div
                     flex="~ col gap-2 md:row md:items-start md:justify-between"
@@ -145,12 +132,7 @@ const activeRules = computed(() => {
                 </div>
 
                 <div grid="~ cols-1 gap-3 md:cols-2 xl:cols-3">
-                    <div
-                        border="~ base rounded-lg"
-                        bg-black:6
-                        p3
-                        dark:bg-white:3
-                    >
+                    <div class="inspector-section" p3>
                         <div text-sm font-medium>Used by config items</div>
                         <div mt2 flex="~ col gap-2">
                             <NuxtLink
@@ -173,12 +155,7 @@ const activeRules = computed(() => {
                         </div>
                     </div>
 
-                    <div
-                        border="~ base rounded-lg"
-                        bg-black:6
-                        p3
-                        dark:bg-white:3
-                    >
+                    <div class="inspector-section" p3>
                         <div text-sm font-medium>Direct extends</div>
                         <div
                             v-if="activeEntry.directExtends?.length"
@@ -199,12 +176,7 @@ const activeRules = computed(() => {
                         </div>
                     </div>
 
-                    <div
-                        border="~ base rounded-lg"
-                        bg-black:6
-                        p3
-                        dark:bg-white:3
-                    >
+                    <div class="inspector-section" p3>
                         <div text-sm font-medium>Plugins and syntax</div>
                         <div mt2 flex="~ col gap-3">
                             <div>
@@ -248,7 +220,7 @@ const activeRules = computed(() => {
                     </div>
                 </div>
 
-                <div border="~ base rounded-lg" bg-black:6 p3 dark:bg-white:3>
+                <div class="inspector-section" p3>
                     <div flex="~ items-center gap-2 wrap">
                         <div i-ph-list-dashes-duotone text-blue5 />
                         <span text-sm font-medium
@@ -275,15 +247,7 @@ const activeRules = computed(() => {
             </div>
         </template>
 
-        <div
-            v-else
-            rounded-xl
-            border="~ base"
-            bg-black:5
-            p4
-            text-sm
-            dark:bg-white:3
-        >
+        <div v-else class="inspector-empty-state" p4 text-sm>
             No extended configs were found in the current payload.
         </div>
     </div>

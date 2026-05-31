@@ -44,13 +44,13 @@ If you push a tag directly (for example `v1.5.1`), the workflow validates that t
 `npm run release:check` runs:
 
 ```bash
-npm run check
+npm run check && npm run lint:package:strict && npm pack --dry-run
 ```
 
 And `check` runs:
 
 ```bash
-npm run lint && npm run typecheck && npm run test -- --run && npm run build
+npm run lint && npm run lint:stylelint && npm run typecheck && npm run test && npm run build
 ```
 
 ## Quick troubleshooting

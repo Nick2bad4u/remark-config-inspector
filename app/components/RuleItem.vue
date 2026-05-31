@@ -11,6 +11,7 @@ import {
 import { getPluginColor } from "~/composables/color";
 import { deepCompareOptions } from "~/composables/options";
 import { getRuleDefaultOptions } from "~/composables/payload";
+import { nth } from "~/composables/strings";
 
 const props = defineProps<{
     rule: RuleInfo;
@@ -36,12 +37,16 @@ interface DescriptionSegment {
     value: string;
 }
 
-function redundantOptions(options: any) {
+function redundantOptions(options: unknown[] | undefined) {
     const { hasRedundantOptions } = deepCompareOptions(
         options ?? [],
         getRuleDefaultOptions(props.rule.name)
     );
     return hasRedundantOptions;
+}
+
+function getRuleStateLabel(state: RuleConfigStates[number]): string {
+    return `Set to '${state.level}' in the ${nth(state.configIndex + 1)} config item`;
 }
 
 const { copy } = useClipboard();
@@ -117,8 +122,25 @@ function applyPlaceholderGuesses(
     return replaced ? parts.join("") : description;
 }
 
+const resolvedRuleStates = computed<RuleConfigStates>(
+    () => props.ruleStates ?? []
+);
+const visibleRuleStates = computed<RuleConfigStates>(() =>
+    props.gridView
+        ? resolvedRuleStates.value
+        : resolvedRuleStates.value.slice(0, 2)
+);
+const overflowRuleStates = computed<RuleConfigStates>(() =>
+    props.gridView ? [] : resolvedRuleStates.value.slice(2)
+);
+const hiddenRuleStateCount = computed(() => overflowRuleStates.value.length);
+const overflowRuleStateLabel = computed(() => {
+    const count = hiddenRuleStateCount.value;
+    return `${count} more config ${count === 1 ? "state" : "states"} in this rule trace`;
+});
+
 const effectiveState = computed(() => {
-    const states = props.ruleStates;
+    const states = resolvedRuleStates.value;
     if (!states?.length) return undefined;
 
     return (
@@ -146,7 +168,7 @@ const effectiveConfiguredValue = computed(() => {
 });
 
 const isOffOnlyState = computed(() => {
-    const states = props.ruleStates;
+    const states = resolvedRuleStates.value;
     if (!states?.length) return false;
 
     return states.every((state) => state.level === "off");
@@ -202,6 +224,21 @@ const descriptionSource = computed(() => props.rule.docs?.descriptionSource);
 const isMessageDerivedDescription = computed(
     () => descriptionSource.value === "message" && !isMissingDescription.value
 );
+const descriptionMetadataHint = computed(() => {
+    if (isMissingDescription.value)
+        return "Description metadata was missing; this fallback was generated.";
+
+    if (isMessageDerivedDescription.value)
+        return "Description derived from plugin message templates because dedicated metadata is missing.";
+
+    return undefined;
+});
+const descriptionTitle = computed(() => {
+    const metadataHint = descriptionMetadataHint.value;
+    if (!metadataHint) return resolvedDescription.value;
+
+    return `${resolvedDescription.value}\n${metadataHint}`;
+});
 const isInferredDocsUrl = computed(
     () => props.rule.docs?.urlSource === "inferred"
 );
@@ -220,10 +257,9 @@ const isDimmedRule = computed(() => {
 });
 
 const dimRuleClass = computed(() =>
-    isDimmedRule.value ? "op65 hover:op100 transition-opacity" : ""
+    isDimmedRule.value ? "op55 hover:op100 transition-opacity" : ""
 );
 
-const hasRuleStates = computed(() => (props.ruleStates?.length ?? 0) > 0);
 const hasLocalValue = computed(() => props.value !== undefined);
 
 const resolvedPluginPackageName = computed(() => {
@@ -246,8 +282,6 @@ const isCoreRemarkRule = computed(() => {
 
 const builtInRuleHint =
     "Built-in remark-lint rule from the core remark-lint plugin collection.";
-
-const unsetRuleStateHint = "Not configured in any matched config item.";
 
 const pluginPackageName = computed(() => {
     return resolvedPluginPackageName.value;
@@ -292,6 +326,9 @@ const pluginPrefixHint = computed(() => {
         firstLineAfterPrefix: "prefix.",
     };
 });
+
+const popoverPanelClass =
+    "inspector-popover-panel max-h-[min(34rem,72vh)] min-w-[min(36rem,88vw)] overflow-auto text-sm leading-5";
 </script>
 
 <template>
@@ -301,31 +338,81 @@ const pluginPrefixHint = computed(() => {
             dimRuleClass,
             gridView
                 ? 'absolute top-2 right-2 flex justify-end items-start'
-                : 'w-full flex items-center justify-end',
+                : 'relative w-full flex items-center justify-start overflow-visible',
         ]"
-        text-lg
     >
-        <template v-if="hasRuleStates">
+        <template v-if="resolvedRuleStates.length">
             <div
-                flex="~ items-center gap-0.5 justify-end"
-                :class="gridView ? 'flex-col' : ''"
+                data-testid="rule-state-rail"
+                class="rule-state-rail"
+                flex="~ items-center gap-1 justify-start nowrap"
+                :class="gridView ? 'flex-col' : 'rule-state-rail--list'"
             >
-                <template v-for="(s, idx) of ruleStates" :key="idx">
-                    <VDropdown>
-                        <RuleLevelIcon
-                            :level="s.level"
-                            :config-index="s.configIndex"
-                            :has-options="
-                                s.primaryOption !== undefined ||
-                                !!s.options?.length
-                            "
-                            :has-redundant-options="redundantOptions(s.options)"
-                        />
-                        <template #popper="{ shown }">
-                            <RuleStateItem v-if="shown" :state="s" />
-                        </template>
-                    </VDropdown>
+                <template
+                    v-for="(s, idx) of visibleRuleStates"
+                    :key="`${s.configIndex}-${s.level}-${idx}`"
+                >
+                    <span class="rule-state-pill inline-flex flex-none">
+                        <VDropdown
+                            :triggers="['hover', 'focus']"
+                            :popper-triggers="['hover']"
+                            :auto-hide="false"
+                        >
+                            <button
+                                type="button"
+                                class="rule-state-trigger"
+                                :aria-label="getRuleStateLabel(s)"
+                            >
+                                <RuleLevelIcon
+                                    :level="s.level"
+                                    :config-index="s.configIndex"
+                                    :has-options="
+                                        s.primaryOption !== undefined ||
+                                        !!s.options?.length
+                                    "
+                                    :has-redundant-options="
+                                        redundantOptions(s.options)
+                                    "
+                                    :show-config-index="!gridView"
+                                />
+                            </button>
+                            <template #popper="{ shown }">
+                                <RuleStateItem
+                                    v-if="shown"
+                                    :state="s"
+                                    variant="popover"
+                                />
+                            </template>
+                        </VDropdown>
+                    </span>
                 </template>
+                <VDropdown
+                    v-if="hiddenRuleStateCount > 0 && !gridView"
+                    :triggers="['hover', 'focus', 'click']"
+                >
+                    <button
+                        type="button"
+                        data-testid="rule-state-overflow"
+                        class="rule-state-overflow-pill min-w-13 inline-flex flex-none items-center justify-center gap-1 border border-base rounded-full bg-zinc-950/80 px-2 py-0.75 text-xs text-gray4 leading-none font-mono tabular-nums shadow-sm transition-colors hover:border-red5/55 hover:text-red3"
+                        :title="overflowRuleStateLabel"
+                        :aria-label="overflowRuleStateLabel"
+                    >
+                        <span>+{{ hiddenRuleStateCount }}</span>
+                    </button>
+                    <template #popper="{ shown }">
+                        <div
+                            v-if="shown"
+                            class="inspector-popover-panel max-h-[min(30rem,70vh)] min-w-[min(32rem,86vw)] overflow-auto p2"
+                        >
+                            <RuleStateItem
+                                v-for="(state, index) in overflowRuleStates"
+                                :key="`${state.configIndex}-${state.level}-${index}`"
+                                :state="state"
+                                variant="popover"
+                            />
+                        </div>
+                    </template>
+                </VDropdown>
             </div>
         </template>
         <template v-else-if="hasLocalValue">
@@ -338,14 +425,7 @@ const pluginPrefixHint = computed(() => {
                 :has-redundant-options="redundantOptions(getRuleOptions(value))"
             />
         </template>
-        <div
-            v-else-if="!gridView"
-            v-tooltip="unsetRuleStateHint"
-            :title="unsetRuleStateHint"
-            class="inline-flex items-center justify-center text-zinc-500 op70 dark:text-zinc-400"
-        >
-            <div i-ph-minus-circle-duotone class="h-4.5 w-4.5" />
-        </div>
+        <div v-else-if="!gridView" h-5 w-5 op0 />
     </div>
 
     <div :class="[props.class, dimRuleClass]" relative min-w-0 pr2>
@@ -374,18 +454,16 @@ const pluginPrefixHint = computed(() => {
                 />
             </div>
             <template #popper="{ shown }">
-                <div
-                    v-if="shown"
-                    max-h="50vh"
-                    min-w="min(32rem,82vw)"
-                    text-sm
-                    leading-5
-                >
-                    <div flex="~ items-center gap-2" p3>
+                <div v-if="shown" :class="popoverPanelClass">
+                    <div
+                        class="inspector-popover-header"
+                        flex="~ items-center gap-2 wrap"
+                        p3
+                    >
                         <NuxtLink
                             v-if="!rule.invalid && rule.docs?.url"
                             v-tooltip="docsTooltip"
-                            class="inline-flex items-center gap-1.5 border border-base rounded-full bg-black/8 px3 py1.5 text-sm text-inherit no-underline transition dark:bg-white/6 hover:bg-black/14 dark:hover:bg-white/12"
+                            class="inspector-popover-action"
                             :to="rule.docs?.url"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -400,7 +478,8 @@ const pluginPrefixHint = computed(() => {
                             />
                         </NuxtLink>
                         <button
-                            class="inline-flex items-center gap-1.5 border border-base rounded-full bg-black/8 px3 py1.5 text-sm text-inherit transition dark:bg-white/6 hover:bg-black/14 dark:hover:bg-white/12"
+                            type="button"
+                            class="inspector-popover-action"
                             title="Copy"
                             @click="copy(rule.name)"
                         >
@@ -409,7 +488,7 @@ const pluginPrefixHint = computed(() => {
                         </button>
                         <slot name="popup-actions" />
                     </div>
-                    <div border="t base" px3 pb3 pt2.5>
+                    <div px3 pb3 pt3>
                         <div flex="~ items-center gap-1.5 wrap">
                             <span text-sm op70>Rule name</span>
                             <code font-mono>
@@ -421,14 +500,14 @@ const pluginPrefixHint = computed(() => {
                                 pluginSourceLabel
                             }}</span>
                             <code
-                                class="inline-flex items-center border rounded-full px2 py0.5 text-sm font-mono"
+                                class="inspector-popover-chip inline-flex items-center border rounded-full px2 py0.5 text-sm font-mono"
                                 :style="pluginColorStyle"
                             >
                                 {{ pluginDisplayName }}
                             </code>
                             <span
                                 v-if="isCoreRemarkRule"
-                                class="inline-flex border border-rose/30 rounded-full bg-rose/8 px2 py0.5 text-xs text-rose7 dark:text-rose3"
+                                class="inspector-popover-chip inline-flex border rounded-full px2 py0.5 text-xs"
                             >
                                 Built-in remark-lint rule package
                             </span>
@@ -441,21 +520,31 @@ const pluginPrefixHint = computed(() => {
                             <span class="inline-flex flex-col gap-0.5">
                                 <span>
                                     {{ pluginPrefixHint.firstLineBeforePrefix }}
-                                    <span
-                                        class="mx0.5 text-rose7 font-mono dark:text-rose3"
+                                    <span class="mx0.5 text-red4 font-mono"
                                         >plugin/</span
                                     >
                                     {{ pluginPrefixHint.firstLineAfterPrefix }}
                                 </span>
                                 <span>
                                     Keep the
-                                    <span
-                                        class="mx0.5 text-rose7 font-mono dark:text-rose3"
+                                    <span class="mx0.5 text-red4 font-mono"
                                         >plugin/</span
                                     >
                                     prefix in your config.
                                 </span>
                             </span>
+                        </div>
+                    </div>
+                    <div
+                        v-if="resolvedRuleStates.length"
+                        class="inspector-popover-section"
+                        border="t base"
+                        px3
+                        py2
+                    >
+                        <div flex="~ gap-2 items-center" text-sm op70>
+                            <div i-ph-git-branch-duotone />
+                            Config state trace
                         </div>
                     </div>
                     <slot name="popup" />
@@ -492,16 +581,16 @@ const pluginPrefixHint = computed(() => {
                 v-tooltip="'✅ Recommended'"
                 class="col-start-2"
                 i-ph-check-square-duotone
-                text-green6
-                op70
+                text-emerald5
+                op95
             />
             <div
                 v-if="rule.fixable"
                 v-tooltip="'🔧 Fixable'"
                 class="col-start-3"
                 i-ph-wrench-duotone
-                text-amber6
-                op70
+                text-amber5
+                op95
             />
             <div
                 v-if="rule.deprecated"
@@ -520,7 +609,7 @@ const pluginPrefixHint = computed(() => {
         of-hidden
     >
         <div
-            :title="resolvedDescription"
+            :title="descriptionTitle"
             :class="[
                 rule.deprecated ? 'line-through' : '',
                 rule.invalid ? 'text-red' : '',
@@ -536,32 +625,12 @@ const pluginPrefixHint = computed(() => {
                 <span v-if="segment.type === 'text'">{{ segment.value }}</span>
                 <code
                     v-else
-                    class="mx-0.5 inline text-[0.94em] text-rose7 font-mono dark:text-rose3"
+                    class="mx-0.5 inline text-[0.94em] text-red4 font-mono"
                 >
                     {{ segment.value }}
                 </code>
             </template>
         </div>
-        <div
-            v-if="isMissingDescription"
-            v-tooltip="
-                'No description metadata found for this rule; showing a generated fallback.'
-            "
-            i-ph-asterisk
-            text-2.5
-            text-amber5
-            op55
-        />
-        <div
-            v-else-if="isMessageDerivedDescription"
-            v-tooltip="
-                'Description derived from plugin message templates because dedicated metadata is missing.'
-            "
-            i-ph-chat-centered-text-duotone
-            text-3
-            text-rose5
-            op55
-        />
     </div>
 
     <div
@@ -588,14 +657,43 @@ const pluginPrefixHint = computed(() => {
                 v-if="rule.docs?.recommended"
                 v-tooltip="'✅ Recommended'"
                 i-ph-check-square-duotone
-                op50
+                text-emerald5
+                op95
             />
             <div
                 v-if="rule.fixable"
                 v-tooltip="'🔧 Fixable'"
                 i-ph-wrench-duotone
-                op50
+                text-amber5
+                op95
             />
         </div>
     </div>
 </template>
+
+<style scoped>
+.rule-state-rail--list {
+    position: relative;
+    overflow: hidden;
+    border-radius: 9999px;
+    max-inline-size: 100%;
+    padding-block: 0.125rem;
+}
+
+.rule-state-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: help;
+
+    &:focus-visible {
+        border-radius: 9999px;
+        outline: 2px solid rgb(248 113 113 / 62%);
+        outline-offset: 2px;
+    }
+}
+</style>

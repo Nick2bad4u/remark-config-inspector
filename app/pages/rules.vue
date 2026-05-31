@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { debouncedWatch } from "@vueuse/core";
 import Fuse from "fuse.js";
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, useId, watch, watchEffect } from "vue";
 import { isRuleConfigured, isRuleEnabled } from "~~/shared/rules";
 import { getPluginColor } from "~/composables/color";
 import { payload } from "~/composables/payload";
@@ -16,6 +16,7 @@ const listColumns =
     "56px_minmax(14rem,clamp(14rem,38vw,30rem))_5.25rem_minmax(0,1fr)";
 
 const isPluginFilterPanelExpanded = ref(false);
+const pluginFilterPanelId = useId();
 
 function resolveRulePluginPackage(rule: (typeof rules.value)[number]): string {
     if (
@@ -45,9 +46,9 @@ const pluginOptions = computed(() => {
         value: plugin,
         title: plugin,
         style: {
-            color: getPluginColor(plugin),
-            borderColor: getPluginColor(plugin, 0.55),
-            backgroundColor: getPluginColor(plugin, 0.1),
+            "--plugin-color": getPluginColor(plugin),
+            "--plugin-border-color": getPluginColor(plugin, 0.55),
+            "--plugin-bg-color": getPluginColor(plugin, 0.1),
         },
     }));
 });
@@ -137,6 +138,25 @@ const unusedRulesCount = computed(
 const recommendedRulesCount = computed(
     () => rules.value.filter((rule) => !!rule.docs?.recommended).length
 );
+const selectedRuleName = ref("");
+const selectedRule = computed(() =>
+    selectedRuleName.value
+        ? payload.value.rules[selectedRuleName.value]
+        : undefined
+);
+const selectedRuleStates = computed(() =>
+    selectedRuleName.value
+        ? (payload.value.ruleToState.get(selectedRuleName.value) ?? [])
+        : []
+);
+const selectedRuleFinalState = computed(() => {
+    return (
+        selectedRuleStates.value
+            .toReversed()
+            .find((state) => state.level !== "off") ??
+        selectedRuleStates.value.at(-1)
+    );
+});
 
 const conditionalFiltered = computed(() => {
     let conditional = rules.value;
@@ -301,6 +321,11 @@ function resetFilters() {
 function setRulesViewMode(mode: "list" | "grid"): void {
     isGridView.value = mode === "grid";
 }
+
+function selectRule(ruleName: string): void {
+    selectedRuleName.value =
+        selectedRuleName.value === ruleName ? "" : ruleName;
+}
 </script>
 
 <template>
@@ -311,6 +336,8 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                     v-model="filters.search"
                     :class="filters.search ? 'font-mono' : ''"
                     placeholder="Search rules..."
+                    aria-label="Search rules"
+                    class="inspector-input"
                     border="~ base rounded-full"
                     w-full
                     bg-transparent
@@ -342,7 +369,9 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                         </div>
                         <button
                             type="button"
-                            class="inline-flex items-center gap-1 border border-base rounded-full px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            class="inspector-toggle-button px-2.5 py-0.5 text-xs"
+                            :aria-controls="pluginFilterPanelId"
+                            :aria-expanded="shouldShowPluginFilterChips"
                             @click="togglePluginFilterPanel"
                         >
                             <span
@@ -364,16 +393,13 @@ function setRulesViewMode(mode: "list" | "grid"): void {
 
                     <div
                         v-if="shouldShowPluginFilterChips"
+                        :id="pluginFilterPanelId"
                         class="flex flex-wrap items-center gap-2"
                     >
                         <button
                             type="button"
-                            class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
-                            :class="[
-                                !hasSelectedPlugin
-                                    ? 'border-rose-300/70 bg-rose-100 text-rose-900 dark:border-rose-500/45 dark:bg-rose-900/35 dark:text-rose-100'
-                                    : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
-                            ]"
+                            :aria-pressed="!hasSelectedPlugin"
+                            class="plugin-filter-button badge px-2 py-0.5 text-xs transition"
                             @click="clearPluginSelection"
                         >
                             All plugins
@@ -383,13 +409,13 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                             v-for="pluginOption in pluginOptions"
                             :key="pluginOption.value"
                             type="button"
-                            class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
+                            :aria-pressed="isPluginSelected(pluginOption.value)"
+                            class="plugin-filter-button badge px-2 py-0.5 text-xs transition"
                             :class="[
-                                isPluginSelected(pluginOption.value)
-                                    ? 'border-rose-300/70 bg-rose-100 text-rose-900 opacity-100 dark:border-rose-500/45 dark:bg-rose-900/35 dark:text-rose-100'
-                                    : hasSelectedPlugin
-                                      ? 'bg-white/65 text-zinc-700 opacity-75 hover:opacity-100 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-70 dark:hover:opacity-100'
-                                      : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
+                                !isPluginSelected(pluginOption.value) &&
+                                hasSelectedPlugin
+                                    ? 'bg-white/65 text-zinc-700 opacity-75 hover:opacity-100 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-70 dark:hover:opacity-100'
+                                    : '',
                             ]"
                             :style="pluginOption.style"
                             @click="togglePluginSelection(pluginOption.value)"
@@ -405,6 +431,7 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                 <div text-right text-sm op50>State</div>
                 <OptionSelectGroup
                     v-model="filters.state"
+                    label="Rule state filter"
                     :options="[
                         '',
                         'using',
@@ -469,6 +496,7 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                 <div text-right text-sm op50>Status</div>
                 <OptionSelectGroup
                     v-model="filters.status"
+                    label="Rule status filter"
                     :options="[
                         '',
                         'active',
@@ -521,9 +549,8 @@ function setRulesViewMode(mode: "list" | "grid"): void {
         <div items-center justify-between gap-2 md:flex>
             <div flex="~ gap-2" lt-sm:flex-col>
                 <div
+                    class="inspector-summary-pill inspector-summary-pill--accent"
                     flex="~ inline gap-2 items-center"
-                    border="~ gray/20 rounded-full"
-                    bg-gray:10
                     px3
                     py1
                 >
@@ -536,9 +563,8 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                     <span text-sm op50>out of {{ rules.length }} rules</span>
                 </div>
                 <div
+                    class="inspector-summary-pill"
                     flex="~ inline gap-2 items-center"
-                    border="~ gray/20 rounded-full"
-                    bg-gray:5
                     px3
                     py1
                     text-sm
@@ -555,20 +581,20 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                         v-if="hasGeneratedDescriptions"
                         v-tooltip="descriptionsNoticeText"
                         i-ph-info-duotone
-                        text-rose5
+                        text-red4
                         op70
                     />
                 </div>
                 <button
                     v-if="!isDefaultFilters"
+                    type="button"
+                    class="inspector-summary-pill inspector-summary-pill--accent"
                     flex="~ inline gap-2 items-center self-start"
-                    border="~ rose/20 rounded-full"
-                    bg-rose:10
                     px3
                     py1
                     @click="resetFilters()"
                 >
-                    <div i-ph-funnel-duotone text-rose6 />
+                    <div i-ph-funnel-duotone text-red3 />
                     <span op50>Clear Filter</span>
                     <div i-ph-x ml--1 text-sm op25 hover:op100 />
                 </button>
@@ -576,7 +602,9 @@ function setRulesViewMode(mode: "list" | "grid"): void {
 
             <div flex="~ gap-1">
                 <button
+                    type="button"
                     btn-action
+                    :aria-pressed="!isGridView"
                     :class="{
                         'btn-action-active': !isGridView,
                     }"
@@ -586,7 +614,9 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                     List
                 </button>
                 <button
+                    type="button"
                     btn-action
+                    :aria-pressed="isGridView"
                     :class="{
                         'btn-action-active': isGridView,
                     }"
@@ -597,13 +627,87 @@ function setRulesViewMode(mode: "list" | "grid"): void {
                 </button>
             </div>
         </div>
+        <div
+            v-if="selectedRule"
+            class="inspector-panel"
+            border="~ red/20 rounded-lg"
+            my4
+            bg-red:5
+            p4
+        >
+            <div flex="~ gap-3 items-start justify-between">
+                <div min-w-0>
+                    <div flex="~ gap-2 items-center wrap">
+                        <div i-ph-path-duotone text-red4 />
+                        <span font-medium>Effective rule trace</span>
+                        <ColorizedRuleName
+                            :name="selectedRule.name"
+                            :prefix="selectedRule.plugin"
+                            :deprecated="selectedRule.deprecated"
+                            :borderless="true"
+                        />
+                    </div>
+                    <div mt2 text-sm op70>
+                        Ordered states explain why this rule is currently
+                        {{
+                            selectedRuleFinalState
+                                ? `set to ${selectedRuleFinalState.level}`
+                                : "not configured"
+                        }}.
+                    </div>
+                </div>
+                <button
+                    btn-action
+                    type="button"
+                    aria-label="Close effective rule trace"
+                    @click="selectedRuleName = ''"
+                >
+                    <div i-ph-x-duotone />
+                    Close
+                </button>
+            </div>
+            <div v-if="selectedRuleStates.length" mt3 flex="~ col gap-2">
+                <RuleStateItem
+                    v-for="(state, index) in selectedRuleStates"
+                    :key="`${state.configIndex}-${state.level}-${index}`"
+                    border="~ base rounded-lg"
+                    bg-black:4
+                    :state="state"
+                />
+            </div>
+            <div v-else mt3 rounded border="~ base" bg-black:4 p3 text-sm op70>
+                No config item currently sets this rule.
+            </div>
+        </div>
+        <div v-if="!filtered.length" class="inspector-empty-state" my4>
+            <div flex="~ gap-2 items-center" text-amber4>
+                <div i-ph-funnel-x-duotone />
+                <span font-medium>No rules match the active filters</span>
+            </div>
+            <div mt2 text-sm op75>
+                Adjust the search, plugin, state, or status filters to broaden
+                the rule set.
+            </div>
+            <button
+                v-if="!isDefaultFilters"
+                mt3
+                btn-action
+                type="button"
+                @click="resetFilters()"
+            >
+                <div i-ph-arrow-counter-clockwise-duotone />
+                Reset rule filters
+            </button>
+        </div>
         <RuleList
+            v-else
             my4
             :grid-view="isGridView"
             :rules="filtered"
             :list-columns="listColumns"
             :dim-disabled="stateStorage.dimDisabledRules"
             :get-bind="(name: string) => ({ class: getRuleRowClass(name) })"
+            @rule-select="selectRule"
         />
     </div>
 </template>

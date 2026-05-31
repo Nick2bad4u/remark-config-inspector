@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import type { RuleConfigState } from "~~/shared/types";
-import { computed, reactive } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "#app/composables/router";
 import { deepCompareOptions } from "~/composables/options";
 import { getRuleDefaultOptions, payload } from "~/composables/payload";
 import { filtersConfigs } from "~/composables/state";
 import { nth, stringifyOptions } from "~/composables/strings";
 
-const props = defineProps<{
-    state: RuleConfigState;
-    isLocal?: boolean;
-}>();
+type RuleOptionsView = "state" | "default";
+
+const props = withDefaults(
+    defineProps<{
+        state: RuleConfigState;
+        isLocal?: boolean;
+        variant?: "panel" | "popover";
+    }>(),
+    {
+        variant: "panel",
+    }
+);
 
 const colors = {
     error: "text-red",
@@ -39,9 +47,22 @@ const initialRuleOptionsView = computed(() =>
     !hasStateOptions.value && defaultOptions.value?.length ? "default" : "state"
 );
 
-const ruleOptions = reactive({
-    viewType: initialRuleOptionsView.value as "state" | "default",
-});
+const ruleOptionsView = ref<RuleOptionsView>("state");
+
+watch(
+    initialRuleOptionsView,
+    (view) => {
+        ruleOptionsView.value = view;
+    },
+    { immediate: true }
+);
+
+const panelClass = computed(() => [
+    "rule-state-panel",
+    props.variant === "popover"
+        ? "rule-state-panel--popover inspector-popover-panel"
+        : "inspector-panel",
+]);
 
 const router = useRouter();
 function goto() {
@@ -52,8 +73,8 @@ function goto() {
 </script>
 
 <template>
-    <div min-w-100 p4 flex="~ col gap-2">
-        <div flex="~ gap-1 items-center">
+    <div :class="panelClass" min-w="min(30rem,84vw)" p3 flex="~ col gap-3">
+        <div flex="~ gap-2 items-center wrap">
             <RuleLevelIcon
                 :level="state.level"
                 :config-index="state.configIndex"
@@ -65,13 +86,15 @@ function goto() {
             }}</span>
             <template v-if="!isLocal">
                 <span op50>in</span>
-                <button hover="!color-base" text-gray @click="goto()">
+                <button
+                    type="button"
+                    class="rule-state-config-button"
+                    @click="goto()"
+                >
                     <ColorizedConfigName
                         v-if="config.name"
                         :name="config.name"
-                        px2
                         font-mono
-                        border="~ base rounded"
                     />
                     <span op50> the </span>
                     {{ nth(state.configIndex + 1) }}
@@ -80,7 +103,14 @@ function goto() {
             </template>
             <div v-else op50>in this config</div>
         </div>
-        <div v-if="!isLocal" flex="~ gap-2">
+        <div
+            v-if="!isLocal"
+            class="rule-state-scope inspector-popover-section"
+            rounded-lg
+            border="~ base"
+            p2
+            flex="~ gap-2"
+        >
             <template v-if="config.files">
                 <div i-ph-file-magnifying-glass-duotone my1 flex-none op75 />
                 <div flex="~ col gap-2">
@@ -105,24 +135,28 @@ function goto() {
                     <template v-if="hasOptionTabs">
                         <button
                             v-if="hasStateOptions"
+                            type="button"
+                            :aria-pressed="ruleOptionsView === 'state'"
                             btn-action
                             :class="{
                                 'btn-action-active':
-                                    ruleOptions.viewType === 'state',
+                                    ruleOptionsView === 'state',
                             }"
-                            @click="ruleOptions.viewType = 'state'"
+                            @click="ruleOptionsView = 'state'"
                         >
                             <div i-ph-sliders-duotone my1 flex-none op75 />
                             Rule options
                         </button>
                         <button
                             v-if="hasDefaultOptions"
+                            type="button"
+                            :aria-pressed="ruleOptionsView === 'default'"
                             btn-action
                             :class="{
                                 'btn-action-active':
-                                    ruleOptions.viewType === 'default',
+                                    ruleOptionsView === 'default',
                             }"
-                            @click="ruleOptions.viewType = 'default'"
+                            @click="ruleOptionsView = 'default'"
                         >
                             <div i-ph-faders-duotone my1 flex-none op75 />
                             Option defaults
@@ -156,12 +190,12 @@ function goto() {
                     </template>
                 </div>
             </div>
-            <template v-if="ruleOptions.viewType === 'state'">
+            <template v-if="ruleOptionsView === 'state'">
                 <Shiki
                     v-if="state.primaryOption !== undefined"
                     lang="ts"
                     :code="`configuredPrimaryOption: ${stringifyOptions(state.primaryOption)}`"
-                    rounded
+                    rounded-lg
                     bg-code
                     p2
                     text-sm
@@ -171,13 +205,13 @@ function goto() {
                     :key="idx"
                     lang="ts"
                     :code="stringifyOptions(options)"
-                    rounded
+                    rounded-lg
                     bg-code
                     p2
                     text-sm
                 />
             </template>
-            <template v-if="ruleOptions.viewType === 'default'">
+            <template v-if="ruleOptionsView === 'default'">
                 <div v-if="!hasStateOptions" op50>
                     No explicit options are configured in this state; showing
                     rule defaults.
@@ -187,7 +221,7 @@ function goto() {
                     :key="idx"
                     lang="ts"
                     :code="stringifyOptions(options)"
-                    rounded
+                    rounded-lg
                     bg-code
                     p2
                     text-sm
@@ -196,7 +230,7 @@ function goto() {
         </template>
         <template
             v-if="
-                ruleOptions.viewType === 'state' &&
+                ruleOptionsView === 'state' &&
                 comparedOptions.hasRedundantOptions
             "
         >
@@ -207,3 +241,40 @@ function goto() {
         </template>
     </div>
 </template>
+
+<style scoped>
+.rule-state-panel--popover {
+    box-shadow: none;
+}
+
+.rule-state-config-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid rgb(248 113 113 / 0.22);
+    border-radius: 9999px;
+    background: rgb(216 3 3 / 0.1);
+    color: inherit;
+    font-size: 0.875rem;
+    gap: 0.375rem;
+    transition:
+        border-color 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease;
+
+    @media screen and (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+
+    &:hover,
+    &:focus-visible {
+        border-color: rgb(248 113 113 / 0.42);
+        background: rgb(216 3 3 / 0.16);
+        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.14);
+    }
+}
+
+.rule-state-scope {
+    border-color: rgb(248 113 113 / 0.16);
+}
+</style>

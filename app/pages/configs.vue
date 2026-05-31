@@ -12,6 +12,7 @@ import {
     onMounted,
     ref,
     shallowRef,
+    useId,
     watch,
     watchEffect,
 } from "vue";
@@ -37,6 +38,8 @@ const input = ref(filters.filepath);
 const autoCompleteIndex = ref(0);
 const autoCompleteOpen = ref(false);
 const isPluginFilterPanelExpanded = ref(false);
+const autoCompleteListboxId = useId();
+const pluginFilterPanelId = useId();
 
 function resolveRulePluginPackageName(ruleName: string): string {
     const ruleInfo = payload.value.rules[ruleName];
@@ -144,9 +147,9 @@ const pluginOptions = computed(() => {
         value: plugin,
         title: plugin,
         style: {
-            color: getPluginColor(plugin),
-            borderColor: getPluginColor(plugin, 0.55),
-            backgroundColor: getPluginColor(plugin, 0.1),
+            "--plugin-color": getPluginColor(plugin),
+            "--plugin-border-color": getPluginColor(plugin, 0.55),
+            "--plugin-bg-color": getPluginColor(plugin, 0.1),
         },
     }));
 });
@@ -199,6 +202,12 @@ function clearConfigFilters(): void {
     clearPluginSelection();
 }
 
+function setShowSpecificOnly(event: Event): void {
+    const target = event.target;
+    stateStorage.showSpecificOnly =
+        target instanceof HTMLInputElement ? target.checked : false;
+}
+
 watchEffect(() => {
     const availablePlugins = new Set(configPluginNames.value);
     const normalizedSelectedPlugins = filters.plugins.filter((plugin) =>
@@ -239,6 +248,11 @@ const autoCompleteFuse = computed(() => {
 const autoCompleteFiles = computed(() => {
     return autoCompleteFuse.value.search(filters.filepath || "");
 });
+const activeAutoCompleteOptionId = computed(() =>
+    autoCompleteOpen.value && autoCompleteFiles.value[autoCompleteIndex.value]
+        ? `${autoCompleteListboxId}-option-${autoCompleteIndex.value}`
+        : undefined
+);
 
 function autoCompleteConfirm(idx = autoCompleteIndex.value) {
     if (!autoCompleteOpen.value) return;
@@ -386,6 +400,15 @@ onMounted(async () => {
                 <input
                     v-model="input"
                     placeholder="Test matching with filepath..."
+                    aria-label="Test matching with filepath"
+                    aria-autocomplete="list"
+                    role="combobox"
+                    :aria-controls="autoCompleteListboxId"
+                    :aria-activedescendant="activeAutoCompleteOptionId"
+                    :aria-expanded="
+                        autoCompleteOpen && autoCompleteFiles.length > 0
+                    "
+                    class="inspector-input"
                     border="~ base rounded-full"
                     :class="input ? 'font-mono' : ''"
                     w-full
@@ -415,6 +438,10 @@ onMounted(async () => {
                 </div>
                 <div
                     v-show="autoCompleteOpen && autoCompleteFiles.length"
+                    :id="autoCompleteListboxId"
+                    class="inspector-autocomplete"
+                    role="listbox"
+                    aria-label="Matching file paths"
                     pos="absolute left-8 right-8 top-1/1"
                     border="~ base rounded"
                     flex="~ col"
@@ -428,7 +455,12 @@ onMounted(async () => {
                 >
                     <button
                         v-for="(file, idx) of autoCompleteFiles"
+                        :id="`${autoCompleteListboxId}-option-${idx}`"
                         :key="file.item"
+                        type="button"
+                        role="option"
+                        :aria-selected="idx === autoCompleteIndex"
+                        class="inspector-autocomplete-option"
                         :class="idx === autoCompleteIndex ? 'bg-active' : ''"
                         px3
                         py0.5
@@ -489,6 +521,8 @@ onMounted(async () => {
                             <span op50>of them are specific to the file</span>
                         </template>
                         <button
+                            type="button"
+                            aria-label="Clear filepath filter"
                             i-ph-x
                             text-sm
                             op25
@@ -510,6 +544,8 @@ onMounted(async () => {
                         <ColorizedRuleName :name="filters.rule" />
                         <span op50>rule</span>
                         <button
+                            type="button"
+                            aria-label="Clear rule filter"
                             i-ph-x
                             text-sm
                             op25
@@ -530,6 +566,8 @@ onMounted(async () => {
                         <span op50>Plugin filter</span>
                         <code>{{ selectedPluginSummaryLabel }}</code>
                         <button
+                            type="button"
+                            aria-label="Clear plugin filter"
                             i-ph-x
                             text-sm
                             op25
@@ -555,7 +593,9 @@ onMounted(async () => {
                         </div>
                         <button
                             type="button"
-                            class="inline-flex items-center gap-1 border border-base rounded-full px-2.5 py-0.5 text-xs transition hover:bg-black/6 dark:hover:bg-zinc-800/45"
+                            class="inspector-toggle-button px-2.5 py-0.5 text-xs"
+                            :aria-controls="pluginFilterPanelId"
+                            :aria-expanded="shouldShowPluginFilterChips"
                             @click="togglePluginFilterPanel"
                         >
                             <span
@@ -579,16 +619,13 @@ onMounted(async () => {
 
                     <div
                         v-if="shouldShowPluginFilterChips"
+                        :id="pluginFilterPanelId"
                         class="flex flex-wrap items-center gap-2"
                     >
                         <button
                             type="button"
-                            class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
-                            :class="[
-                                !hasSelectedPlugin
-                                    ? 'border-rose-300/70 bg-rose-100 text-rose-900 dark:border-rose-500/45 dark:bg-rose-900/35 dark:text-rose-100'
-                                    : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
-                            ]"
+                            :aria-pressed="!hasSelectedPlugin"
+                            class="plugin-filter-button badge px-2 py-0.5 text-xs transition"
                             @click="clearPluginSelection"
                         >
                             All plugins
@@ -597,13 +634,13 @@ onMounted(async () => {
                             v-for="pluginOption in pluginOptions"
                             :key="pluginOption.value"
                             type="button"
-                            class="plugin-filter-button badge border border-base px-2 py-0.5 text-xs transition"
+                            :aria-pressed="isPluginSelected(pluginOption.value)"
+                            class="plugin-filter-button badge px-2 py-0.5 text-xs transition"
                             :class="[
-                                isPluginSelected(pluginOption.value)
-                                    ? 'border-rose-300/70 bg-rose-100 text-rose-900 opacity-100 dark:border-rose-500/45 dark:bg-rose-900/35 dark:text-rose-100'
-                                    : hasSelectedPlugin
-                                      ? 'bg-white/65 text-zinc-700 opacity-75 hover:opacity-100 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-70 dark:hover:opacity-100'
-                                      : 'bg-white/65 text-zinc-700 hover:bg-black/6 dark:bg-zinc-900/30 dark:text-zinc-300 dark:hover:bg-zinc-800/50',
+                                !isPluginSelected(pluginOption.value) &&
+                                hasSelectedPlugin
+                                    ? 'bg-white/65 text-zinc-700 opacity-75 hover:opacity-100 dark:bg-zinc-900/30 dark:text-zinc-300 dark:opacity-70 dark:hover:opacity-100'
+                                    : '',
                             ]"
                             :style="pluginOption.style"
                             @click="togglePluginSelection(pluginOption.value)"
@@ -619,8 +656,12 @@ onMounted(async () => {
             </div>
             <div flex="~ gap-2 items-center wrap">
                 <template v-if="filters.filepath">
-                    <div border="~ base rounded" flex>
+                    <div class="inspector-segmented-control">
                         <button
+                            type="button"
+                            :aria-pressed="
+                                stateStorage.viewFileMatchType === 'configs'
+                            "
                             :class="
                                 stateStorage.viewFileMatchType === 'configs'
                                     ? 'btn-action-active'
@@ -640,6 +681,10 @@ onMounted(async () => {
                         </button>
                         <div border="l base" />
                         <button
+                            type="button"
+                            :aria-pressed="
+                                stateStorage.viewFileMatchType !== 'configs'
+                            "
                             :class="
                                 stateStorage.viewFileMatchType !== 'configs'
                                     ? 'btn-action-active'
@@ -672,11 +717,7 @@ onMounted(async () => {
                     <input
                         :checked="stateStorage.showSpecificOnly"
                         type="checkbox"
-                        @change="
-                            stateStorage.showSpecificOnly = !!(
-                                $event.target as any
-                            ).checked
-                        "
+                        @change="setShowSpecificOnly"
                     />
                     <span op50>Show Specific Rules Only</span>
                 </label>
@@ -684,6 +725,7 @@ onMounted(async () => {
                 <div flex="~ items-center gap-1">
                     <button
                         v-if="hasActiveConfigFilters"
+                        type="button"
                         btn-action
                         px3
                         @click="clearConfigFilters"
@@ -693,7 +735,9 @@ onMounted(async () => {
                     </button>
                     <div flex="~ gap-1">
                         <button
+                            type="button"
                             btn-action
+                            :aria-pressed="stateStorage.viewType === 'list'"
                             :class="{
                                 'btn-action-active':
                                     stateStorage.viewType === 'list',
@@ -704,7 +748,9 @@ onMounted(async () => {
                             List
                         </button>
                         <button
+                            type="button"
                             btn-action
+                            :aria-pressed="stateStorage.viewType === 'grid'"
                             :class="{
                                 'btn-action-active':
                                     stateStorage.viewType === 'grid',
@@ -716,14 +762,35 @@ onMounted(async () => {
                         </button>
                     </div>
                 </div>
-                <button btn-action px3 @click="expandAll">Expand All</button>
-                <button btn-action px3 @click="collapseAll">
+                <button type="button" btn-action px3 @click="expandAll">
+                    Expand All
+                </button>
+                <button type="button" btn-action px3 @click="collapseAll">
                     Collapse All
                 </button>
             </div>
 
             <template v-if="!filteredConfigs.length">
-                <div mt5 italic op50>No matched config items.</div>
+                <div class="inspector-empty-state" mt5>
+                    <div flex="~ gap-2 items-center" text-amber4>
+                        <div i-ph-funnel-x-duotone />
+                        <span font-medium>No matched config items</span>
+                    </div>
+                    <div mt2 text-sm op75>
+                        Adjust the filepath, rule, or plugin filters to broaden
+                        the config list.
+                    </div>
+                    <button
+                        v-if="hasActiveConfigFilters"
+                        mt3
+                        btn-action
+                        type="button"
+                        @click="clearConfigFilters"
+                    >
+                        <div i-ph-arrow-counter-clockwise-duotone />
+                        Reset config filters
+                    </button>
+                </div>
                 <template v-if="fileMatchResult?.globs.length">
                     <div>Ignored by globs:</div>
                     <div flex="~ gap-2 items-center wrap">

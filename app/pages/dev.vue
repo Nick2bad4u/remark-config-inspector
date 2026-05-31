@@ -181,7 +181,7 @@ const metadataHealth = computed(() => {
 
 <template>
     <div py4 flex="~ col gap-4">
-        <section border="~ sky/20 rounded-xl" bg-sky:6 p4>
+        <section class="inspector-band" p4>
             <div flex="~ items-center gap-2 wrap" text-sky8 dark:text-sky3>
                 <div i-ph-chart-bar-horizontal-duotone flex-none />
                 <span font-medium>Inspector snapshot</span>
@@ -341,7 +341,7 @@ const metadataHealth = computed(() => {
             </div>
         </section>
 
-        <section border="~ rose/20 rounded-xl" bg-rose:6 p4>
+        <section class="inspector-band" p4>
             <div flex="~ items-center gap-2 wrap" text-rose8 dark:text-rose3>
                 <div i-ph-flask-duotone flex-none />
                 <span font-medium>Metadata health</span>
@@ -401,7 +401,7 @@ const metadataHealth = computed(() => {
             </div>
         </section>
 
-        <section border="~ amber/25 rounded-xl" bg-amber:6 p4>
+        <section class="inspector-band" p4>
             <div flex="~ gap-2 items-center" text-amber7 dark:text-amber3>
                 <div i-ph-warning-circle-duotone flex-none />
                 <span font-medium
@@ -418,7 +418,7 @@ const metadataHealth = computed(() => {
             <div v-else mt2 text-sm op70>No diagnostics emitted.</div>
         </section>
 
-        <section border="~ emerald/20 rounded-xl" bg-emerald:6 p4>
+        <section class="inspector-band" p4>
             <div flex="~ gap-2 items-center" text-emerald7 dark:text-emerald3>
                 <div i-ph-sliders-horizontal-duotone flex-none />
                 <span font-medium>Viewer state</span>
@@ -513,7 +513,7 @@ const metadataHealth = computed(() => {
             <div v-else mt3 text-sm op70>No active viewer filters.</div>
         </section>
 
-        <section border="~ rose/20 rounded-xl" bg-rose:6 p4>
+        <section class="inspector-band" p4>
             <div flex="~ gap-2 items-center" text-rose8 dark:text-rose3>
                 <div i-ph-stack-duotone flex-none />
                 <span font-medium>Config composition summary</span>

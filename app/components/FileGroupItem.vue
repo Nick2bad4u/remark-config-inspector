@@ -55,6 +55,11 @@ function goToConfig(idx: number) {
     router.push(`/configs?index=${idx + 1}`);
 }
 
+function setOpenFromToggle(event: Event): void {
+    const target = event.target;
+    if (target instanceof HTMLDetailsElement) open.value = target.open;
+}
+
 function getConfigFilePatterns(config: FlatConfigItem): string[] {
     return (config.files ?? [])
         .flat()
@@ -63,6 +68,11 @@ function getConfigFilePatterns(config: FlatConfigItem): string[] {
 }
 
 const filesOpen = ref(true);
+
+function setFilesOpenFromToggle(event: Event): void {
+    const target = event.target;
+    if (target instanceof HTMLDetailsElement) filesOpen.value = target.open;
+}
 
 const groupIdentity = computed(() => {
     if (groupName.value?.type === "config") {
@@ -90,13 +100,12 @@ const groupIdentity = computed(() => {
 </script>
 
 <template>
-    <!-- @vue-ignore -->
     <details
-        class="flat-config-item"
+        class="flat-config-item inspector-panel"
         :open="open"
-        border="~ base rounded-lg"
+        border="~ rounded-lg"
         relative
-        @toggle="open = $event.target.open"
+        @toggle="setOpenFromToggle"
     >
         <summary block>
             <div
@@ -207,7 +216,7 @@ const groupIdentity = computed(() => {
                     flex="~ col gap-1"
                 >
                     <VDropdown>
-                        <button badge text-start>
+                        <button type="button" badge text-start>
                             <ColorizedConfigName
                                 :name="config.name"
                                 :index="config.index"
@@ -217,8 +226,9 @@ const groupIdentity = computed(() => {
                             <div v-if="shown" max-h="50vh" min-w-100>
                                 <div flex="~ items-center gap-2" p3>
                                     <button
+                                        type="button"
                                         btn-action-sm
-                                        title="Copy"
+                                        title="Go to this config"
                                         @click="goToConfig(config.index)"
                                     >
                                         <div i-ph-stack-duotone />
@@ -331,8 +341,8 @@ const groupIdentity = computed(() => {
 
             <details
                 :open="filesOpen"
-                class="border border-base rounded-lg bg-black:4 p3 dark:bg-white:3"
-                @toggle="filesOpen = ($event.target as HTMLDetailsElement).open"
+                class="inspector-section p3"
+                @toggle="setFilesOpenFromToggle"
             >
                 <summary
                     flex="~ gap-2 items-center wrap"

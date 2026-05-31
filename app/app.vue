@@ -2,10 +2,15 @@
 import { onBeforeUnmount, ref } from "vue";
 import { useRouter } from "#app/composables/router";
 import { useRuntimeConfig } from "#app/nuxt";
-import { errorInfo, init, isLoading } from "~/composables/payload";
+import {
+    errorInfo,
+    init,
+    isFetching,
+    isLoading,
+    payloadFetchError,
+    retryPayload,
+} from "~/composables/payload";
 
-import "floating-vue/dist/style.css";
-import "./styles/global.css";
 import "./composables/dark";
 
 const config = useRuntimeConfig();
@@ -49,7 +54,7 @@ init(config.app.baseURL);
 
     <div
         v-if="isRouteNavigating && !isLoading && !errorInfo"
-        class="pointer-events-none fixed right-3 top-3 z-60 inline-flex items-center gap-2 border border-primary/45 rounded-full bg-zinc-950/86 px-3 py-1.5 text-xs text-zinc-200 shadow-lg backdrop-blur-sm"
+        class="pointer-events-none fixed right-3 top-3 z-60 inline-flex items-center gap-2 border border-red-300/30 rounded-full bg-zinc-950/86 px-3 py-1.5 text-xs text-zinc-200 shadow-lg backdrop-blur-sm"
     >
         <div i-svg-spinners-90-ring-with-bg text-sm />
         Loading view...
@@ -74,16 +79,41 @@ init(config.app.baseURL);
             {{ errorInfo.error }}
         </div>
 
+        <div v-if="errorInfo.message" mt3 max-w-3xl text-sm font-mono op75>
+            {{ errorInfo.message }}
+        </div>
+
         <div mt6 op50>
             Note that
             <a
                 href="https://github.com/remarkjs/remark-lint#configuration"
                 target="_blank"
+                rel="noopener noreferrer"
                 hover:underline
                 >remark-lint configuration</a
             >
             must be discoverable for the selected target file.
         </div>
+        <div v-if="payloadFetchError" mt3 max-w-3xl text-sm text-red font-mono>
+            {{ payloadFetchError }}
+        </div>
+        <button
+            type="button"
+            mt6
+            btn-action
+            justify-self-center
+            :disabled="isFetching"
+            @click="retryPayload()"
+        >
+            <div
+                :class="
+                    isFetching
+                        ? 'i-svg-spinners-90-ring-with-bg'
+                        : 'i-ph-arrow-clockwise-duotone'
+                "
+            />
+            Retry payload
+        </button>
     </div>
     <div
         v-else-if="isLoading"
