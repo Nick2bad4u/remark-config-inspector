@@ -194,6 +194,55 @@ export default {
         });
     });
 
+    it("reloads ESM configs through shared local imports and tracks them as dependencies", async () => {
+        const cwd = await createTempDir();
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
+import { plugins } from './shared-config.mjs'
+
+export default {
+  plugins
+}
+`,
+            "shared-config.mjs": `
+export const plugins = ['remark-lint-final-newline']
+`,
+        });
+
+        const adapter = createRemarkInspectorAdapter();
+        const first = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        expect(first.payload.configs[0]?.rules).toMatchObject({
+            "remark-lint-final-newline": true,
+        });
+        expect(first.dependencies).toContain(join(cwd, "shared-config.mjs"));
+
+        await writeFile(
+            join(cwd, "shared-config.mjs"),
+            "export const plugins = ['remark-lint-no-tabs']\n",
+            { encoding: "utf8" }
+        );
+
+        const second = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        expect(second.payload.configs[0]?.rules).toMatchObject({
+            "remark-lint-no-tabs": true,
+        });
+        expect(second.payload.configs[0]?.rules).not.toHaveProperty(
+            "remark-lint-final-newline"
+        );
+    });
+
     it("prefers package metadata URLs for external remark-lint rule docs", async () => {
         const cwd = await createTempDir();
         await writeFiles(cwd, {
@@ -234,6 +283,46 @@ module.exports = function remarkLintWriteGood() {
         expect(
             result.payload.rules["remark-lint-write-good"]?.docs?.urlSource
         ).toBe("meta");
+    });
+
+    it("marks rule packages deprecated from installed package metadata", async () => {
+        const cwd = await createTempDir();
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
+export default {
+  plugins: ['remark-lint-old-rule']
+}
+`,
+            "node_modules/remark-lint-old-rule/package.json": JSON.stringify(
+                {
+                    name: "remark-lint-old-rule",
+                    version: "1.0.0",
+                    main: "index.js",
+                    deprecated: "Use remark-lint-new-rule instead.",
+                },
+                null,
+                2
+            ),
+            "node_modules/remark-lint-old-rule/index.js": `
+module.exports = function remarkLintOldRule() {
+  return function () {};
+};
+`,
+        });
+
+        const adapter = createRemarkInspectorAdapter();
+        const result = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        expect(
+            result.payload.rules["remark-lint-old-rule"]?.deprecated
+        ).toEqual({
+            message: "Use remark-lint-new-rule instead.",
+        });
     });
 
     it("extracts preset extends metadata from package metadata and exported preset config", async () => {
@@ -303,6 +392,13 @@ module.exports = {
             "remark-lint-final-newline",
             "remark-lint-maximum-line-length",
         ]);
+        expect(
+            result.payload.rules["remark-lint-final-newline"]?.docs?.recommended
+        ).toBe(true);
+        expect(
+            result.payload.rules["remark-lint-maximum-line-length"]?.docs
+                ?.recommended
+        ).toBe(true);
     });
 
     it("continues loading when process.chdir is unavailable in workers", async () => {

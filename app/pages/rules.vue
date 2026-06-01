@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RuleStatusFilter } from "~/composables/state";
 import { debouncedWatch } from "@vueuse/core";
 import Fuse from "fuse.js";
 import { computed, ref, useId, watch, watchEffect } from "vue";
@@ -137,6 +138,56 @@ const unusedRulesCount = computed(
 );
 const recommendedRulesCount = computed(
     () => rules.value.filter((rule) => !!rule.docs?.recommended).length
+);
+const deprecatedRulesCount = computed(
+    () => rules.value.filter((rule) => !!rule.deprecated).length
+);
+const STATUS_FILTER_META = {
+    "": {
+        title: "All",
+        tooltip: "Show every rule status",
+    },
+    active: {
+        title: "Active",
+        tooltip: "Rules that are enabled in at least one matched config item",
+    },
+    recommended: {
+        title: "Recommended",
+        tooltip: "Rules included by a recognized recommended remark preset",
+    },
+    fixable: {
+        title: "Fixable",
+        tooltip: "Rules that support automatic fixes",
+    },
+    deprecated: {
+        title: "Deprecated",
+        tooltip: "Rules marked as deprecated by installed package metadata",
+    },
+} as const satisfies Record<
+    RuleStatusFilter,
+    {
+        title: string;
+        tooltip: string;
+    }
+>;
+const statusFilterOptions = computed<RuleStatusFilter[]>(() => [
+    "",
+    "active",
+    ...(recommendedRulesCount.value > 0
+        ? (["recommended"] as const)
+        : ([] as const)),
+    "fixable",
+    ...(deprecatedRulesCount.value > 0
+        ? (["deprecated"] as const)
+        : ([] as const)),
+]);
+const statusFilterTitles = computed(() =>
+    statusFilterOptions.value.map((option) => STATUS_FILTER_META[option].title)
+);
+const statusFilterTooltips = computed(() =>
+    statusFilterOptions.value.map(
+        (option) => STATUS_FILTER_META[option].tooltip
+    )
 );
 const selectedRuleName = ref("");
 const selectedRule = computed(() =>
@@ -282,6 +333,11 @@ watch(
     }
 );
 
+watch(statusFilterOptions, (options) => {
+    if (filters.status && !options.includes(filters.status))
+        filters.status = "";
+});
+
 watch(
     () => filters.state,
     (state) => {
@@ -423,10 +479,6 @@ function selectRule(ruleName: string): void {
                             {{ pluginOption.title }}
                         </button>
                     </div>
-                    <div v-else text-sm op60>
-                        Plugin filters are minimized by default to reduce visual
-                        noise.
-                    </div>
                 </div>
                 <div text-right text-sm op50>State</div>
                 <OptionSelectGroup
@@ -497,27 +549,9 @@ function selectRule(ruleName: string): void {
                 <OptionSelectGroup
                     v-model="filters.status"
                     label="Rule status filter"
-                    :options="[
-                        '',
-                        'active',
-                        'recommended',
-                        'fixable',
-                        'deprecated',
-                    ]"
-                    :titles="[
-                        'All',
-                        'Active',
-                        'Recommended',
-                        'Fixable',
-                        'Deprecated',
-                    ]"
-                    :tooltips="[
-                        'Show every rule status',
-                        'Rules that are enabled in at least one matched config item',
-                        'Rules recommended by remark-lint or plugin metadata',
-                        'Rules that support automatic fixes',
-                        'Rules marked as deprecated by upstream metadata',
-                    ]"
+                    :options="statusFilterOptions"
+                    :titles="statusFilterTitles"
+                    :tooltips="statusFilterTooltips"
                 >
                     <template #default="{ value, title }">
                         <div flex items-center gap-1>

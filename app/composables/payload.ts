@@ -81,6 +81,9 @@ async function get(baseURL: string) {
     try {
         const payload = await $fetch<Payload | ErrorInfo>("/api/payload.json", {
             baseURL,
+            query: {
+                updatedAt: Date.now(),
+            },
         });
         if (isErrorInfo(payload)) {
             errorInfo.value = payload;

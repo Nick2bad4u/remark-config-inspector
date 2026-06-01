@@ -1,3 +1,4 @@
+import type { ImportSpecifier } from "es-module-lexer";
 import type {
     ExtendsInfo,
     FlatConfigItem,
@@ -14,11 +15,17 @@ import type {
     ResolveConfigPathOptions,
     ResolvedConfigPath,
 } from "./contracts";
+import { Buffer } from "node:buffer";
+import { spawn } from "node:child_process";
 import { readFile, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { isAbsolute } from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import {
+    init as initEsModuleLexer,
+    parse as parseEsModuleImports,
+} from "es-module-lexer";
 import { findUp } from "find-up";
 import { basename, dirname, join, normalize, relative, resolve } from "pathe";
 import { glob } from "tinyglobby";
@@ -40,6 +47,82 @@ const REMARK_IGNORE_FILENAME = ".remarkignore";
 const REMARK_PACKAGE_FIELD = "remarkConfig";
 const REMARK_PLUGIN_PREFIX = "remark";
 const REMARK_RC_NAME = ".remarkrc";
+const CONFIG_LOADER_RESULT_PREFIX = "__REMARK_CONFIG_INSPECTOR_RESULT__";
+const CONFIG_LOADER_WORKER_CODE = `
+import { pathToFileURL } from "node:url";
+
+const resultPrefix = ${JSON.stringify(CONFIG_LOADER_RESULT_PREFIX)};
+const filePath = process.env.REMARK_CONFIG_INSPECTOR_CONFIG_PATH;
+
+function isRecord(value) {
+    return typeof value === "object" && value !== null;
+}
+
+function extractPluginId(plugin) {
+    if (typeof plugin === "string") return plugin.length > 0 ? plugin : undefined;
+
+    if (typeof plugin === "function" || isRecord(plugin)) {
+        const pluginId = plugin.pluginId;
+        if (typeof pluginId === "string") return pluginId.length > 0 ? pluginId : undefined;
+        if (typeof pluginId === "symbol") return pluginId.description;
+    }
+
+    return undefined;
+}
+
+function serializePlugin(plugin) {
+    return extractPluginId(plugin) ?? plugin;
+}
+
+function serializePluginEntry(entry) {
+    if (Array.isArray(entry) && entry.length > 0) {
+        const [plugin, ...parameters] = entry;
+        return [serializePlugin(plugin), ...parameters];
+    }
+
+    return serializePlugin(entry);
+}
+
+function createJsonSafeReplacer() {
+    const seen = new WeakSet();
+
+    return function replaceValue(_key, value) {
+        if (typeof value === "bigint") return value.toString();
+        if (typeof value === "function" || typeof value === "symbol") return undefined;
+        if (value instanceof RegExp) return value.toString();
+
+        if (isRecord(value)) {
+            if (seen.has(value)) return "[Circular]";
+            seen.add(value);
+        }
+
+        return value;
+    };
+}
+
+if (!filePath) throw new Error("Missing REMARK_CONFIG_INSPECTOR_CONFIG_PATH");
+
+const configUrl = new URL(pathToFileURL(filePath).href);
+configUrl.searchParams.set("remarkConfigInspectorReload", String(Date.now()));
+
+const module = await import(configUrl.href);
+let config;
+
+if (isRecord(module.default)) config = module.default;
+else if (isRecord(module)) config = module;
+
+if (!config) throw new Error("Cannot parse given file");
+
+const plugins = Array.isArray(config.plugins)
+    ? config.plugins.map((entry) => serializePluginEntry(entry))
+    : [];
+const settings = isRecord(config.settings) ? config.settings : {};
+
+console.log(
+    resultPrefix +
+        JSON.stringify({ filePath, plugins, settings }, createJsonSafeReplacer())
+);
+`;
 
 const DEFAULT_WORKSPACE_SCAN_IGNORES = [
     "**/node_modules/**",
@@ -51,6 +134,23 @@ const DEFAULT_WORKSPACE_SCAN_IGNORES = [
 ];
 
 const MAX_WORKSPACE_MATCHED_FILES = 5000;
+const LOCAL_IMPORT_EXTENSIONS = [
+    "",
+    ".mjs",
+    ".js",
+    ".cjs",
+    ".mts",
+    ".ts",
+    ".json",
+] as const;
+const LOCAL_IMPORT_INDEX_FILENAMES = [
+    "index.mjs",
+    "index.js",
+    "index.cjs",
+    "index.mts",
+    "index.ts",
+    "index.json",
+] as const;
 
 interface InternalResolvedConfigPath extends ResolvedConfigPath {
     absoluteConfigPath?: string;
@@ -61,6 +161,8 @@ interface LoadedRemarkConfig {
     plugins: unknown[];
     settings: Record<string, unknown>;
 }
+
+interface SerializedRemarkConfig extends LoadedRemarkConfig {}
 
 interface RemarkModuleConfig {
     plugins?: unknown;
@@ -84,6 +186,7 @@ interface PackageBugsField {
 interface PackageMetadata {
     name?: unknown;
     description?: unknown;
+    deprecated?: unknown;
     homepage?: unknown;
     repository?: unknown;
     bugs?: unknown;
@@ -111,6 +214,17 @@ const requireForResolution = createRequire(import.meta.url);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
+}
+
+function isSerializedRemarkConfig(
+    value: unknown
+): value is SerializedRemarkConfig {
+    return (
+        isRecord(value) &&
+        typeof value["filePath"] === "string" &&
+        Array.isArray(value["plugins"]) &&
+        isRecord(value["settings"])
+    );
 }
 
 function isWorkerUnsupportedChdirError(error: unknown): boolean {
@@ -144,19 +258,80 @@ function toLoadedRemarkConfig(
 async function loadRemarkConfigFromModule(
     filePath: string
 ): Promise<LoadedRemarkConfig> {
-    const module = await import(pathToFileURL(filePath).href);
-    let config: RemarkModuleConfig | undefined;
+    const loaded = await loadRemarkConfigInFreshProcess(filePath);
+    return toLoadedRemarkConfig(loaded.filePath, loaded);
+}
 
-    if (isRecord(module.default)) {
-        config = module.default;
-    } else if (isRecord(module)) {
-        config = module;
+async function loadRemarkConfigInFreshProcess(
+    filePath: string
+): Promise<SerializedRemarkConfig> {
+    const child = spawn(
+        process.execPath,
+        [
+            "--input-type=module",
+            "--eval",
+            CONFIG_LOADER_WORKER_CODE,
+        ],
+        {
+            cwd: dirname(filePath),
+            env: {
+                ...process.env,
+                REMARK_CONFIG_INSPECTOR_CONFIG_PATH: filePath,
+            },
+            stdio: [
+                "ignore",
+                "pipe",
+                "pipe",
+            ],
+        }
+    );
+
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+
+    child.stdout.on("data", (chunk: Buffer | string) => {
+        stdoutChunks.push(Buffer.from(chunk));
+    });
+
+    child.stderr.on("data", (chunk: Buffer | string) => {
+        stderrChunks.push(Buffer.from(chunk));
+    });
+
+    const exitCode = await new Promise<number | null>((resolveExit, reject) => {
+        child.once("error", (error) => reject(error));
+        child.once("exit", (code) => resolveExit(code));
+    });
+
+    const stdout = Buffer.concat(stdoutChunks).toString("utf8");
+    const stderr = Buffer.concat(stderrChunks).toString("utf8").trim();
+
+    if (exitCode !== 0) {
+        const message = stderr.length
+            ? stderr
+            : `Remark config loader exited with code ${exitCode ?? "unknown"}`;
+        throw new Error(message);
     }
 
-    if (!config)
+    const resultLine = stdout
+        .split(/\r?\n/u)
+        .findLast((line) => line.startsWith(CONFIG_LOADER_RESULT_PREFIX));
+
+    if (!resultLine) {
+        throw new Error(
+            stderr.length
+                ? stderr
+                : `Cannot parse given file \`${basename(filePath)}\``
+        );
+    }
+
+    const parsed = JSON.parse(
+        resultLine.slice(CONFIG_LOADER_RESULT_PREFIX.length)
+    ) as unknown;
+
+    if (!isSerializedRemarkConfig(parsed))
         throw new Error(`Cannot parse given file \`${basename(filePath)}\``);
 
-    return toLoadedRemarkConfig(filePath, config);
+    return parsed;
 }
 
 function toRelativePath(cwd: string, path: string): string {
@@ -176,6 +351,88 @@ async function pathExists(path: string): Promise<boolean> {
     } catch {
         return false;
     }
+}
+
+function isLocalImportSpecifier(specifier: string): boolean {
+    return (
+        specifier.startsWith(".") ||
+        specifier.startsWith("/") ||
+        specifier.startsWith("file:")
+    );
+}
+
+async function resolveLocalImportPath(
+    specifier: string,
+    importerPath: string
+): Promise<string | undefined> {
+    if (!isLocalImportSpecifier(specifier)) return undefined;
+
+    const withoutFragment = specifier.split("#")[0] ?? specifier;
+    const cleanSpecifier = withoutFragment.split("?")[0] ?? withoutFragment;
+    const baseCandidate = cleanSpecifier.startsWith("file:")
+        ? fileURLToPath(cleanSpecifier)
+        : resolve(dirname(importerPath), cleanSpecifier);
+
+    for (const extension of LOCAL_IMPORT_EXTENSIONS) {
+        const candidate = normalize(`${baseCandidate}${extension}`);
+        if (await pathExists(candidate)) return candidate;
+    }
+
+    for (const filename of LOCAL_IMPORT_INDEX_FILENAMES) {
+        const candidate = normalize(join(baseCandidate, filename));
+        if (await pathExists(candidate)) return candidate;
+    }
+
+    return undefined;
+}
+
+async function collectLocalModuleDependencies(
+    filePath: string,
+    visited = new Set<string>()
+): Promise<string[]> {
+    const normalizedFilePath = normalize(filePath);
+    if (visited.has(normalizedFilePath)) return [];
+    visited.add(normalizedFilePath);
+
+    let source: string;
+    try {
+        source = await readFile(normalizedFilePath, "utf8");
+    } catch {
+        return [normalizedFilePath];
+    }
+
+    await initEsModuleLexer;
+
+    let imports: readonly ImportSpecifier[];
+    try {
+        [imports] = parseEsModuleImports(source);
+    } catch {
+        return [normalizedFilePath];
+    }
+
+    const dependencies = new Set<string>([normalizedFilePath]);
+
+    for (const imported of imports) {
+        if (!imported.n) continue;
+
+        const dependencyPath = await resolveLocalImportPath(
+            imported.n,
+            normalizedFilePath
+        );
+        if (!dependencyPath) continue;
+
+        dependencies.add(dependencyPath);
+        if (isJavaScriptConfigPath(dependencyPath)) {
+            const transitiveDependencies = await collectLocalModuleDependencies(
+                dependencyPath,
+                visited
+            );
+            for (const transitiveDependency of transitiveDependencies)
+                dependencies.add(transitiveDependency);
+        }
+    }
+
+    return [...dependencies];
 }
 
 async function hasRemarkConfigField(packageFilePath: string): Promise<boolean> {
@@ -427,6 +684,31 @@ async function readPackageMetadata(
     }
 }
 
+function resolveDeprecatedFromPackageMetadata(
+    metadata: PackageMetadata
+): RuleInfo["deprecated"] | undefined {
+    if (typeof metadata.deprecated === "string")
+        return metadata.deprecated.length > 0
+            ? {
+                  message: metadata.deprecated,
+              }
+            : true;
+
+    if (metadata.deprecated === true) return true;
+
+    return undefined;
+}
+
+async function resolveRuleDeprecation(
+    ruleName: string,
+    basePath: string
+): Promise<RuleInfo["deprecated"] | undefined> {
+    const metadata = await readPackageMetadata(ruleName, basePath);
+    return metadata
+        ? resolveDeprecatedFromPackageMetadata(metadata)
+        : undefined;
+}
+
 async function resolveRuleDocs(
     ruleName: string,
     basePath: string
@@ -455,6 +737,33 @@ function createRuleInfo(ruleName: string, docs: RuleDocsResolution): RuleInfo {
             urlSource: docs.urlSource,
         },
     };
+}
+
+function isRecommendedPreset(entry: ExtendsInfo): boolean {
+    const candidates = [entry.specifier, entry.packageName ?? ""].map((value) =>
+        value.toLowerCase()
+    );
+
+    return candidates.some(
+        (candidate) =>
+            candidate === "remark-preset-lint-recommended" ||
+            /(?:^|[-/])recommended(?:$|-)/u.test(candidate)
+    );
+}
+
+function collectRecommendedRuleNames(
+    extendsInfo: readonly ExtendsInfo[]
+): Set<string> {
+    const recommendedRuleNames = new Set<string>();
+
+    for (const entry of extendsInfo) {
+        if (!isRecommendedPreset(entry)) continue;
+
+        for (const ruleName of entry.rules ?? [])
+            recommendedRuleNames.add(ruleName);
+    }
+
+    return recommendedRuleNames;
 }
 
 function inferPresetDocsUrl(specifier: string): string {
@@ -590,7 +899,10 @@ function collectPluginData(plugins: unknown[]): CollectedPluginData {
 
 async function buildRuleInfos(
     configuredRuleNames: Set<string>,
-    basePath: string
+    basePath: string,
+    options: {
+        recommendedRuleNames?: ReadonlySet<string>;
+    } = {}
 ): Promise<Record<string, RuleInfo>> {
     const ruleDocsByName = new Map<string, RuleDocsResolution>(
         await Promise.all(
@@ -611,7 +923,18 @@ async function buildRuleInfos(
             urlSource: "inferred" as const,
         };
 
-        rules[ruleName] = createRuleInfo(ruleName, docs);
+        const ruleInfo = createRuleInfo(ruleName, docs);
+        if (options.recommendedRuleNames?.has(ruleName)) {
+            ruleInfo.docs = {
+                ...ruleInfo.docs,
+                recommended: true,
+            };
+        }
+
+        const deprecated = await resolveRuleDeprecation(ruleName, basePath);
+        if (deprecated) ruleInfo.deprecated = deprecated;
+
+        rules[ruleName] = ruleInfo;
     }
 
     return rules;
@@ -853,7 +1176,6 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
                 configuredRuleNames,
             } = collectPluginData(loaded.plugins);
 
-            const rules = await buildRuleInfos(configuredRuleNames, basePath);
             const pluginMap = buildPluginMap(pluginPackages);
 
             const rootConfig = buildRootConfig({
@@ -866,20 +1188,31 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
             const configs: FlatConfigItem[] = [rootConfig];
             const diagnostics: string[] = [];
 
-            const files = options.globMatchedFiles
-                ? await resolveMatchedFiles(configs, basePath, diagnostics)
-                : undefined;
-
-            const remarkIgnore = await resolveRemarkIgnore(basePath);
-            const dependencies = new Set<string>([loaded.filePath]);
-            if (remarkIgnore.absolutePath)
-                dependencies.add(remarkIgnore.absolutePath);
-
             const resolvedExtendsInfo = await buildExtendsInfo({
                 presetSpecifiers,
                 configs,
                 basePath,
             });
+            const recommendedRuleNames =
+                collectRecommendedRuleNames(resolvedExtendsInfo);
+            const knownRuleNames = new Set([
+                ...configuredRuleNames,
+                ...recommendedRuleNames,
+            ]);
+            const rules = await buildRuleInfos(knownRuleNames, basePath, {
+                recommendedRuleNames,
+            });
+
+            const files = options.globMatchedFiles
+                ? await resolveMatchedFiles(configs, basePath, diagnostics)
+                : undefined;
+
+            const remarkIgnore = await resolveRemarkIgnore(basePath);
+            const dependencies = new Set<string>(
+                await collectLocalModuleDependencies(loaded.filePath)
+            );
+            if (remarkIgnore.absolutePath)
+                dependencies.add(remarkIgnore.absolutePath);
 
             const payload: Payload = {
                 configs,

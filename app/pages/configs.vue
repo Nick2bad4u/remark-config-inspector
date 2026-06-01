@@ -648,10 +648,6 @@ onMounted(async () => {
                             {{ pluginOption.title }}
                         </button>
                     </div>
-                    <div v-else text-sm op60>
-                        Plugin filters are minimized by default to reduce visual
-                        noise.
-                    </div>
                 </div>
             </div>
             <div flex="~ gap-2 items-center wrap">

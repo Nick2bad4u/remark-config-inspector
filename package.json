@@ -105,6 +105,7 @@
         "ansis": "^4.3.0",
         "cac": "^7.0.0",
         "chokidar": "^5.0.0",
+        "es-module-lexer": "^2.0.0",
         "h3": "^2.0.1-rc.22",
         "tinyglobby": "^0.2.16",
         "unified-engine": "^11.2.2",
