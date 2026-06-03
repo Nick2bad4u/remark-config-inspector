@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, normalize } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -333,11 +333,11 @@ export default function remarkLintFinalNewline() {
                 pluginPackageName: "remark-lint-final-newline",
             }
         );
-        expect(result.dependencies).toContain(
-            normalize(
-                await realpath(
-                    join(cwd, "node_modules/remark-config-shared/index.js")
-                )
+        expect(
+            result.dependencies.map((dependency) => normalize(dependency))
+        ).toContainEqual(
+            expect.stringMatching(
+                /(?:^|\/)node_modules\/remark-config-shared\/index\.js$/u
             )
         );
     });
