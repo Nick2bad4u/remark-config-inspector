@@ -1,10 +1,8 @@
-import { createLocalFontProcessor } from "@unocss/preset-web-fonts/local";
 import {
     defineConfig,
     presetAttributify,
     presetIcons,
     presetTypography,
-    presetWebFonts,
     presetWind3,
     transformerDirectives,
     transformerVariantGroup,
@@ -35,6 +33,10 @@ export default defineConfig({
         "btn-badge": "badge hover:bg-active",
     },
     theme: {
+        fontFamily: {
+            mono: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            sans: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        },
         // Dark-first remarklint palette: black/neutral UI with restrained red
         // highlights for outlines, focus, and active states.
         colors: {
@@ -161,16 +163,6 @@ export default defineConfig({
             scale: 1.2,
         }),
         presetTypography(),
-        presetWebFonts({
-            fonts: {
-                sans: "Inter",
-                mono: "Space Mono",
-            },
-            processors: createLocalFontProcessor({
-                fontAssetsDir: "./public/fonts",
-                fontServeBaseUrl: "/fonts",
-            }),
-        }),
     ],
     transformers: [transformerDirectives(), transformerVariantGroup()],
 });

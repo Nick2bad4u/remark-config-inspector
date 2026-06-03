@@ -1,6 +1,6 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "pathe";
+import { dirname, join, normalize } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_TARGET_FILE } from "../src/constants";
 import { ConfigPathError } from "../src/errors";
@@ -334,7 +334,11 @@ export default function remarkLintFinalNewline() {
             }
         );
         expect(result.dependencies).toContain(
-            join(cwd, "node_modules/remark-config-shared/index.js")
+            normalize(
+                await realpath(
+                    join(cwd, "node_modules/remark-config-shared/index.js")
+                )
+            )
         );
     });
 
