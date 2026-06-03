@@ -21,7 +21,7 @@ import { readFile, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { isAbsolute } from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import {
     init as initEsModuleLexer,
     parse as parseEsModuleImports,
@@ -48,11 +48,24 @@ const REMARK_PACKAGE_FIELD = "remarkConfig";
 const REMARK_PLUGIN_PREFIX = "remark";
 const REMARK_RC_NAME = ".remarkrc";
 const CONFIG_LOADER_RESULT_PREFIX = "__REMARK_CONFIG_INSPECTOR_RESULT__";
-const CONFIG_LOADER_WORKER_CODE = `
-import { pathToFileURL } from "node:url";
+const CONFIG_LOADER_WORKER_CODE = String.raw`
+import { readFile, stat } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { dirname, join, normalize, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const resultPrefix = ${JSON.stringify(CONFIG_LOADER_RESULT_PREFIX)};
 const filePath = process.env.REMARK_CONFIG_INSPECTOR_CONFIG_PATH;
+const esModuleLexerUrl = process.env.REMARK_CONFIG_INSPECTOR_ES_MODULE_LEXER_URL;
+const localImportExtensions = ["", ".mjs", ".js", ".cjs", ".mts", ".ts", ".json"];
+const localImportIndexFilenames = [
+    "index.mjs",
+    "index.js",
+    "index.cjs",
+    "index.mts",
+    "index.ts",
+    "index.json",
+];
 
 function isRecord(value) {
     return typeof value === "object" && value !== null;
@@ -70,17 +83,177 @@ function extractPluginId(plugin) {
     return undefined;
 }
 
-function serializePlugin(plugin) {
-    return extractPluginId(plugin) ?? plugin;
+function isReferenceKey(value) {
+    return typeof value === "function" || isRecord(value);
 }
 
-function serializePluginEntry(entry) {
-    if (Array.isArray(entry) && entry.length > 0) {
-        const [plugin, ...parameters] = entry;
-        return [serializePlugin(plugin), ...parameters];
+function isLocalImportSpecifier(specifier) {
+    return (
+        specifier.startsWith(".") ||
+        specifier.startsWith("/") ||
+        specifier.startsWith("file:")
+    );
+}
+
+function isJavaScriptModulePath(path) {
+    return /\.(?:cjs|js|mjs|mts|ts)$/u.test(path);
+}
+
+function getPackageNameFromSpecifier(specifier) {
+    if (isLocalImportSpecifier(specifier) || specifier.startsWith("node:"))
+        return undefined;
+
+    const [first, second] = specifier.split("/");
+    if (!first) return undefined;
+
+    if (first.startsWith("@")) return second ? first + "/" + second : first;
+
+    return first;
+}
+
+function isRemarkConfigPackageName(packageName) {
+    return /(?:^|\/)remark-config(?:-|$)/u.test(packageName);
+}
+
+async function pathExists(path) {
+    try {
+        await stat(path);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+async function resolveLocalImportPath(specifier, importerPath) {
+    const cleanSpecifier = specifier.split("#")[0].split("?")[0];
+    const baseCandidate = cleanSpecifier.startsWith("file:")
+        ? fileURLToPath(cleanSpecifier)
+        : resolve(dirname(importerPath), cleanSpecifier);
+
+    for (const extension of localImportExtensions) {
+        const candidate = normalize(baseCandidate + extension);
+        if (await pathExists(candidate)) return candidate;
     }
 
-    return serializePlugin(entry);
+    for (const filename of localImportIndexFilenames) {
+        const candidate = normalize(join(baseCandidate, filename));
+        if (await pathExists(candidate)) return candidate;
+    }
+
+    return undefined;
+}
+
+async function resolveImportPath(specifier, importerPath) {
+    if (specifier.startsWith("node:")) return undefined;
+
+    if (isLocalImportSpecifier(specifier))
+        return await resolveLocalImportPath(specifier, importerPath);
+
+    try {
+        const requireFromImporter = createRequire(pathToFileURL(importerPath));
+        return normalize(requireFromImporter.resolve(specifier));
+    } catch {
+        try {
+            return normalize(fileURLToPath(import.meta.resolve(specifier)));
+        } catch {
+            return undefined;
+        }
+    }
+}
+
+async function parseImportSpecifiers(modulePath) {
+    if (!esModuleLexerUrl) return [];
+
+    let source;
+    try {
+        source = await readFile(modulePath, "utf8");
+    } catch {
+        return [];
+    }
+
+    try {
+        const { init, parse } = await import(esModuleLexerUrl);
+        await init;
+        const [imports] = parse(source);
+        return imports
+            .map((imported) => imported.n)
+            .filter((specifier) => typeof specifier === "string" && specifier.length > 0);
+    } catch {
+        return [];
+    }
+}
+
+function rememberNamespaceReferences(identityByReference, namespace, specifier) {
+    const packageName = getPackageNameFromSpecifier(specifier);
+    if (!packageName) return;
+
+    for (const value of Object.values(namespace)) {
+        if (isReferenceKey(value) && !identityByReference.has(value))
+            identityByReference.set(value, packageName);
+    }
+}
+
+function shouldRecurseIntoImport(specifier, namespace) {
+    if (isLocalImportSpecifier(specifier)) return true;
+
+    const packageName = getPackageNameFromSpecifier(specifier);
+    if (packageName && isRemarkConfigPackageName(packageName)) return true;
+
+    return (
+        typeof namespace.createConfig === "function" ||
+        (isRecord(namespace.default) && Array.isArray(namespace.default.plugins))
+    );
+}
+
+async function collectModuleIdentities(modulePath, identityByReference, dependencies, visited = new Set()) {
+    const normalizedModulePath = normalize(modulePath);
+    if (visited.has(normalizedModulePath)) return;
+    visited.add(normalizedModulePath);
+    dependencies.add(normalizedModulePath);
+
+    if (!isJavaScriptModulePath(normalizedModulePath)) return;
+
+    const specifiers = await parseImportSpecifiers(normalizedModulePath);
+
+    for (const specifier of specifiers) {
+        const resolvedImportPath = await resolveImportPath(specifier, normalizedModulePath);
+        if (!resolvedImportPath) continue;
+
+        dependencies.add(resolvedImportPath);
+
+        let namespace;
+        try {
+            namespace = await import(pathToFileURL(resolvedImportPath).href);
+            rememberNamespaceReferences(identityByReference, namespace, specifier);
+        } catch {
+            continue;
+        }
+
+        if (shouldRecurseIntoImport(specifier, namespace))
+            await collectModuleIdentities(
+                resolvedImportPath,
+                identityByReference,
+                dependencies,
+                visited
+            );
+    }
+}
+
+function serializePlugin(plugin, identityByReference) {
+    return (
+        extractPluginId(plugin) ??
+        (isReferenceKey(plugin) ? identityByReference.get(plugin) : undefined) ??
+        plugin
+    );
+}
+
+function serializePluginEntry(entry, identityByReference) {
+    if (Array.isArray(entry) && entry.length > 0) {
+        const [plugin, ...parameters] = entry;
+        return [serializePlugin(plugin, identityByReference), ...parameters];
+    }
+
+    return serializePlugin(entry, identityByReference);
 }
 
 function createJsonSafeReplacer() {
@@ -113,14 +286,26 @@ else if (isRecord(module)) config = module;
 
 if (!config) throw new Error("Cannot parse given file");
 
+const identityByReference = new WeakMap();
+const dependencies = new Set();
+await collectModuleIdentities(filePath, identityByReference, dependencies);
+
 const plugins = Array.isArray(config.plugins)
-    ? config.plugins.map((entry) => serializePluginEntry(entry))
+    ? config.plugins.map((entry) => serializePluginEntry(entry, identityByReference))
     : [];
 const settings = isRecord(config.settings) ? config.settings : {};
 
 console.log(
     resultPrefix +
-        JSON.stringify({ filePath, plugins, settings }, createJsonSafeReplacer())
+        JSON.stringify(
+            {
+                filePath,
+                plugins,
+                settings,
+                dependencies: [...dependencies],
+            },
+            createJsonSafeReplacer()
+        )
 );
 `;
 
@@ -160,6 +345,7 @@ interface LoadedRemarkConfig {
     filePath: string;
     plugins: unknown[];
     settings: Record<string, unknown>;
+    dependencies?: string[];
 }
 
 interface SerializedRemarkConfig extends LoadedRemarkConfig {}
@@ -167,6 +353,7 @@ interface SerializedRemarkConfig extends LoadedRemarkConfig {}
 interface RemarkModuleConfig {
     plugins?: unknown;
     settings?: unknown;
+    dependencies?: unknown;
 }
 
 interface RemarkIgnoreResolution {
@@ -252,6 +439,17 @@ function toLoadedRemarkConfig(
         filePath: normalize(filePath),
         plugins: Array.isArray(config.plugins) ? config.plugins : [],
         settings: isRecord(config.settings) ? config.settings : {},
+        ...(Array.isArray(config.dependencies)
+            ? {
+                  dependencies: config.dependencies
+                      .filter(
+                          (dependency): dependency is string =>
+                              typeof dependency === "string" &&
+                              dependency.length > 0
+                      )
+                      .map((dependency) => normalize(dependency)),
+              }
+            : {}),
     };
 }
 
@@ -277,6 +475,9 @@ async function loadRemarkConfigInFreshProcess(
             env: {
                 ...process.env,
                 REMARK_CONFIG_INSPECTOR_CONFIG_PATH: filePath,
+                REMARK_CONFIG_INSPECTOR_ES_MODULE_LEXER_URL: pathToFileURL(
+                    requireForResolution.resolve("es-module-lexer")
+                ).href,
             },
             stdio: [
                 "ignore",
@@ -1209,7 +1410,8 @@ export function createRemarkInspectorAdapter(): InspectorAdapter {
 
             const remarkIgnore = await resolveRemarkIgnore(basePath);
             const dependencies = new Set<string>(
-                await collectLocalModuleDependencies(loaded.filePath)
+                loaded.dependencies ??
+                    (await collectLocalModuleDependencies(loaded.filePath))
             );
             if (remarkIgnore.absolutePath)
                 dependencies.add(remarkIgnore.absolutePath);

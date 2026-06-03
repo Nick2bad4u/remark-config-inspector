@@ -243,6 +243,101 @@ export const plugins = ['remark-lint-final-newline']
         );
     });
 
+    it("extracts rules from imported shared config packages that use plugin functions", async () => {
+        const cwd = await createTempDir();
+        await writeFiles(cwd, {
+            ".remarkrc.mjs": `
+import { createConfig } from 'remark-config-shared'
+
+export default createConfig({
+  plugins: [['remark-lint-no-tabs', false]],
+  settings: {
+    bullet: '*'
+  }
+})
+`,
+            "node_modules/remark-config-shared/package.json": JSON.stringify(
+                {
+                    name: "remark-config-shared",
+                    version: "1.0.0",
+                    type: "module",
+                    exports: {
+                        ".": {
+                            import: "./index.js",
+                            require: null,
+                        },
+                    },
+                },
+                null,
+                2
+            ),
+            "node_modules/remark-config-shared/index.js": `
+import remarkLintFinalNewline from 'remark-lint-final-newline'
+
+export function createConfig(options = {}) {
+  return {
+    plugins: [
+      [remarkLintFinalNewline, true],
+      ...(options.plugins ?? [])
+    ],
+    settings: {
+      bullet: '-',
+      ...options.settings
+    }
+  }
+}
+`,
+            "node_modules/remark-lint-final-newline/package.json":
+                JSON.stringify(
+                    {
+                        name: "remark-lint-final-newline",
+                        version: "1.0.0",
+                        type: "module",
+                        exports: {
+                            ".": {
+                                import: "./index.js",
+                                require: null,
+                            },
+                        },
+                    },
+                    null,
+                    2
+                ),
+            "node_modules/remark-lint-final-newline/index.js": `
+export default function remarkLintFinalNewline() {
+  return function transformer() {}
+}
+`,
+        });
+
+        const adapter = createRemarkInspectorAdapter();
+        const result = await adapter.readConfig({
+            cwd,
+            userConfigPath: ".remarkrc.mjs",
+            globMatchedFiles: false,
+            chdir: false,
+        });
+
+        expect(result.payload.configs[0]?.rules).toMatchObject({
+            "remark-lint-final-newline": true,
+            "remark-lint-no-tabs": false,
+        });
+        // eslint-disable-next-line dot-notation -- `settings` is an index-signature field on FlatConfigItem.
+        expect(result.payload.configs[0]?.["settings"]).toMatchObject({
+            bullet: "*",
+        });
+        expect(result.payload.rules["remark-lint-final-newline"]).toMatchObject(
+            {
+                name: "remark-lint-final-newline",
+                plugin: "remark-lint",
+                pluginPackageName: "remark-lint-final-newline",
+            }
+        );
+        expect(result.dependencies).toContain(
+            join(cwd, "node_modules/remark-config-shared/index.js")
+        );
+    });
+
     it("prefers package metadata URLs for external remark-lint rule docs", async () => {
         const cwd = await createTempDir();
         await writeFiles(cwd, {
@@ -411,14 +506,14 @@ export default {
 `,
         });
 
-        const chdirSpy = vi.spyOn(process, "chdir").mockImplementation((() => {
+        const chdirSpy = vi.spyOn(process, "chdir").mockImplementation(() => {
             throw Object.assign(
                 new Error("process.chdir() is not supported in workers"),
                 {
                     code: "ERR_WORKER_UNSUPPORTED_OPERATION",
                 }
             );
-        }) as typeof process.chdir);
+        });
 
         try {
             const adapter = createRemarkInspectorAdapter();
