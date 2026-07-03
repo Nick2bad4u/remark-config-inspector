@@ -26,11 +26,7 @@ export type RuleStateFilter =
     | "overloads";
 
 export type RuleStatusFilter =
-    | ""
-    | "active"
-    | "recommended"
-    | "fixable"
-    | "deprecated";
+    "" | "active" | "recommended" | "fixable" | "deprecated";
 
 export interface FiltersConfigsPage {
     filepath: string;

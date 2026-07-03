@@ -22,7 +22,9 @@ export default defineConfig({
     },
     tsconfig: "./tsconfig.cli.json",
     format: ["esm", "cjs"],
-    sourcemap: true,
+    // Rolldown's declaration plugin emits fake JS without sourcemaps; keep
+    // failOnWarn strict and avoid generating sourcemaps for this CLI bundle.
+    sourcemap: false,
     dts: {
         build: true,
     },

@@ -24,10 +24,7 @@ import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.m
 /** @typedef {import("./scripts/remark-lint-rule-doc-headings.d.mts").RemarkLintRuleDocHeadingsOptions} RemarkLintRuleDocHeadingsOptions */
 
 /**
- * @typedef {string
- *     | Plugin
- *     | Preset
- *     | [string | Plugin | Preset, ...unknown[]]} PluginEntry
+ * @typedef {string | Plugin | Preset | [string | Plugin | Preset, ...unknown[]]} PluginEntry
  */
 
 // Imported plugin types - these plugins don't typically export specific option types
