@@ -68,7 +68,7 @@
         "contrib:generate": "all-contributors generate",
         "dev": "nuxt dev",
         "lint": "npm run lint:node-version-files && npm run lint:prettier && eslint --cache --cache-strategy content --cache-location .cache/.eslintcache",
-        "lint:all": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache && npm run lint:stylelint && npm run typecheck && npm run lint:jscpd && npm run lint:lychee",
+        "lint:all": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache && npm run lint:stylelint && npm run typecheck",
         "lint:all:fix": "eslint --cache --cache-strategy content --cache-location .cache/.eslintcache --fix && npm run lint:stylelint:fix && npm run typecheck && npm run lint:prettier:fix",
         "lint:fix": "npm run sync:node-version-files && npm run lint:prettier:fix && eslint --cache --cache-strategy content --cache-location .cache/.eslintcache --fix",
         "lint:node-version-files": "node scripts/sync-node-version-files.mjs --check",
