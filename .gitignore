@@ -883,3 +883,5 @@ temp/
 # Playwright
 /playwright/.auth/
 test-report.junit.xml
+.lychee.report.md
+.lycheecache
