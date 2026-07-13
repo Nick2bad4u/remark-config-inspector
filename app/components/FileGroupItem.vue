@@ -9,7 +9,7 @@ const props = defineProps<{
     group: FilesGroup;
 }>();
 
-const open = defineModel("open", {
+const open = defineModel<boolean>("open", {
     default: true,
 });
 

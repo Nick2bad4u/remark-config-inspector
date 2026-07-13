@@ -31,10 +31,7 @@ const versionInfo = computed(() => {
 });
 
 function getLinkClass(url: string | undefined) {
-    return [
-        "text-blue5 dark:text-blue4",
-        url ? "underline" : "",
-    ];
+    return ["text-blue5 dark:text-blue4", url ? "underline" : ""];
 }
 </script>
 

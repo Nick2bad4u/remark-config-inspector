@@ -19,7 +19,6 @@ body {
     --inspector-accent: rgb(216 3 3);
     --inspector-focus-ring: rgb(216 3 3 / 0.18);
     --at-apply: bg-base color-base font-sans;
-    background-attachment: fixed;
     background-color: #060607;
     background-image:
         linear-gradient(180deg, #0a0a0d 0%, #070709 40%, #050506 100%),
@@ -362,6 +361,7 @@ html.dark {
     html.dark & {
         &:hover,
         &:focus-visible {
+            /* stylelint-disable-next-line css-performance-budget/no-global-expensive-effects -- The compiled selector is scoped to inspector-button states. */
             box-shadow:
                 0 0 0 1px rgb(255 127 127 / 0.36),
                 0 6px 14px rgb(143 0 0 / 0.32);
@@ -454,6 +454,7 @@ html.dark [id="popper_inner"] {
 
 html.dark .v-popper--theme-dropdown .v-popper__inner,
 html.dark .v-popper--theme-tooltip .v-popper__inner {
+    /* stylelint-disable-next-line css-performance-budget/no-global-expensive-effects -- Popper constrains this effect to the small rendered overlay surface. */
     backdrop-filter: blur(6px);
     background: rgb(12 12 15 / 0.96);
     color: rgb(228 228 231);

@@ -3,17 +3,26 @@ import { useMediaQuery } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import { useState } from "#app/composables/state";
 
-export type UserTheme = "auto" | "light" | "dark";
+export type UserTheme =
+    | "auto"
+    | "light"
+    | "dark";
 
 export type SearchMode = "advanced" | "native";
 
-export type ViewFileMatchType = "all" | "configs" | "merged";
+export type ViewFileMatchType =
+    | "all"
+    | "configs"
+    | "merged";
 
 export type ViewType = "list" | "grid";
 
 export type ViewFilesTab = "list" | "group";
 
-export type FontScale = "sm" | "md" | "lg";
+export type FontScale =
+    | "sm"
+    | "md"
+    | "lg";
 
 export type RuleStateFilter =
     | ""
@@ -26,7 +35,11 @@ export type RuleStateFilter =
     | "overloads";
 
 export type RuleStatusFilter =
-    "" | "active" | "recommended" | "fixable" | "deprecated";
+    | ""
+    | "active"
+    | "recommended"
+    | "fixable"
+    | "deprecated";
 
 export interface FiltersConfigsPage {
     filepath: string;

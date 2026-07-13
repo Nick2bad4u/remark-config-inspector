@@ -137,6 +137,7 @@ const config = defineConfig({
      * @see {@link https://stylelint.io/user-guide/configure/#extends | extends Documentation}
      */
     extends: [
+        "stylelint-config-nick2bad4u",
         "stylelint-config-standard",
         "stylelint-config-recess-order",
         "stylelint-config-idiomatic-order",

@@ -1,6 +1,9 @@
 {
     "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
-    "extends": ["./node_modules/typedoc/tsdoc.json"],
+    "extends": [
+        "tsdoc-config-nick2bad4u/tsdoc.json",
+        "./node_modules/typedoc/tsdoc.json"
+    ],
     "noStandardTags": true,
     "supportForTags": {},
     "tagDefinitions": [

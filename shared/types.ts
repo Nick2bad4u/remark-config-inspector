@@ -16,7 +16,10 @@ export interface IgnoreFileInfo {
     patterns: string[];
 }
 
-export type ExtendsInfoSource = "package" | "local" | "unknown";
+export type ExtendsInfoSource =
+    | "package"
+    | "local"
+    | "unknown";
 
 export interface ExtendsInfo {
     specifier: string;
@@ -33,7 +36,10 @@ export interface ExtendsInfo {
     usedByConfigIndexes: number[];
 }
 
-export type RuleLevel = "off" | "warn" | "error";
+export type RuleLevel =
+    | "off"
+    | "warn"
+    | "error";
 
 export interface Payload {
     configs: FlatConfigItem[];
@@ -87,7 +93,10 @@ export interface ErrorInfo {
 
 export interface FilesGroup {
     id: string;
-    kind: "matched" | "declared" | "default";
+    kind:
+        | "matched"
+        | "declared"
+        | "default";
     files: string[];
     configs: FlatConfigItem[];
     globs: Set<string>;
@@ -104,7 +113,10 @@ export interface PayloadMeta {
     ignoreFile?: IgnoreFileInfo;
 }
 
-export type RuleDescriptionSource = "meta" | "message" | "generated";
+export type RuleDescriptionSource =
+    | "meta"
+    | "message"
+    | "generated";
 export type RuleDocsUrlSource = "meta" | "inferred";
 
 export interface RuleInfo {

@@ -1,9 +1,17 @@
 // @ts-check
 import antfu from "@antfu/eslint-config";
+import nickTwoBadFourU from "eslint-config-nick2bad4u";
 import nuxt from "./.nuxt/eslint.config.mjs";
+
+const [sharedGlobalIgnores, sharedGitignore] = nickTwoBadFourU.configs.all;
 
 export default await nuxt()
     .prepend(
+        // Preserve the established Nuxt/Antfu rule contract while adopting
+        // the shared global and .gitignore handling. Dedicated shared tools
+        // continue to validate their own file types separately.
+        sharedGlobalIgnores,
+        sharedGitignore,
         await antfu({
             stylistic: false,
             unocss: true,
@@ -66,6 +74,8 @@ export default await nuxt()
             "scripts/**",
             "stryker.config.mjs",
             "stylelint.config.mjs",
+            "tests/fixtures/config-formats/.stylelintrc.yaml",
+            "tests/fixtures/config-formats/.stylelintrc.yml",
             "tests/tsconfig.json",
             "tsconfig.build.json",
             "tsconfig.cli.json",

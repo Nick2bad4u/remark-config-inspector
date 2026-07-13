@@ -15,6 +15,8 @@
  */
 // @ts-check
 
+import { createConfig } from "remark-config-nick2bad4u";
+
 import remarkLintRuleDocHeadings from "./scripts/remark-lint-rule-doc-headings.mjs";
 
 // Type definitions for remark configuration
@@ -495,4 +497,17 @@ const remarkConfig = {
     },
 };
 
-export default remarkConfig;
+const config = createConfig(remarkConfig);
+
+export default {
+    ...config,
+    plugins: config.plugins.map((entry) =>
+        Array.isArray(entry)
+            ? [
+                  entry[0],
+                  ...entry.slice(1).map((options) => structuredClone(options)),
+              ]
+            : entry
+    ),
+    settings: structuredClone(config.settings),
+};

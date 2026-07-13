@@ -220,11 +220,7 @@ const conditionalFiltered = computed(() => {
                     ? rule.plugin
                     : "";
             const candidates = new Set<string>(
-                [
-                    pluginPackage,
-                    pluginCandidate,
-                    rule.name,
-                ].filter(Boolean)
+                [pluginPackage, pluginCandidate, rule.name].filter(Boolean)
             );
 
             return selectedPlugins.value.some((selectedPlugin) =>
