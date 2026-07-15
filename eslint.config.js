@@ -60,7 +60,7 @@ export default await nuxt()
             ".pre-commit-config.yaml",
             ".remarkrc.mjs",
             ".secretlintrc.json",
-            "ActionLintConfig.yaml",
+            ".github/actionlint.yaml",
             "codecov.yml",
             "commitlint.config.mjs",
             "jscpd.json",
