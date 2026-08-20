@@ -84,11 +84,6 @@ function sanitizeRequestPath(pathname) {
     return absoluteRequestPath;
 }
 
-function isInsideRoot(rootPath, filePath) {
-    const rootPrefix = rootPath.endsWith(sep) ? rootPath : `${rootPath}${sep}`;
-    return filePath === rootPath || filePath.startsWith(rootPrefix);
-}
-
 function getContentType(filePath) {
     return (
         MIME_TYPES[extname(filePath).toLowerCase()] ??
@@ -97,16 +92,26 @@ function getContentType(filePath) {
 }
 
 async function resolveFilePath(rootPath, requestPath) {
+    if (!SAFE_REQUEST_PATH.test(requestPath)) return undefined;
+
     const requested = requestPath === "/" ? "/index.html" : requestPath;
     const absolutePath = resolve(join(rootPath, requested));
+    const rootPrefix = rootPath.endsWith(sep) ? rootPath : `${rootPath}${sep}`;
 
     // Reject lexical traversal before resolving filesystem links. The second
     // containment check below then rejects symlinks and junctions that escape.
-    if (!isInsideRoot(rootPath, absolutePath)) return undefined;
+    if (absolutePath !== rootPath && !absolutePath.startsWith(rootPrefix)) {
+        return undefined;
+    }
 
     try {
         const canonicalPath = await realpath(absolutePath);
-        if (!isInsideRoot(rootPath, canonicalPath)) return undefined;
+        if (
+            canonicalPath !== rootPath &&
+            !canonicalPath.startsWith(rootPrefix)
+        ) {
+            return undefined;
+        }
 
         const info = await stat(canonicalPath);
         if (info.isFile()) return canonicalPath;
@@ -121,7 +126,9 @@ async function resolveFilePath(rootPath, requestPath) {
         const fallbackPath = await realpath(
             resolve(join(rootPath, "index.html"))
         );
-        if (!isInsideRoot(rootPath, fallbackPath)) return undefined;
+        if (fallbackPath !== rootPath && !fallbackPath.startsWith(rootPrefix)) {
+            return undefined;
+        }
         return fallbackPath;
     } catch {
         return undefined;
