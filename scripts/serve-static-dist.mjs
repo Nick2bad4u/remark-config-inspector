@@ -16,6 +16,8 @@ const MIME_TYPES = {
     ".svg": "image/svg+xml; charset=utf-8",
     ".txt": "text/plain; charset=utf-8",
 };
+const SAFE_REQUEST_PATH =
+    /^\/(?:[A-Za-z0-9_~-][A-Za-z0-9._~-]*\/)*(?:[A-Za-z0-9_~-][A-Za-z0-9._~-]*)?$/u;
 
 function parseArgs(argv) {
     const options = {
@@ -62,12 +64,24 @@ function parseArgs(argv) {
 }
 
 function sanitizeRequestPath(pathname) {
-    const decoded = decodeURIComponent(pathname ?? "/");
-    const withoutQuery = decoded.split("?")[0] ?? "/";
-    const normalizedPath = withoutQuery.replaceAll("\\", "/");
-    return normalizedPath.startsWith("/")
+    const withoutQuery = (pathname ?? "/").split("?")[0] ?? "/";
+    let decoded;
+
+    try {
+        decoded = decodeURIComponent(withoutQuery);
+    } catch {
+        return undefined;
+    }
+
+    const normalizedPath = decoded.replaceAll("\\", "/");
+    const absoluteRequestPath = normalizedPath.startsWith("/")
         ? normalizedPath
         : `/${normalizedPath}`;
+    if (!SAFE_REQUEST_PATH.test(absoluteRequestPath)) {
+        return undefined;
+    }
+
+    return absoluteRequestPath;
 }
 
 function isInsideRoot(rootPath, filePath) {
@@ -127,7 +141,9 @@ async function main() {
 
         const server = createServer(async (request, response) => {
             const pathname = sanitizeRequestPath(request.url ?? "/");
-            const filePath = await resolveFilePath(canonicalRootPath, pathname);
+            const filePath = pathname
+                ? await resolveFilePath(canonicalRootPath, pathname)
+                : undefined;
 
             if (!filePath) {
                 response.statusCode = 404;

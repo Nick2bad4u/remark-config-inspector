@@ -137,4 +137,12 @@ describe("static distribution server path containment", () => {
             expect(result.body).not.toContain("outside secret");
         }
     );
+
+    it.each(["/bad%", "/unsafe%00file.txt"])(
+        "rejects malformed or unsafe path %s",
+        async (path) => {
+            const result = await requestRawPath(port, path);
+            expect(result.statusCode).toBe(404);
+        }
+    );
 });
