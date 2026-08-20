@@ -86,6 +86,10 @@ async function resolveFilePath(rootPath, requestPath) {
     const requested = requestPath === "/" ? "/index.html" : requestPath;
     const absolutePath = resolve(join(rootPath, requested));
 
+    // Reject lexical traversal before resolving filesystem links. The second
+    // containment check below then rejects symlinks and junctions that escape.
+    if (!isInsideRoot(rootPath, absolutePath)) return undefined;
+
     try {
         const canonicalPath = await realpath(absolutePath);
         if (!isInsideRoot(rootPath, canonicalPath)) return undefined;
