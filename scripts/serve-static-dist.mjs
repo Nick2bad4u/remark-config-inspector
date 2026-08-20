@@ -92,48 +92,44 @@ function getContentType(filePath) {
     );
 }
 
-async function resolveFilePath(rootPath, requestPath) {
+async function readStaticFile(rootPath, requestPath) {
     if (!SAFE_REQUEST_PATH.test(requestPath)) return undefined;
 
     const requested = requestPath === "/" ? "/index.html" : requestPath;
     const absolutePath = resolve(join(rootPath, requested));
     const rootPrefix = rootPath.endsWith(sep) ? rootPath : `${rootPath}${sep}`;
+    let filePath;
 
     // Reject lexical traversal before resolving filesystem links. The second
     // containment check below then rejects symlinks and junctions that escape.
-    if (absolutePath !== rootPath && !absolutePath.startsWith(rootPrefix)) {
-        return undefined;
-    }
+    if (!absolutePath.startsWith(rootPrefix)) return undefined;
 
     try {
         const canonicalPath = realpathSync(absolutePath);
-        if (
-            canonicalPath !== rootPath &&
-            !canonicalPath.startsWith(rootPrefix)
-        ) {
-            return undefined;
-        }
+        if (!canonicalPath.startsWith(rootPrefix)) return undefined;
 
         const info = await stat(canonicalPath);
-        if (info.isFile()) return canonicalPath;
+        if (info.isFile()) filePath = canonicalPath;
     } catch {
         // Continue to SPA fallback handling.
     }
 
-    const looksLikeAsset = extname(requestPath).length > 0;
-    if (looksLikeAsset) return undefined;
+    if (!filePath) {
+        const looksLikeAsset = extname(requestPath).length > 0;
+        if (looksLikeAsset) return undefined;
 
-    try {
-        const fallbackPath = realpathSync(
-            resolve(join(rootPath, "index.html"))
-        );
-        if (fallbackPath !== rootPath && !fallbackPath.startsWith(rootPrefix)) {
+        try {
+            const fallbackPath = realpathSync(
+                resolve(join(rootPath, "index.html"))
+            );
+            if (!fallbackPath.startsWith(rootPrefix)) return undefined;
+            filePath = fallbackPath;
+        } catch {
             return undefined;
         }
-        return fallbackPath;
-    } catch {
-        return undefined;
     }
+
+    return { content: await readFile(filePath), filePath };
 }
 
 const { dir, host, port } = parseArgs(process.argv.slice(2));
@@ -149,27 +145,32 @@ async function main() {
 
         const server = createServer(async (request, response) => {
             const pathname = sanitizeRequestPath(request.url ?? "/");
-            const filePath = pathname
-                ? await resolveFilePath(canonicalRootPath, pathname)
-                : undefined;
+            let staticFile;
 
-            if (!filePath) {
+            try {
+                staticFile = pathname
+                    ? await readStaticFile(canonicalRootPath, pathname)
+                    : undefined;
+            } catch {
+                response.statusCode = 500;
+                response.setHeader("Content-Type", "text/plain; charset=utf-8");
+                response.end("Failed to read file");
+                return;
+            }
+
+            if (!staticFile) {
                 response.statusCode = 404;
                 response.setHeader("Content-Type", "text/plain; charset=utf-8");
                 response.end("Not Found");
                 return;
             }
 
-            try {
-                const content = await readFile(filePath);
-                response.statusCode = 200;
-                response.setHeader("Content-Type", getContentType(filePath));
-                response.end(content);
-            } catch {
-                response.statusCode = 500;
-                response.setHeader("Content-Type", "text/plain; charset=utf-8");
-                response.end("Failed to read file");
-            }
+            response.statusCode = 200;
+            response.setHeader(
+                "Content-Type",
+                getContentType(staticFile.filePath)
+            );
+            response.end(staticFile.content);
         });
 
         server.listen(port, host, () => {
