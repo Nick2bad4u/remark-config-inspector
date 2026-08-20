@@ -33,16 +33,18 @@ jobs:
                   cache-dependency-path: "package-lock.json"
 
             - name: "Install dependencies"
-              run: "npm ci --force"
-
-            - name: "Build package"
-              run: "npm run build"
+              run: |
+                  npm_version=$(node -p "require('./package.json').packageManager.split('@').at(-1)")
+                  npm install --global --ignore-scripts "npm@${npm_version}"
+                  test "$(npm --version)" = "${npm_version}"
+                  npm ci --ignore-scripts
+                  npm run prepare
 
             - name: "Install Playwright Browsers"
-              run: "npx playwright install --with-deps"
+              run: "npm run playwright:install"
 
             - name: "Run Playwright tests"
-              run: "npx playwright test"
+              run: "npm run test:e2e"
 
             - uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
               if: "${{ !cancelled() }}"

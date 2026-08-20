@@ -106,12 +106,12 @@ export default defineNuxtConfig({
                     href: "/remark/favicon.svg",
                 },
                 {
-                    rel: "alternate icon",
+                    rel: "icon",
                     type: "image/svg+xml",
                     href: "/remark/logo-square.svg",
                 },
                 {
-                    rel: "alternate icon",
+                    rel: "icon",
                     type: "image/png",
                     href: "/remark/favicon.png",
                 },

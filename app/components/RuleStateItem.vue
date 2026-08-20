@@ -249,14 +249,14 @@ function goto() {
 
 .rule-state-config-button {
     display: inline-flex;
+    gap: 0.375rem;
     align-items: center;
     padding: 0.125rem 0.5rem;
+    font-size: 0.875rem;
+    color: inherit;
+    background: rgb(216 3 3 / 0.1);
     border: 1px solid rgb(248 113 113 / 0.22);
     border-radius: 9999px;
-    background: rgb(216 3 3 / 0.1);
-    color: inherit;
-    font-size: 0.875rem;
-    gap: 0.375rem;
     transition:
         border-color 140ms ease,
         background 140ms ease,
@@ -268,8 +268,8 @@ function goto() {
 
     &:hover,
     &:focus-visible {
-        border-color: rgb(248 113 113 / 0.42);
         background: rgb(216 3 3 / 0.16);
+        border-color: rgb(248 113 113 / 0.42);
         box-shadow: 0 0 0 3px rgb(216 3 3 / 0.14);
     }
 }

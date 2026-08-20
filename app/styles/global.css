@@ -1,9 +1,9 @@
 html,
 body,
 [id="__nuxt"] {
+    block-size: 100dvb;
     padding: 0;
     margin: 0;
-    block-size: 100dvb;
 }
 
 summary::-webkit-details-marker {
@@ -19,6 +19,8 @@ body {
     --inspector-accent: rgb(216 3 3);
     --inspector-focus-ring: rgb(216 3 3 / 0.18);
     --at-apply: bg-base color-base font-sans;
+    font-size: calc(16px * var(--inspector-font-scale, 1));
+    color-scheme: dark;
     background-color: #060607;
     background-image:
         linear-gradient(180deg, #0a0a0d 0%, #070709 40%, #050506 100%),
@@ -29,34 +31,32 @@ body {
             #00000000 78%
         ),
         radial-gradient(80% 68% at 10% 18%, #0000004f 0%, #00000000 70%);
-    color-scheme: dark;
-    font-size: calc(16px * var(--inspector-font-scale, 1));
 }
 
 .inspector-input {
-    border-color: rgb(216 3 3 / 0.24);
     background: var(--inspector-surface);
+    border-color: rgb(216 3 3 / 0.24);
     transition:
         border-color 140ms ease,
         background 140ms ease,
         box-shadow 140ms ease;
 
     &:hover {
-        border-color: rgb(248 113 113 / 0.36);
         background: var(--inspector-surface-hover);
+        border-color: rgb(248 113 113 / 0.36);
     }
 
     &:focus,
     &:focus-visible {
-        border-color: rgb(248 113 113 / 0.54);
         background: var(--inspector-surface-strong);
+        border-color: rgb(248 113 113 / 0.54);
         box-shadow: 0 0 0 3px var(--inspector-focus-ring);
     }
 }
 
 .inspector-autocomplete {
-    border-color: var(--inspector-border);
     background: rgb(12 12 15 / 0.96);
+    border-color: var(--inspector-border);
     box-shadow:
         0 12px 30px rgb(0 0 0 / 0.38),
         0 0 0 1px rgb(216 3 3 / 0.1);
@@ -71,34 +71,34 @@ body {
     &[aria-selected="true"],
     &:hover,
     &:focus-visible {
-        background: rgb(216 3 3 / 0.16);
-        color: rgb(254 226 226);
+        color: rgb(127 29 29);
+        background: rgb(254 226 226);
     }
 
     &:focus-visible {
-        background: rgb(216 3 3 / 0.16);
-        color: rgb(254 226 226);
+        color: rgb(127 29 29);
         outline: 2px solid rgb(248 113 113 / 0.58);
         outline-offset: -2px;
+        background: rgb(254 226 226);
     }
 }
 
 .inspector-summary-pill {
     display: inline-flex;
+    gap: 0.5rem;
     align-items: center;
+    min-block-size: 2rem;
+    color: rgb(228 228 236);
+    background: rgb(12 12 14 / 0.72);
     border: 1px solid rgb(216 3 3 / 0.2);
     border-radius: 9999px;
-    background: rgb(12 12 14 / 0.72);
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
-    color: rgb(228 228 236);
-    gap: 0.5rem;
-    min-block-size: 2rem;
 }
 
 .inspector-summary-pill--accent {
-    border-color: rgb(248 113 113 / 0.3);
-    background: rgb(127 29 29 / 0.44);
     color: rgb(254 226 226);
+    background: rgb(127 29 29 / 0.44);
+    border-color: rgb(248 113 113 / 0.3);
 }
 
 .inspector-choice-pill {
@@ -123,12 +123,12 @@ body {
 
 .inspector-toggle-button {
     display: inline-flex;
+    gap: 0.25rem;
     align-items: center;
+    color: rgb(228 228 236);
+    background: rgb(12 12 14 / 0.72);
     border: 1px solid var(--inspector-border);
     border-radius: 9999px;
-    background: rgb(12 12 14 / 0.72);
-    color: rgb(228 228 236);
-    gap: 0.25rem;
     transition:
         border-color 140ms ease,
         background 140ms ease,
@@ -137,26 +137,26 @@ body {
 
     &:hover,
     &:focus-visible {
-        border-color: var(--inspector-border-strong);
-        background: var(--inspector-surface-hover);
-        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.12);
         outline: none;
+        background: var(--inspector-surface-hover);
+        border-color: var(--inspector-border-strong);
+        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.12);
     }
 }
 
 .inspector-segmented-control {
     display: inline-flex;
-    overflow: hidden;
     align-items: center;
+    overflow: hidden;
+    background: rgb(12 12 15 / 0.62);
     border: 1px solid var(--inspector-border);
     border-radius: 0.5rem;
-    background: rgb(12 12 15 / 0.62);
 }
 
 .inspector-section {
+    background: rgb(12 12 15 / 0.52);
     border: 1px solid var(--inspector-border);
     border-radius: 0.75rem;
-    background: rgb(12 12 15 / 0.52);
 }
 
 .inspector-band {
@@ -171,37 +171,42 @@ body {
 
 .config-summary-grid {
     max-inline-size: 100%;
-    overflow-inline: auto;
     padding-block: 0.125rem;
+    overflow-inline: auto;
     scrollbar-width: thin;
 }
 
 .inspector-experimental-pill {
     display: inline-flex;
+    gap: 0.5rem;
     align-items: center;
+    inline-size: fit-content;
     padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: rgb(113 63 18);
+    background: rgb(254 243 199);
     border: 1px solid rgb(217 119 6 / 0.28);
     border-radius: 9999px;
-    background: rgb(245 158 11 / 0.12);
-    color: rgb(254 240 138);
-    font-size: 0.875rem;
-    gap: 0.5rem;
-    inline-size: fit-content;
+
+    html.dark & {
+        color: rgb(254 240 138);
+        background: rgb(69 26 3);
+    }
 }
 
 .inspector-panel {
+    background: var(--inspector-surface);
     border: 1px solid var(--inspector-border);
     border-radius: 0.75rem;
-    background: var(--inspector-surface);
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
 }
 
 .inspector-popover-panel {
+    color: rgb(244 244 245);
+    background: rgb(12 12 15 / 0.98);
     border: 1px solid rgb(248 113 113 / 0.2);
     border-radius: 0.75rem;
-    background: rgb(12 12 15 / 0.98);
     box-shadow: 0 18px 45px rgb(0 0 0 / 0.42);
-    color: rgb(244 244 245);
 }
 
 .inspector-popover-header {
@@ -210,21 +215,21 @@ body {
 }
 
 .inspector-popover-section {
-    border-color: rgb(248 113 113 / 0.16);
     background: rgb(216 3 3 / 0.075);
+    border-color: rgb(248 113 113 / 0.16);
 }
 
 .inspector-popover-action {
     display: inline-flex;
+    gap: 0.375rem;
     align-items: center;
     padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    color: inherit;
+    text-decoration: none;
+    background: rgb(20 20 24 / 0.72);
     border: 1px solid rgb(248 113 113 / 0.24);
     border-radius: 9999px;
-    background: rgb(20 20 24 / 0.72);
-    color: inherit;
-    font-size: 0.875rem;
-    gap: 0.375rem;
-    text-decoration: none;
     transition:
         border-color 140ms ease,
         background 140ms ease,
@@ -236,23 +241,23 @@ body {
 
     &:hover,
     &:focus-visible {
-        border-color: rgb(248 113 113 / 0.42);
         background: rgb(216 3 3 / 0.16);
+        border-color: rgb(248 113 113 / 0.42);
         box-shadow: 0 0 0 3px rgb(216 3 3 / 0.14);
     }
 }
 
 .inspector-popover-chip {
-    border-color: rgb(248 113 113 / 0.24);
-    background: rgb(127 29 29 / 0.38);
     color: rgb(254 226 226);
+    background: rgb(127 29 29 / 0.38);
+    border-color: rgb(248 113 113 / 0.24);
 }
 
 .inspector-empty-state {
     padding: 1rem;
+    background: rgb(245 158 11 / 0.1);
     border: 1px solid rgb(217 119 6 / 0.28);
     border-radius: 0.75rem;
-    background: rgb(245 158 11 / 0.1);
 }
 
 html.dark {
@@ -304,10 +309,10 @@ html.dark {
 
 .config-plugin-filter-pill {
     padding: 0.125rem 0.625rem;
+    color: rgb(255 170 170);
+    background: rgb(12 12 14 / 0.78);
     border: 1px solid rgb(216 3 3 / 0.45);
     border-radius: 9999px;
-    background: rgb(12 12 14 / 0.78);
-    color: rgb(255 170 170);
 
     html.dark & {
         color: rgb(255 170 170);
@@ -315,10 +320,10 @@ html.dark {
 }
 
 .plugin-filter-button {
-    border-color: var(--plugin-border-color, var(--inspector-border));
-    background: var(--plugin-bg-color, var(--inspector-surface));
     color: var(--plugin-color, rgb(228 228 236));
     cursor: pointer;
+    background: var(--plugin-bg-color, var(--inspector-surface));
+    border-color: var(--plugin-border-color, var(--inspector-border));
     transition:
         border-color 140ms ease,
         background 140ms ease,
@@ -328,16 +333,16 @@ html.dark {
         filter 180ms ease;
 
     &[aria-pressed="true"] {
-        border-color: rgb(248 113 113 / 0.5);
+        color: rgb(254 226 226);
         background: color-mix(
             in srgb,
             var(--plugin-color, var(--inspector-accent)) 18%,
             rgb(12 12 15)
         );
+        border-color: rgb(248 113 113 / 0.5);
         box-shadow:
             0 0 0 1px rgb(248 113 113 / 0.32),
             0 4px 12px rgb(216 3 3 / 0.16);
-        color: rgb(254 226 226);
     }
 
     &:hover,
@@ -372,13 +377,13 @@ html.dark {
 .dev-kv {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
     gap: 0.5rem;
+    align-items: baseline;
 }
 
 .dev-label {
-    color: rgb(87 83 78);
     font-weight: 600;
+    color: rgb(87 83 78);
 
     html.dark & {
         color: rgb(212 212 216);
@@ -398,72 +403,72 @@ html.dark {
     /* stylelint-disable-next-line scss/declaration-property-value-no-unknown -- Uno/Tailwind utility tokens are intentionally stored in this custom property. */
     --at-apply: bg-tooltip color-base font-sans rounded border border-base
         shadow dark: shadow-2xl;
-    border-color: color-mix(in srgb, var(--c-fg) 18%, transparent);
-    backdrop-filter: blur(6px);
+    color: rgb(228 228 231);
     background: rgb(12 12 15 / 0.96);
+    border-color: color-mix(in srgb, var(--c-fg) 18%, transparent);
     box-shadow:
         0 10px 30px rgb(0 0 0 / 0.45),
         0 0 0 1px rgb(216 3 3 / 0.18);
-    color: rgb(228 228 231);
+    backdrop-filter: blur(6px);
 }
 
 [id^="popper_"] .v-popper__inner,
 [id="popper_inner"] {
-    border: 1px solid rgb(216 3 3 / 0.22);
-    backdrop-filter: blur(6px);
+    color: rgb(228 228 231);
     background: rgb(12 12 15 / 0.96);
+    border: 1px solid rgb(216 3 3 / 0.22);
     box-shadow:
         0 10px 30px rgb(0 0 0 / 0.45),
         0 0 0 1px rgb(216 3 3 / 0.12);
-    color: rgb(228 228 231);
+    backdrop-filter: blur(6px);
 }
 
 .v-popper--theme-tooltip .v-popper__inner {
     --at-apply: font-sans rounded border border-base;
+    max-inline-size: min(34rem, 78vi);
     padding: 0.5rem 0.65rem;
-    border-color: rgb(216 3 3 / 0.22);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.375;
+    color: rgb(228 228 231);
+    letter-spacing: 0.01em;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
     background: rgb(12 12 15 / 0.96);
+    border-color: rgb(216 3 3 / 0.22);
     box-shadow:
         0 8px 20px rgb(0 0 0 / 0.42),
         0 0 0 1px rgb(216 3 3 / 0.1);
-    color: rgb(228 228 231);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    line-height: 1.375;
-    max-inline-size: min(34rem, 78vi);
-    overflow-wrap: anywhere;
-    text-wrap: pretty;
-    white-space: pre-line;
 }
 
 .v-popper--theme-tooltip[id^="popper_"] .v-popper__inner,
 .v-popper--theme-tooltip [id="popper_inner"] {
     max-inline-size: min(34rem, 78vi);
-    overflow-wrap: anywhere;
     text-wrap: pretty;
+    overflow-wrap: anywhere;
     white-space: pre-line;
 }
 
 html.dark [id^="popper_"] .v-popper__inner,
 html.dark [id="popper_inner"] {
-    border-color: rgb(216 3 3 / 0.26);
-    background: rgb(12 12 15 / 0.96);
     color: rgb(228 228 231);
+    background: rgb(12 12 15 / 0.96);
+    border-color: rgb(216 3 3 / 0.26);
 }
 
 html.dark .v-popper--theme-dropdown .v-popper__inner,
 html.dark .v-popper--theme-tooltip .v-popper__inner {
+    color: rgb(228 228 231);
+    background: rgb(12 12 15 / 0.96);
     /* stylelint-disable-next-line css-performance-budget/no-global-expensive-effects -- Popper constrains this effect to the small rendered overlay surface. */
     backdrop-filter: blur(6px);
-    background: rgb(12 12 15 / 0.96);
-    color: rgb(228 228 231);
 }
 
 .v-popper--theme-tooltip .v-popper__arrow-inner,
 .v-popper--theme-dropdown .v-popper__arrow-inner {
-    border-color: var(--c-bg-tooltip);
     visibility: visible;
+    border-color: var(--c-bg-tooltip);
 }
 
 .v-popper--theme-tooltip .v-popper__arrow-outer,

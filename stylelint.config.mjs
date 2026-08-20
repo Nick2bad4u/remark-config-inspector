@@ -140,7 +140,6 @@ const config = defineConfig({
         "stylelint-config-nick2bad4u",
         "stylelint-config-standard",
         "stylelint-config-recess-order",
-        "stylelint-config-idiomatic-order",
         "stylelint-config-standard-scss",
         "stylelint-config-tailwindcss",
     ],
@@ -404,9 +403,7 @@ const config = defineConfig({
         "stylelint-scales", // Enforce numeric value scales
         "stylelint-media-use-custom-media", // Enforce custom media queries
         "stylelint-plugin-use-baseline", // Enforce CSS features in baseline
-        "stylelint-no-restricted-syntax", // Disallow restricted syntax patterns
         "stylelint-value-no-unknown-custom-properties", // Validate custom properties
-        "stylelint-no-unresolved-module", // Check for unresolved imports/urls
         "stylelint-selector-bem-pattern", // BEM pattern enforcement
 
         /**
@@ -949,8 +946,6 @@ const config = defineConfig({
                 ],
             },
         ],
-        "plugin/no-restricted-syntax": null,
-        "plugin/no-unresolved-module": null,
         /**
          * Browser feature compatibility validation.
          *
@@ -1017,9 +1012,9 @@ const config = defineConfig({
             ignoreSelectors: [
                 String.raw`/^\.tw-/`, // Tailwind utilities
                 String.raw`/^\[data-/`, // Data attributes
-                String.raw`/^::/`, // Pseudo-elements
-                String.raw`/^:/`, // Pseudo-classes
-                String.raw`/^\.` + String.raw`/[A-Z]/`, // CSS Modules (PascalCase)
+                "/^::/", // Pseudo-elements
+                "/^:/", // Pseudo-classes
+                String.raw`/^\.${"/[A-Z]/"}`, // CSS Modules (PascalCase)
             ],
 
             /**

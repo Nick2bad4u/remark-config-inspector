@@ -29,12 +29,65 @@ const emit = defineEmits<{
 
 const PLACEHOLDER_CONTEXT_RE =
     /no more than|at most|at least|specificity|match pattern|to be one of|must be|should be|allowed list|disallowed list/;
-const PLACEHOLDER_VALUE_RE = /<value>|‹([^›]+)›/gu;
 const DEFAULT_PLACEHOLDER_EXAMPLE = "foo";
 
 interface DescriptionSegment {
     type: "text" | "token";
     value: string;
+}
+
+function parseDescriptionSegments(description: string): DescriptionSegment[] {
+    const segments: DescriptionSegment[] = [];
+    let textStart = 0;
+    let generatedPlaceholderStart = -1;
+
+    const pushToken = (start: number, end: number, value: string): void => {
+        if (textStart < start) {
+            segments.push({
+                type: "text",
+                value: description.slice(textStart, start),
+            });
+        }
+
+        segments.push({ type: "token", value });
+        textStart = end;
+    };
+
+    for (let index = 0; index < description.length; index += 1) {
+        if (generatedPlaceholderStart >= 0) {
+            if (description[index] === "›") {
+                if (index > generatedPlaceholderStart + 1) {
+                    pushToken(
+                        generatedPlaceholderStart,
+                        index + 1,
+                        description.slice(generatedPlaceholderStart + 1, index)
+                    );
+                }
+                generatedPlaceholderStart = -1;
+            }
+            continue;
+        }
+
+        if (description.startsWith("<value>", index)) {
+            pushToken(
+                index,
+                index + "<value>".length,
+                DEFAULT_PLACEHOLDER_EXAMPLE
+            );
+            index += "<value>".length - 1;
+        } else if (description[index] === "‹") {
+            generatedPlaceholderStart = index;
+        }
+    }
+
+    if (textStart < description.length) {
+        segments.push({
+            type: "text",
+            value: description.slice(textStart),
+        });
+    }
+
+    return segments.length ? segments : [{ type: "text", value: description }];
 }
 
 function redundantOptions(options: unknown[] | undefined) {
@@ -187,34 +240,7 @@ const resolvedDescription = computed(() => {
 });
 
 const descriptionSegments = computed<DescriptionSegment[]>(() => {
-    const description = resolvedDescription.value;
-    const segments: DescriptionSegment[] = [];
-    let cursor = 0;
-
-    for (const match of description.matchAll(PLACEHOLDER_VALUE_RE)) {
-        const index = match.index ?? 0;
-        if (cursor < index) {
-            segments.push({
-                type: "text",
-                value: description.slice(cursor, index),
-            });
-        }
-
-        segments.push({
-            type: "token",
-            value: match[1] ?? DEFAULT_PLACEHOLDER_EXAMPLE,
-        });
-        cursor = index + match[0].length;
-    }
-
-    if (cursor < description.length) {
-        segments.push({
-            type: "text",
-            value: description.slice(cursor),
-        });
-    }
-
-    return segments.length ? segments : [{ type: "text", value: description }];
+    return parseDescriptionSegments(resolvedDescription.value);
 });
 
 const isMissingDescription = computed(
@@ -674,10 +700,10 @@ const popoverPanelClass =
 <style scoped>
 .rule-state-rail--list {
     position: relative;
-    overflow: hidden;
-    border-radius: 9999px;
     max-inline-size: 100%;
     padding-block: 0.125rem;
+    overflow: hidden;
+    border-radius: 9999px;
 }
 
 .rule-state-trigger {
@@ -685,15 +711,15 @@ const popoverPanelClass =
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 0;
-    background: transparent;
     color: inherit;
     cursor: help;
+    background: transparent;
+    border: 0;
 
     &:focus-visible {
-        border-radius: 9999px;
         outline: 2px solid rgb(248 113 113 / 62%);
         outline-offset: 2px;
+        border-radius: 9999px;
     }
 }
 </style>

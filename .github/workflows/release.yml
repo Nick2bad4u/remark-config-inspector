@@ -110,7 +110,12 @@ jobs:
                   cache-dependency-path: "package-lock.json"
 
             - name: "Install dependencies"
-              run: "npm ci --force"
+              run: |
+                  npm_version=$(node -p "require('./package.json').packageManager.split('@').at(-1)")
+                  npm install --global --ignore-scripts "npm@${npm_version}"
+                  test "$(npm --version)" = "${npm_version}"
+                  npm ci --ignore-scripts
+                  npm run prepare
 
             - name: "Configure Git for release automation"
               if: "github.event_name == 'workflow_dispatch'"
@@ -160,12 +165,11 @@ jobs:
             - name: "Verify package"
               run: "npm run release:check"
 
-            - name: "Ensure verification did not modify tracked files"
-              if: "startsWith(github.ref, 'refs/tags/v')"
+            - name: "Ensure verification did not modify the worktree"
               run: |
                   set -euo pipefail
-                  if ! git diff --quiet || ! git diff --cached --quiet; then
-                    echo "release:check modified files on a tag-triggered release. Ensure main is clean before tagging." >&2
+                  if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+                    echo "release:check modified the worktree. Release verification must be side-effect free." >&2
                     git status --short
                     exit 1
                   fi
@@ -242,9 +246,22 @@ jobs:
                     exit 1
                   fi
 
-                  git add -A
+                  if ! git diff --quiet -- . ":(exclude)package.json" ":(exclude)package-lock.json" || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+                    echo "Version preparation changed files outside package.json and package-lock.json." >&2
+                    git status --short
+                    exit 1
+                  fi
+
+                  git add -- package.json package-lock.json
                   if git diff --cached --quiet; then
                     echo "No staged changes found for release commit." >&2
+                    exit 1
+                  fi
+
+                  unexpected_staged_paths=$(git diff --cached --name-only -- . ":(exclude)package.json" ":(exclude)package-lock.json")
+                  if [ -n "$unexpected_staged_paths" ] || ! git diff --quiet; then
+                    echo "Release staging contains unexpected paths or left unstaged changes." >&2
+                    git status --short
                     exit 1
                   fi
 

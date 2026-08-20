@@ -1,3 +1,4 @@
+import type { LanguageInput } from "@shikijs/types";
 import type { HighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "@shikijs/engine-javascript";
 import { createHighlighterCore } from "shiki/core";
@@ -9,24 +10,26 @@ const HTML_GT_RE = />/g;
 
 export const shiki = shallowRef<HighlighterCore>();
 
-void createHighlighterCore({
-    themes: [
-        import("@shikijs/themes/vitesse-light"),
-        import("@shikijs/themes/vitesse-dark"),
-    ],
-    langs: [
-        import("@shikijs/langs-precompiled/javascript"),
-        import("@shikijs/langs-precompiled/typescript"),
-        import("textmate-grammar-glob/grammars/glob.json") as any,
-    ],
-    engine: createJavaScriptRegexEngine(),
-})
-    .then((highlighter) => {
-        shiki.value = highlighter;
-    })
-    .catch((error) => {
+async function initializeShiki(): Promise<void> {
+    try {
+        shiki.value = await createHighlighterCore({
+            themes: [
+                import("@shikijs/themes/vitesse-light"),
+                import("@shikijs/themes/vitesse-dark"),
+            ],
+            langs: [
+                import("@shikijs/langs-precompiled/javascript"),
+                import("@shikijs/langs-precompiled/typescript"),
+                import("textmate-grammar-glob/grammars/glob.json") as LanguageInput,
+            ],
+            engine: createJavaScriptRegexEngine(),
+        });
+    } catch (error) {
         console.error("Failed to initialize Shiki highlighter.", error);
-    });
+    }
+}
+
+void initializeShiki();
 
 export function useHighlightedGlob(code: () => string) {
     return computed(() => {

@@ -111,8 +111,9 @@ async function resolveFilePath(rootPath, requestPath) {
 const { dir, host, port } = parseArgs(process.argv.slice(2));
 const rootPath = resolve(process.cwd(), dir);
 
-void stat(rootPath)
-    .then((rootInfo) => {
+async function main() {
+    try {
+        const rootInfo = await stat(rootPath);
         if (!rootInfo.isDirectory()) {
             throw new Error(`${rootPath} is not a directory`);
         }
@@ -143,11 +144,13 @@ void stat(rootPath)
         server.listen(port, host, () => {
             console.log(`Serving ${rootPath} at http://${host}:${port}`);
         });
-    })
-    .catch(() => {
+    } catch {
         console.error(`Static assets directory does not exist: ${rootPath}`);
         console.error(
             "Run `npm run build` before starting the static test server."
         );
         process.exit(1);
-    });
+    }
+}
+
+await main();

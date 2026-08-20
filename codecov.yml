@@ -26,16 +26,22 @@ component_management:
               threshold: "2%"
               type: "project"
     individual_components:
-        - component_id: "plugin_entry"
-          name: "Plugin entrypoint"
+        - component_id: "cli_runtime"
+          name: "CLI and static build runtime"
           paths:
-              - "plugin.mjs"
-              - "src/plugin.ts"
+              - "bin.mjs"
+              - "src/build-static-html.ts"
+              - "src/cli-options.ts"
+              - "src/cli.ts"
+              - "src/constants.ts"
+              - "src/dirs.ts"
+              - "src/errors.ts"
 
-        - component_id: "rules"
-          name: "Rules"
+        - component_id: "remark_inspector"
+          name: "Remark configuration inspection"
           paths:
-              - "src/rules/**"
+              - "src/configs.ts"
+              - "src/inspectors/**"
           statuses:
               - target: "auto"
                 threshold: "2%"
@@ -44,10 +50,11 @@ component_management:
                 threshold: "3%"
                 type: "patch"
 
-        - component_id: "internals"
-          name: "Internal utilities"
+        - component_id: "server_transport"
+          name: "Server and WebSocket transport"
           paths:
-              - "src/_internal/**"
+              - "src/server.ts"
+              - "src/ws.ts"
 
 coverage:
     precision: 2
@@ -67,19 +74,16 @@ flags:
     os-linux:
         carryforward: true
         paths:
-            - "plugin.mjs"
             - "src/"
 
     os-macos:
         carryforward: true
         paths:
-            - "plugin.mjs"
             - "src/"
 
     os-windows:
         carryforward: true
         paths:
-            - "plugin.mjs"
             - "src/"
 
 ignore:

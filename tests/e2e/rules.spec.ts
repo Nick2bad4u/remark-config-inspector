@@ -269,7 +269,12 @@ test.describe("rules page regressions", () => {
 
         await expect(page.locator(".rule-state-panel--popover")).toHaveCount(4);
         await page.mouse.move(0, 0);
-        await page.waitForTimeout(100);
+        await expect(
+            stateRail.locator('[data-testid="rule-level-icon"]:visible')
+        ).toHaveCount(2);
+        await expect(
+            stateRail.getByTestId("rule-state-overflow")
+        ).toBeVisible();
         expect(consoleNoise).toEqual([]);
     });
 

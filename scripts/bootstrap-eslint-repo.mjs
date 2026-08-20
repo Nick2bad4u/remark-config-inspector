@@ -74,7 +74,6 @@ const devDependencies = [
     "@types/eslint-plugin-jsx-a11y",
     "@types/eslint-plugin-security",
     "@types/htmlhint",
-    "@types/madge",
     "@types/node",
     "@types/postcss-clamp",
     "@types/postcss-flexbugs-fixes",
@@ -154,14 +153,12 @@ const devDependencies = [
     "eslint-plugin-yml",
     "fast-check",
     "git-cliff",
-    "gitleaks-secret-scanner",
     "globals",
     "htmlhint",
     "jscpd",
     "jsonc-eslint-parser",
     "knip",
     "leasot",
-    "madge",
     "markdown-link-check",
     "npm-check-updates",
     "npm-package-json-lint",
@@ -182,7 +179,6 @@ const devDependencies = [
     "postcss-sort-media-queries",
     "postcss-styled-jsx",
     "postcss-styled-syntax",
-    "postcss-viewport-height-correction",
     "prettier",
     "prettier-plugin-ini",
     "prettier-plugin-interpolated-html-tags",
@@ -228,7 +224,6 @@ const devDependencies = [
     "remark-lint-final-definition",
     "remark-lint-final-newline",
     "remark-lint-first-heading-level",
-    "remark-lint-frontmatter-schema",
     "remark-lint-hard-break-spaces",
     "remark-lint-heading-capitalization",
     "remark-lint-heading-increment",
@@ -307,11 +302,9 @@ const devDependencies = [
     "sloc",
     "sort-package-json",
     "stylelint",
-    "stylelint-actions-formatters",
     "stylelint-checkstyle-formatter",
     "stylelint-codeframe-formatter",
     "stylelint-config-alphabetical-order",
-    "stylelint-config-idiomatic-order",
     "stylelint-config-recess-order",
     "stylelint-config-recommended",
     "stylelint-config-sass-guidelines",
@@ -329,16 +322,12 @@ const devDependencies = [
     "stylelint-high-performance-animation",
     "stylelint-media-use-custom-media",
     "stylelint-no-browser-hacks",
-    "stylelint-no-indistinguishable-colors",
-    "stylelint-no-restricted-syntax",
-    "stylelint-no-unresolved-module",
     "stylelint-no-unsupported-browser-features",
     "stylelint-order",
     "stylelint-plugin-defensive-css",
     "stylelint-plugin-logical-css",
     "stylelint-plugin-use-baseline",
     "stylelint-prettier",
-    "stylelint-react-native",
     "stylelint-scales",
     "stylelint-selector-bem-pattern",
     "stylelint-use-nesting",
@@ -351,7 +340,6 @@ const devDependencies = [
     "typesync",
     "vfile",
     "vite",
-    "vite-tsconfig-paths",
     "vitest",
     "yaml-eslint-parser",
     "yamllint-js",
@@ -380,11 +368,11 @@ console.log("Starting bootstrap process...");
 
 // Install dependencies
 console.log("\n--- Installing Dependencies ---");
-runCommand(`npm install --save --force ${dependencies.join(" ")}`);
+runCommand(`npm install --save ${dependencies.join(" ")}`);
 
 // Install dev dependencies
 console.log("\n--- Installing Dev Dependencies ---");
-runCommand(`npm install --save-dev --force ${devDependencies.join(" ")}`);
+runCommand(`npm install --save-dev ${devDependencies.join(" ")}`);
 
 // Set scripts in package.json
 console.log("\n--- Setting up package.json scripts ---");
