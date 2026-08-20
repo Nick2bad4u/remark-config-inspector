@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { readFile, stat } from "node:fs/promises";
+import { readFile, realpath, stat } from "node:fs/promises";
 import { createServer } from "node:http";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, resolve, sep } from "node:path";
 import process from "node:process";
 
 const MIME_TYPES = {
@@ -71,13 +71,8 @@ function sanitizeRequestPath(pathname) {
 }
 
 function isInsideRoot(rootPath, filePath) {
-    const normalizedRoot = normalize(rootPath);
-    const normalizedFilePath = normalize(filePath);
-    return (
-        normalizedFilePath === normalizedRoot ||
-        normalizedFilePath.startsWith(`${normalizedRoot}\\`) ||
-        normalizedFilePath.startsWith(`${normalizedRoot}/`)
-    );
+    const rootPrefix = rootPath.endsWith(sep) ? rootPath : `${rootPath}${sep}`;
+    return filePath === rootPath || filePath.startsWith(rootPrefix);
 }
 
 function getContentType(filePath) {
@@ -91,11 +86,12 @@ async function resolveFilePath(rootPath, requestPath) {
     const requested = requestPath === "/" ? "/index.html" : requestPath;
     const absolutePath = resolve(join(rootPath, requested));
 
-    if (!isInsideRoot(rootPath, absolutePath)) return undefined;
-
     try {
-        const info = await stat(absolutePath);
-        if (info.isFile()) return absolutePath;
+        const canonicalPath = await realpath(absolutePath);
+        if (!isInsideRoot(rootPath, canonicalPath)) return undefined;
+
+        const info = await stat(canonicalPath);
+        if (info.isFile()) return canonicalPath;
     } catch {
         // Continue to SPA fallback handling.
     }
@@ -103,9 +99,15 @@ async function resolveFilePath(rootPath, requestPath) {
     const looksLikeAsset = extname(requestPath).length > 0;
     if (looksLikeAsset) return undefined;
 
-    const fallbackPath = resolve(join(rootPath, "index.html"));
-    if (!isInsideRoot(rootPath, fallbackPath)) return undefined;
-    return fallbackPath;
+    try {
+        const fallbackPath = await realpath(
+            resolve(join(rootPath, "index.html"))
+        );
+        if (!isInsideRoot(rootPath, fallbackPath)) return undefined;
+        return fallbackPath;
+    } catch {
+        return undefined;
+    }
 }
 
 const { dir, host, port } = parseArgs(process.argv.slice(2));
@@ -117,10 +119,11 @@ async function main() {
         if (!rootInfo.isDirectory()) {
             throw new Error(`${rootPath} is not a directory`);
         }
+        const canonicalRootPath = await realpath(rootPath);
 
         const server = createServer(async (request, response) => {
             const pathname = sanitizeRequestPath(request.url ?? "/");
-            const filePath = await resolveFilePath(rootPath, pathname);
+            const filePath = await resolveFilePath(canonicalRootPath, pathname);
 
             if (!filePath) {
                 response.statusCode = 404;
