@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { readFile, realpath, stat } from "node:fs/promises";
+import { realpathSync } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, resolve, sep } from "node:path";
 import process from "node:process";
@@ -105,7 +106,7 @@ async function resolveFilePath(rootPath, requestPath) {
     }
 
     try {
-        const canonicalPath = await realpath(absolutePath);
+        const canonicalPath = realpathSync(absolutePath);
         if (
             canonicalPath !== rootPath &&
             !canonicalPath.startsWith(rootPrefix)
@@ -123,7 +124,7 @@ async function resolveFilePath(rootPath, requestPath) {
     if (looksLikeAsset) return undefined;
 
     try {
-        const fallbackPath = await realpath(
+        const fallbackPath = realpathSync(
             resolve(join(rootPath, "index.html"))
         );
         if (fallbackPath !== rootPath && !fallbackPath.startsWith(rootPrefix)) {
@@ -144,7 +145,7 @@ async function main() {
         if (!rootInfo.isDirectory()) {
             throw new Error(`${rootPath} is not a directory`);
         }
-        const canonicalRootPath = await realpath(rootPath);
+        const canonicalRootPath = realpathSync(rootPath);
 
         const server = createServer(async (request, response) => {
             const pathname = sanitizeRequestPath(request.url ?? "/");
