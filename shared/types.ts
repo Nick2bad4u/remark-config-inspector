@@ -1,3 +1,5 @@
+import type { StatsReport } from "./stats";
+
 export type RulesRecord = Record<string, unknown>;
 
 export interface FlatConfigItem extends Record<string, unknown> {
@@ -48,6 +50,7 @@ export interface Payload {
     diagnostics?: string[];
     files?: MatchedFile[];
     extendsInfo?: ExtendsInfo[];
+    stats?: StatsReport;
 }
 
 export interface ResolvedPayload extends Payload {
@@ -103,6 +106,7 @@ export interface FilesGroup {
 }
 
 export interface PayloadMeta {
+    statsAvailable?: boolean;
     wsPort?: number;
     engine?: "remark";
     targetFilePath?: string;

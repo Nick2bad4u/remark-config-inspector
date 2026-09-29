@@ -2,11 +2,19 @@ import type { Server } from "node:http";
 import type { CreateWsServerOptions } from "./ws";
 import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
-import { createApp, eventHandler, serveStatic, setResponseHeader } from "h3";
+import {
+    createApp,
+    eventHandler,
+    getRequestHeader,
+    getRequestProtocol,
+    serveStatic,
+    setResponseHeader,
+} from "h3";
 import { toNodeHandler } from "h3/node";
 import { lookup } from "mrmime";
 import { extname, join } from "pathe";
 import { distDir } from "./dirs";
+import { handleStatsAction } from "./stats/http";
 import { createWsServer } from "./ws";
 
 const LEADING_SLASHES_RE = /^\/+/;
@@ -58,6 +66,29 @@ export async function createHostServer(
         "/api/payload.json",
         eventHandler(() => ws.getData())
     );
+
+    for (const action of [
+        "status",
+        "run",
+        "cancel",
+    ] as const) {
+        app.use(
+            `/api/stats/${action}`,
+            eventHandler((event) => {
+                setResponseHeader(event, "Cache-Control", "no-store");
+                const origin = getRequestHeader(event, "origin");
+                const host = getRequestHeader(event, "host");
+                return handleStatsAction(ws.stats, action, {
+                    method: event.method,
+                    protocol: getRequestProtocol(event, {
+                        xForwardedProto: false,
+                    }),
+                    ...(origin ? { origin } : {}),
+                    ...(host ? { host } : {}),
+                });
+            })
+        );
+    }
 
     app.use(
         eventHandler(async (event) => {
@@ -115,5 +146,9 @@ export async function createHostServer(
         })
     );
 
-    return createServer(toNodeHandler(app));
+    const server = createServer(toNodeHandler(app));
+    server.on("close", () => {
+        void ws.close().catch((error: unknown) => console.error(error));
+    });
+    return server;
 }

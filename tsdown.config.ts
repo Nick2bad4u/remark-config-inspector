@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-    entry: ["src/cli.ts"],
+    entry: { cli: "src/cli.ts", "stats-worker": "src/stats/worker.ts" },
     // Run ATTW via dedicated lint/package scripts instead of tsdown build-time
     // packing to avoid platform-specific temp tarball detection failures.
     attw: false,

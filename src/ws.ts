@@ -2,6 +2,7 @@ import type { FSWatcher } from "chokidar";
 import type { WebSocket, WebSocketServer as WebSocketServerType } from "ws";
 import type { Payload } from "~~/shared/types";
 import type { ReadConfigOptions } from "./configs";
+import type { StatsService } from "./stats/service";
 import process from "node:process";
 import chokidar from "chokidar";
 import { getPort } from "get-port-please";
@@ -10,6 +11,7 @@ import { WebSocketServer } from "ws";
 import { readConfig, resolveConfigPath } from "./configs";
 import { MARK_CHECK } from "./constants";
 import { ConfigInspectorError } from "./errors";
+import { createStatsService } from "./stats/service";
 
 const readErrorWarning = `Failed to load Remark configuration.
 Please ensure a valid remark config can be resolved:
@@ -22,12 +24,15 @@ export interface WsServerHandle {
     wss: WebSocketServerType;
     watcher: FSWatcher;
     getData: () => Promise<Payload | undefined>;
+    stats: StatsService;
+    close: () => Promise<void>;
 }
 
 export async function createWsServer(
     options: CreateWsServerOptions
 ): Promise<WsServerHandle> {
     let payload: Payload | undefined;
+    const stats = createStatsService(options);
     const port = await getPort({ port: 7811, random: true });
     const wss = new WebSocketServer({
         port,
@@ -89,6 +94,7 @@ export async function createWsServer(
 
     watcher.on("change", (path) => {
         payload = undefined;
+        stats.invalidate();
         console.log();
         console.log(MARK_CHECK, "Config change detected", path);
         wsClients.forEach((ws) => {
@@ -107,6 +113,7 @@ export async function createWsServer(
                 return await readConfig(options).then((res) => {
                     const _payload = (payload = res.payload);
                     _payload.meta.wsPort = port;
+                    _payload.meta.statsAvailable = true;
                     watcher.add(res.dependencies);
                     return payload;
                 });
@@ -128,5 +135,14 @@ export async function createWsServer(
         wss,
         watcher,
         getData,
+        stats,
+        async close() {
+            stats.close();
+            await watcher.close();
+            for (const client of wsClients) client.terminate();
+            await new Promise<void>((resolve, reject) => {
+                wss.close((error) => (error ? reject(error) : resolve()));
+            });
+        },
     };
 }

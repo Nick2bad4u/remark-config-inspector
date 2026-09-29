@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import process from "node:process";
 import c from "ansis";
 
-import cac from "cac";
+import { cac } from "cac";
 import { getPort } from "get-port-please";
 import open from "open";
 import { relative, resolve } from "pathe";
@@ -11,10 +11,11 @@ import { glob } from "tinyglobby";
 import { rewriteStaticHtmlWithBase } from "./build-static-html";
 import { normalizeCliInspectorOptions } from "./cli-options";
 import { readConfig } from "./configs";
-import { MARK_CHECK, MARK_INFO } from "./constants";
+import { MARK_CHECK, MARK_ERROR, MARK_INFO } from "./constants";
 import { distDir } from "./dirs";
 import { ConfigInspectorError } from "./errors";
 import { createHostServer } from "./server";
+import { runStats } from "./stats/runner";
 
 const RE_CONSECUTIVE_SLASHES = /\/+/g;
 
@@ -38,6 +39,9 @@ cli.command(
         "Base directory for globs to resolve. Default to directory of config file if not provided"
     )
     // Build specific options
+    .option("--stats", "Include a full-pipeline performance snapshot", {
+        default: false,
+    })
     .option("--base <baseURL>", "Base URL for deployment", { default: "/" })
     .option("--outDir <dir>", "Output directory", {
         default: ".remark-config-inspector",
@@ -66,6 +70,34 @@ cli.command(
                 process.exit(1);
             }
             throw error;
+        }
+
+        if (options.stats) {
+            console.log(MARK_INFO, "Profiling the remark pipeline...");
+            const report = await runStats({
+                cwd,
+                userConfigPath: options.config,
+                userBasePath: options.basePath,
+                targetFilePath: options.target,
+            });
+            if (report.partial) {
+                const failures = report.files.filter((file) => file.failed);
+                const details = failures.slice(0, 5).map((file) => {
+                    const reasons = file.messages
+                        .filter((message) => message.fatal)
+                        .map((message) => message.reason)
+                        .join("; ");
+                    return `${file.filePath}: ${reasons || "Processing failed"}`;
+                });
+                if (failures.length > 5)
+                    details.push(
+                        `And ${failures.length - 5} more failed files.`
+                    );
+                throw new Error(
+                    `Stats analysis was incomplete. Resolve these file processing failures before building a stats snapshot:\n${details.join("\n")}`
+                );
+            }
+            configs.payload.stats = report;
         }
 
         let baseURL = options.base;
@@ -167,4 +199,25 @@ cli.command("", "Start dev inspector")
     });
 
 cli.help();
-cli.parse();
+
+async function main(): Promise<void> {
+    // CAC's parse() does not await async command actions. Run the matched
+    // action explicitly so worker and static-build failures reach this handler.
+    cli.parse(process.argv, { run: false });
+    if (cli.matchedCommand?.name === "" && cli.options["stats"] !== undefined) {
+        throw new ConfigInspectorError(
+            "--stats is a build option. Use `remark-config-inspector build --stats` for a saved report, or start the live inspector without --stats and choose Stats > Run analysis."
+        );
+    }
+    await cli.runMatchedCommand();
+}
+
+void main().catch((error: unknown) => {
+    if (error instanceof ConfigInspectorError) error.prettyPrint();
+    else
+        console.error(
+            MARK_ERROR,
+            error instanceof Error ? error.message : String(error)
+        );
+    process.exitCode = 1;
+});
