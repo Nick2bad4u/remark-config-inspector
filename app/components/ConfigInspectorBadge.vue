@@ -17,31 +17,26 @@ withDefaults(
             href="https://github.com/Nick2bad4u/remark-config-inspector"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-3 border border-primary/45 rounded-2xl bg-zinc-950/80 px-3 py-2 shadow-sm hover:border-primary/70 hover:bg-zinc-900/90"
+            class="inline-flex items-center gap-3 rounded-md"
         >
             <span
-                class="flex items-center justify-center border border-primary/45 rounded-full bg-zinc-900/85 p-2"
+                class="flex flex-none items-center justify-center rounded-md bg-active p-2"
             >
                 <img
                     src="/remark/logo-square.png"
                     alt="remarklint logo"
-                    class="h-1.15em w-auto"
+                    class="h-8 w-8"
                 />
             </span>
 
             <span class="flex flex-col gap-0.5">
                 <span class="flex items-center gap-2">
-                    <img
-                        src="/remark/favicon.png"
-                        alt="remarklint"
-                        class="h-0.95em w-auto"
-                    />
-                    <span class="text-xs font-medium op70"
+                    <span class="text-lg font-semibold"
                         >Remark Config Inspector</span
                     >
                 </span>
-                <span class="text-xs font-medium op70">
-                    Rule + config explorer
+                <span class="text-sm color-muted">
+                    Configuration, rules, and performance
                 </span>
             </span>
         </a>

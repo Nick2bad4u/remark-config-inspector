@@ -14,7 +14,7 @@ import {
 
 const rules = computed(() => Object.values(payload.value.rules));
 const listColumns =
-    "56px_minmax(14rem,clamp(14rem,38vw,30rem))_5.25rem_minmax(0,1fr)";
+    "max-content_minmax(14rem,clamp(14rem,38vw,30rem))_max-content_minmax(16rem,1fr)";
 
 const isPluginFilterPanelExpanded = ref(false);
 const pluginFilterPanelId = useId();
@@ -122,7 +122,8 @@ function hasEnabledRuleState(ruleName: string): boolean {
 function getRuleRowClass(ruleName: string): string {
     if (!stateStorage.dimDisabledRules) return "";
 
-    if (!hasAnyRuleState(ruleName) && filters.state !== "unused") return "op42";
+    if (!hasAnyRuleState(ruleName) && filters.state !== "unused")
+        return "rule-muted-off";
 
     if (hasAnyRuleState(ruleName) && !hasEnabledRuleState(ruleName))
         return "rule-muted-off";
@@ -382,6 +383,10 @@ function selectRule(ruleName: string): void {
 
 <template>
     <div>
+        <InspectorPageHeader
+            title="Rules"
+            description="Find rules, inspect their options, and trace how your configuration enables them."
+        />
         <div py4 flex="~ col gap-2">
             <div relative flex>
                 <input
@@ -390,9 +395,8 @@ function selectRule(ruleName: string): void {
                     placeholder="Search rules..."
                     aria-label="Search rules"
                     class="inspector-input"
-                    border="~ base rounded-full"
+                    border="~ base rounded-md"
                     w-full
-                    bg-transparent
                     px3
                     py2
                     pl10
@@ -410,7 +414,11 @@ function selectRule(ruleName: string): void {
                     <div i-ph-magnifying-glass-duotone />
                 </div>
             </div>
-            <div grid="~ cols-[max-content_1fr] gap-2" my2 items-center>
+            <div
+                grid="~ cols-[max-content_minmax(0,1fr)] gap-2"
+                my2
+                items-center
+            >
                 <div text-right text-sm op50>Plugins</div>
                 <div class="space-y-2">
                     <div flex="~ items-center gap-2 wrap">
@@ -576,8 +584,8 @@ function selectRule(ruleName: string): void {
             </div>
         </div>
 
-        <div items-center justify-between gap-2 md:flex>
-            <div flex="~ gap-2" lt-sm:flex-col>
+        <div flex="~ wrap" items-center justify-between gap-2>
+            <div flex="~ gap-2 wrap" lt-sm:flex-col>
                 <div
                     class="inspector-summary-pill inspector-summary-pill--accent"
                     flex="~ inline gap-2 items-center"
@@ -625,7 +633,7 @@ function selectRule(ruleName: string): void {
                     @click="resetFilters()"
                 >
                     <div i-ph-funnel-duotone text-red3 />
-                    <span op50>Clear Filter</span>
+                    <span>Clear Filter</span>
                     <div i-ph-x ml--1 text-sm op25 hover:op100 />
                 </button>
             </div>

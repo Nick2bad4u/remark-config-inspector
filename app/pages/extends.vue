@@ -42,7 +42,11 @@ const activeRules = computed(() => {
 </script>
 
 <template>
-    <div flex="~ col gap-4" my4>
+    <div flex="~ col gap-4">
+        <InspectorPageHeader
+            title="Extends"
+            description="Trace shared presets, their plugins, and the rules they contribute."
+        />
         <div class="inspector-experimental-pill">
             <div i-ph-flask-duotone flex-none />
             <span>Experimental extends trace</span>
@@ -237,7 +241,7 @@ const activeRules = computed(() => {
                             :grid-view="false"
                             :rules="activeRules"
                             :show-rule-states="false"
-                            list-columns="40px_minmax(14rem,clamp(14rem,36vw,28rem))_5.25rem_minmax(0,1fr)"
+                            list-columns="max-content_minmax(14rem,clamp(14rem,36vw,28rem))_max-content_minmax(16rem,1fr)"
                         />
                     </div>
                     <div v-else mt3 text-sm italic op60>

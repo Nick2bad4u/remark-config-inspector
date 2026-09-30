@@ -40,7 +40,7 @@ describe.sequential("playwright config", () => {
         expect(config.forbidOnly).toBe(false);
         expect(config.testIgnore).toContain("**/fixtures/**");
         expect(getSingleWebServerConfig(config)?.reuseExistingServer).toBe(
-            true
+            false
         );
         expect(config.reporter).toEqual([
             ["list"],

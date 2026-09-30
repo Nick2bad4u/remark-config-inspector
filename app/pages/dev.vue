@@ -185,7 +185,11 @@ const metadataHealth = computed(() => {
 </script>
 
 <template>
-    <div py4 flex="~ col gap-4">
+    <div flex="~ col gap-4">
+        <InspectorPageHeader
+            title="Dev"
+            description="Inspect workspace metadata, configuration diagnostics, and viewer settings."
+        />
         <section class="inspector-band" p4>
             <div flex="~ items-center gap-2 wrap" text-sky8 dark:text-sky3>
                 <div i-ph-chart-bar-horizontal-duotone flex-none />

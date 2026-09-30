@@ -84,7 +84,7 @@ const configRulePluginPackages = computed(
 );
 
 const configRuleListColumns =
-    "40px_minmax(14rem,clamp(14rem,38vw,28rem))_5rem_minmax(0,1fr)";
+    "max-content_minmax(14rem,clamp(14rem,38vw,28rem))_max-content_minmax(16rem,1fr)";
 const pluginEntries = computed(() => {
     return Object.keys(props.config.plugins ?? {}).map((name) => {
         return {
@@ -372,6 +372,7 @@ function setOpenFromToggle(event: Event): void {
         <summary block>
             <div
                 class="absolute right-[calc(100%+10px)] top-1.5"
+                whitespace-nowrap
                 text-right
                 font-mono
                 op35
@@ -397,6 +398,7 @@ function setOpenFromToggle(event: Event): void {
                     transition
                 />
                 <div
+                    min-w-0
                     flex
                     flex-auto
                     flex-col
@@ -407,7 +409,7 @@ function setOpenFromToggle(event: Event): void {
                 >
                     <span
                         :class="config.name ? '' : 'op50 italic'"
-                        flex="~ gap-2 items-center"
+                        flex="~ gap-2 items-center wrap"
                         flex-1
                     >
                         <ColorizedConfigName
@@ -434,7 +436,7 @@ function setOpenFromToggle(event: Event): void {
 
                     <div
                         :data-testid="testIds.configs.summaryGrid"
-                        class="config-summary-grid flex items-center justify-end gap-2"
+                        class="config-summary-grid flex flex-wrap items-center justify-end gap-2"
                     >
                         <SummarizeItem
                             v-for="item of summaryItems"
@@ -718,6 +720,7 @@ function setOpenFromToggle(event: Event): void {
                 </div>
                 <RuleList
                     py2
+                    :dim-disabled="stateStorage.dimDisabledRules"
                     :grid-view="false"
                     :list-columns="configRuleListColumns"
                     :rules="config.rules"

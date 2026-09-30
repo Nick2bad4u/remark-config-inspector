@@ -110,6 +110,7 @@ const groupIdentity = computed(() => {
         <summary block>
             <div
                 class="absolute right-[calc(100%+10px)] top-1.5"
+                whitespace-nowrap
                 text-right
                 font-mono
                 op35
@@ -133,8 +134,8 @@ const groupIdentity = computed(() => {
                     op50
                     transition
                 />
-                <div flex flex-auto flex-col gap-3 md:flex-row>
-                    <span flex-auto flex="~ gap-2 items-center">
+                <div min-w-0 flex flex-auto flex-col gap-3 md:flex-row>
+                    <span min-w-0 flex-auto flex="~ gap-2 items-center wrap">
                         <template v-if="groupName?.type === 'config'">
                             <span
                                 :data-testid="testIds.files.groupIdentityLabel"
@@ -215,7 +216,7 @@ const groupIdentity = computed(() => {
                     font-mono
                     flex="~ col gap-1"
                 >
-                    <VDropdown>
+                    <InspectorDropdown>
                         <button type="button" badge text-start>
                             <ColorizedConfigName
                                 :name="config.name"
@@ -223,7 +224,12 @@ const groupIdentity = computed(() => {
                             />
                         </button>
                         <template #popper="{ shown }">
-                            <div v-if="shown" max-h="50vh" min-w-100>
+                            <div
+                                v-if="shown"
+                                max-h="50vh"
+                                min-w="min(25rem,84vw)"
+                                of-auto
+                            >
                                 <div flex="~ items-center gap-2" p3>
                                     <button
                                         type="button"
@@ -280,7 +286,7 @@ const groupIdentity = computed(() => {
                                 </div>
                             </div>
                         </template>
-                    </VDropdown>
+                    </InspectorDropdown>
 
                     <div
                         v-if="

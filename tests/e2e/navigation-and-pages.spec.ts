@@ -23,6 +23,7 @@ test.describe("navigation and page regressions", () => {
             { testId: testIds.nav.rulesLink, path: "/rules" },
             { testId: testIds.nav.extendsLink, path: "/extends" },
             { testId: testIds.nav.filesLink, path: "/files" },
+            { testId: testIds.nav.statsLink, path: "/stats" },
             { testId: testIds.nav.devLink, path: "/dev" },
         ] as const;
 
@@ -217,11 +218,12 @@ test.describe("navigation and page regressions", () => {
 
         await expect(rulesListContainer).toBeVisible();
 
-        await expect(
-            rulesListContainer
-                .locator('div[style*="grid-template-columns"]')
-                .first()
-        ).toHaveAttribute("style", /40px/);
+        const scrollableList = rulesListContainer.getByRole("region", {
+            name: "Scrollable rule list",
+        });
+        await expect(scrollableList).toHaveCSS("display", "grid");
+        await expect(scrollableList).toHaveAttribute("tabindex", "0");
+        await expect(scrollableList).toHaveCSS("overflow-x", "auto");
     });
 
     test("extends page switches active extends entry and updates visible rules", async ({

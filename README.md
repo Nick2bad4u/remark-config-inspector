@@ -9,6 +9,7 @@ It helps you understand:
 - which config items are active,
 - where rule states come from,
 - how overrides and file globs affect resolution,
+- which rules, plugins, and Markdown files take the most processing time,
 - and how final rule behavior is composed.
 
 ## Screenshot
@@ -68,6 +69,72 @@ This emits a single-page app in `.remark-config-inspector`.
 
 - `--base <baseURL>`: deployment base URL
 - `--outDir <dir>`: output directory (default: `.remark-config-inspector`)
+- `--stats`: profile the project and include a saved performance report
+
+## Stats
+
+Open the **Stats** tab and choose **Run analysis** to profile the workspace.
+The inspector processes Markdown using the project's configuration and ignore
+files in a separate process. Progress, cancellation, and re-running are available
+in a live inspector. Analysis is explicit; opening a tab does not start a run.
+Start the live inspector with `node bin.mjs` when working from this checkout;
+`--stats` is an option of the `build` command, not the live-server command.
+
+The report includes slow rules, plugins, files, and individual rule/file tasks,
+with searchable timing tables and expandable details. The phase breakdown covers
+initialization, parsing, transformation, serialization, and remaining processing
+overhead. This measures the full remark pipeline, including serialization; the
+inspector keeps generated Markdown in memory and does not write it to source files.
+
+Timings measure elapsed time, including asynchronous waiting. Summed file times
+can exceed wall time when processing overlaps. Syntax extensions contribute to
+parser or serializer time; plugins without transformers are not shown as zero-cost
+rules. Work outside an instrumented transformer, such as FileSet completion, is
+not attributed to an individual rule.
+
+To publish a browsable performance snapshot:
+
+```bash
+npx remark-config-inspector build --stats --base /inspector/
+```
+
+Saved reports contain relative file paths and do not require a running backend.
+A static build without `--stats` still includes the tab with setup instructions.
+Lint findings are included in the report; configuration errors or incomplete file
+processing make an explicitly requested stats build fail. A live report can show
+partial results and identifies files that failed. Config reloads invalidate live
+results; re-run analysis after changing Markdown content to refresh its timings.
+
+Profiling workers do not inherit VS Code's automatic debugger attachment.
+Other environment settings, including `NODE_OPTIONS` preload hooks and loaders,
+are preserved. Node 26.9 has a V8 crash involving an attached debugger or
+`--trace-uncaught` and unlimited error stacks. If you encounter
+`Check failed: new_capacity > 0`, run with Node 24 LTS or disable those debug
+settings for the command. See [the upstream Node issue](https://github.com/nodejs/node/issues/66074).
+
+## Display preferences
+
+All inspector tabs support light and dark themes, responsive layouts, and the
+Small, Default, and Large font-size settings. Theme and display preferences persist
+between visits. Wide tables and code blocks scroll inside their own panels.
+
+### Browser verification
+
+`npm run test:e2e` builds the app and runs its Playwright suites. Set
+`REMARK_INSPECTOR_TEST_PORT` to use a different local port when another inspector
+is running; tests always start their own server instead of reusing an unknown app.
+The UI matrix captures all six tabs in light/dark mode at desktop, tablet, and
+mobile widths under `output/playwright/`. Control-level checks verify that badge
+text, icons, and filter labels fit at all three font sizes. Keyboard and behavior
+coverage includes dropdown focus restoration, autocomplete, theme and dimming
+persistence, filter results, configuration views, cross-page navigation, and all
+Stats rankings. Integration tests exercise live profiling and generated static
+reports. CI retains the screenshots, traces, and HTML report as browser artifacts.
+
+Focused pixel baselines for Configs, Rules, and Stats are recorded for Windows Chromium;
+other platforms still run layout and behavior checks without comparing different
+system font rendering. Review screenshots before updating these baselines with
+`npx playwright test ui-visual-baselines --project chromium --update-snapshots`.
 
 ## Environment variables
 

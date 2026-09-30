@@ -82,6 +82,7 @@ const scopeColor = computed(() => getPluginColor(scopeColorKey.value));
             deprecated ? 'line-through' : '',
             borderless ? '' : 'badge',
             hoverReveal ? 'colorized-rule-name--hoverable' : '',
+            props.break ? 'colorized-rule-name--wrap' : '',
         ]"
     >
         <span
@@ -92,7 +93,7 @@ const scopeColor = computed(() => getPluginColor(scopeColorKey.value));
         >
         <span v-if="displayScope" class="flex-none" op30>/</span>
         <br v-if="displayScope && props.break" />
-        <span class="colorized-rule-name__name" op75>{{ parsed.name }}</span>
+        <span class="colorized-rule-name__name">{{ parsed.name }}</span>
     </component>
 </template>
 
@@ -125,6 +126,17 @@ const scopeColor = computed(() => getPluginColor(scopeColorKey.value));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.colorized-rule-name--wrap {
+    display: block;
+    overflow-wrap: anywhere;
+    white-space: normal;
+
+    & .colorized-rule-name__name {
+        overflow: visible;
+        white-space: normal;
+    }
 }
 
 .colorized-rule-name--hoverable:hover,

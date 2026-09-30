@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { RuleInfo } from "~~/shared/types";
-import { Dropdown as VDropdown } from "floating-vue";
 import { computed } from "vue";
 
 const { deprecated, invalid } = defineProps<{
@@ -36,7 +35,7 @@ function getLinkClass(url: string | undefined) {
 </script>
 
 <template>
-    <VDropdown inline-block :disabled="!deprecatedInfo">
+    <InspectorDropdown inline-block :disabled="!deprecatedInfo">
         <div
             border="~ red/25 rounded"
             select-none
@@ -104,5 +103,5 @@ function getLinkClass(url: string | undefined) {
                 </p>
             </div>
         </template>
-    </VDropdown>
+    </InspectorDropdown>
 </template>

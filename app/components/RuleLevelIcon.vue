@@ -24,9 +24,9 @@ const title = computed(() => {
 const color = computed(
     () =>
         ({
-            error: "text-red op80",
-            warn: "text-yellow5 op80 dark:text-yellow4",
-            off: "text-gray op62",
+            error: "text-[var(--inspector-error)]",
+            warn: "text-[var(--inspector-warning)]",
+            off: "color-muted",
         })[props.level]
 );
 
@@ -51,7 +51,7 @@ const icon = computed(
         :class="[
             color,
             shouldShowConfigIndex
-                ? 'min-w-11 border border-current/28 rounded-full bg-zinc-950/80 px-1.5 py-0.75 text-xs shadow-sm'
+                ? 'min-w-11 border border-current/28 rounded-md bg-glass px-1.5 py-0.75 text-xs'
                 : '',
             props.class,
         ]"
@@ -59,10 +59,14 @@ const icon = computed(
         :title="title"
         :aria-label="title"
     >
-        <div :class="icon" :text="shouldShowConfigIndex ? 'sm' : undefined" />
+        <div
+            :class="icon"
+            flex-none
+            :text="shouldShowConfigIndex ? 'sm' : undefined"
+        />
         <span
             v-if="shouldShowConfigIndex"
-            class="leading-none font-mono tabular-nums op90"
+            class="flex-none leading-none font-mono tabular-nums"
         >
             #{{ configIndex! + 1 }}
         </span>

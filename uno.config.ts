@@ -10,26 +10,28 @@ import {
 
 export default defineConfig({
     shortcuts: {
-        "color-base": "color-neutral-200",
-        "bg-base": "bg-neutral-950",
-        "border-base": "border-neutral-700/55",
+        "color-base": "text-[var(--inspector-text)]",
+        "color-muted": "text-[var(--inspector-muted)]",
+        "bg-base": "bg-[var(--inspector-background)]",
+        "border-base": "border-[var(--inspector-border)]",
 
-        "bg-tooltip": "bg-neutral-950:92 backdrop-blur-8",
-        "bg-glass": "bg-neutral-900:72 backdrop-blur-5",
-        "bg-code": "bg-neutral-100:7",
-        "bg-hover": "bg-primary-500:7",
+        "bg-tooltip": "bg-[var(--inspector-surface-strong)]",
+        "bg-glass": "bg-[var(--inspector-surface)]",
+        "bg-code": "bg-[var(--inspector-surface-hover)]",
+        "bg-hover": "bg-[var(--inspector-surface-hover)]",
 
-        "color-active": "color-primary-300",
-        "border-active": "border-primary-500/50",
-        "bg-active": "bg-primary-500:7",
+        "color-active": "text-[var(--inspector-accent)]",
+        "border-active": "border-[var(--inspector-accent)]",
+        "bg-active": "bg-[var(--inspector-accent-soft)]",
 
         "btn-action":
-            "border border-base rounded flex gap-2 items-center px2 py1 op90 hover:op100 hover:bg-hover",
+            "border border-base rounded-md inline-flex gap-2 items-center justify-center px3 py1.5 font-medium text-sm hover:bg-hover disabled:cursor-not-allowed disabled:opacity-50",
         "btn-action-sm": "btn-action text-sm",
         "btn-action-active": "color-active border-active! bg-active op100!",
 
-        badge: "border border-base rounded flex items-center px2",
-        "badge-active": "badge border-amber:50 text-amber bg-amber:5",
+        badge: "border border-base rounded-md inline-flex items-center max-w-full break-words px2",
+        "badge-active":
+            "badge text-[var(--inspector-warning)] bg-[var(--inspector-warning-soft)]",
         "btn-badge": "badge hover:bg-active",
     },
     theme: {
@@ -37,8 +39,6 @@ export default defineConfig({
             mono: '"Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             sans: 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         },
-        // Dark-first remarklint palette: black/neutral UI with restrained red
-        // highlights for outlines, focus, and active states.
         colors: {
             neutral: {
                 25: "#FCFCFD",
@@ -67,50 +67,6 @@ export default defineConfig({
                 700: "#B30000",
                 800: "#8F0000",
                 900: "#690000",
-            },
-
-            // Legacy hue tokens are now neutralized to avoid purple/red wash.
-            // This keeps old utility classes readable on black surfaces.
-            violet: {
-                25: "#F4F4F7",
-                50: "#ECECF1",
-                100: "#E1E1E8",
-                200: "#D3D3DD",
-                300: "#C5C5D2",
-                400: "#B8B8C7",
-                500: "#A9A9BA",
-                600: "#9898A9",
-                700: "#C7C7D3",
-                800: "#D3D3DD",
-                900: "#E0E0E8",
-            },
-
-            purple: {
-                25: "#F4F4F7",
-                50: "#ECECF1",
-                100: "#E1E1E8",
-                200: "#D3D3DD",
-                300: "#C5C5D2",
-                400: "#B8B8C7",
-                500: "#A9A9BA",
-                600: "#9898A9",
-                700: "#C7C7D3",
-                800: "#D3D3DD",
-                900: "#E0E0E8",
-            },
-
-            fuchsia: {
-                25: "#F4F4F7",
-                50: "#ECECF1",
-                100: "#E1E1E8",
-                200: "#D3D3DD",
-                300: "#C5C5D2",
-                400: "#B8B8C7",
-                500: "#A9A9BA",
-                600: "#9898A9",
-                700: "#C7C7D3",
-                800: "#D3D3DD",
-                900: "#E0E0E8",
             },
 
             warning: {

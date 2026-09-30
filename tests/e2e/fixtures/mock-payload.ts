@@ -1,11 +1,20 @@
 import type { Page } from "@playwright/test";
+import type { Payload } from "../../../shared/types";
 import process from "node:process";
 
 export const pluginRuleName = "remark-lint-no-dead-urls";
 export const extendSpecifier = "remark-preset-lint-recommended";
 export const secondaryExtendSpecifier = "@scope/remark-preset-lint-team";
 
-export const MOCK_PAYLOAD = {
+export const MOCK_PAYLOAD: Payload &
+    Required<
+        Pick<
+            Payload,
+            | "diagnostics"
+            | "files"
+            | "extendsInfo"
+        >
+    > = {
     meta: {
         basePath: process.cwd(),
         configPath: ".remarkrc.mjs",
@@ -146,7 +155,7 @@ export const MOCK_PAYLOAD = {
 
 export async function mockPayload(
     page: Page,
-    payload = MOCK_PAYLOAD
+    payload: Payload = MOCK_PAYLOAD
 ): Promise<void> {
     await page.route("**/api/payload.json**", async (route) => {
         await route.fulfill({
