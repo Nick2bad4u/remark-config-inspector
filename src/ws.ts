@@ -32,19 +32,6 @@ export async function createWsServer(
     options: CreateWsServerOptions
 ): Promise<WsServerHandle> {
     let payload: Payload | undefined;
-    const stats = createStatsService(options);
-    const port = await getPort({ port: 7811, random: true });
-    const wss = new WebSocketServer({
-        port,
-    });
-    const wsClients = new Set<WebSocket>();
-
-    wss.on("connection", (ws) => {
-        wsClients.add(ws);
-        console.log(MARK_CHECK, "Websocket client connected");
-        ws.on("close", () => wsClients.delete(ws));
-    });
-
     let resolvedConfigPath: Awaited<ReturnType<typeof resolveConfigPath>>;
     try {
         resolvedConfigPath = await resolveConfigPath(options);
@@ -58,6 +45,16 @@ export async function createWsServer(
     }
 
     const { basePath } = resolvedConfigPath;
+    const stats = createStatsService(options);
+    const port = await getPort({ port: 7811, random: true });
+    const wss = new WebSocketServer({ port });
+    const wsClients = new Set<WebSocket>();
+
+    wss.on("connection", (ws) => {
+        wsClients.add(ws);
+        console.log(MARK_CHECK, "Websocket client connected");
+        ws.on("close", () => wsClients.delete(ws));
+    });
 
     function toRelativePath(path: string): string {
         const result = relative(options.cwd, path).replaceAll("\\", "/");
