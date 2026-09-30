@@ -11,10 +11,11 @@ import {
     retryPayload,
 } from "~/composables/payload";
 
-import "./composables/dark";
+import { initializeTheme } from "./composables/dark";
 
 const config = useRuntimeConfig();
 const router = useRouter();
+initializeTheme();
 const isRouteNavigating = ref(false);
 let routeSpinnerTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -54,7 +55,8 @@ init(config.app.baseURL);
 
     <div
         v-if="isRouteNavigating && !isLoading && !errorInfo"
-        class="pointer-events-none fixed right-3 top-3 z-60 inline-flex items-center gap-2 border border-red-300/30 rounded-full bg-zinc-950/86 px-3 py-1.5 text-xs text-zinc-200 shadow-lg backdrop-blur-sm"
+        role="status"
+        class="inspector-panel pointer-events-none fixed right-3 top-3 z-60 inline-flex items-center gap-2 px-3 py-1.5 text-xs"
     >
         <div i-svg-spinners-90-ring-with-bg text-sm />
         Loading view...
@@ -130,8 +132,10 @@ init(config.app.baseURL);
         </div>
         <ConfigInspectorBadge mt6 text-xl font-200 :show-version="false" />
     </div>
-    <div v-else px4 py6 lg:px14 lg:py10>
+    <div v-else class="inspector-shell">
         <NavBar />
-        <NuxtPage />
+        <main id="main-content" class="inspector-main">
+            <NuxtPage />
+        </main>
     </div>
 </template>

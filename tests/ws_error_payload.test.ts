@@ -1,21 +1,19 @@
 import type { Payload } from "../shared/types";
+import { once } from "node:events";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import process from "node:process";
+import { getPort } from "get-port-please";
 import { join } from "pathe";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConfigPathError } from "../src/errors";
 
 const readConfigMock = vi.fn();
 const resolveConfigPathMock = vi.fn();
+const runStatsMock = vi.fn<typeof import("../src/stats/runner").runStats>();
 
 interface ClosableServer {
-    watcher: {
-        close: () => Promise<void>;
-    };
-    wss: {
-        close: (callback: (error?: Error) => void) => void;
-    };
+    close: () => Promise<void>;
 }
 
 vi.mock("../src/configs", () => ({
@@ -23,27 +21,116 @@ vi.mock("../src/configs", () => ({
     resolveConfigPath: resolveConfigPathMock,
 }));
 
+vi.mock("../src/stats/runner", () => ({ runStats: runStatsMock }));
+
+vi.mock("get-port-please", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("get-port-please")>();
+    return { ...actual, getPort: vi.fn(actual.getPort) };
+});
+
 const tempDirs: string[] = [];
 
 async function closeServer(server: ClosableServer): Promise<void> {
-    await server.watcher.close();
-    await new Promise<void>((resolve, reject) => {
-        server.wss.close((error) => {
-            if (error) reject(error);
-            else resolve();
-        });
-    });
+    await server.close();
 }
 
 afterEach(async () => {
     vi.clearAllMocks();
     vi.restoreAllMocks();
+    runStatsMock.mockReset();
     await Promise.all(
         tempDirs.map((dir) => rm(dir, { recursive: true, force: true }))
     );
 });
 
 describe("ws payload and server contract", () => {
+    it("closes the watcher, active analysis, and connected websocket clients through the public lifecycle", async () => {
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
+        tempDirs.push(cwd);
+        resolveConfigPathMock.mockResolvedValue({
+            basePath: cwd,
+            configPath: join(cwd, ".remarkrc.mjs"),
+        });
+        runStatsMock.mockImplementation(
+            (_options, runOptions) =>
+                new Promise((_resolve, reject) => {
+                    runOptions?.signal?.addEventListener(
+                        "abort",
+                        () => reject(new Error("Analysis cancelled")),
+                        { once: true }
+                    );
+                })
+        );
+        const { createWsServer } = await import("../src/ws");
+        const { WebSocket } = await import("ws");
+        const server = await createWsServer({
+            cwd,
+            chdir: false,
+            globMatchedFiles: false,
+        });
+        const watcherClose = vi.spyOn(server.watcher, "close");
+        const ws = new WebSocket(`ws://127.0.0.1:${server.port}`);
+        let closed = false;
+        try {
+            await once(ws, "open");
+            server.stats.run();
+            await vi.waitFor(() => expect(runStatsMock).toHaveBeenCalledOnce());
+            const signal = runStatsMock.mock.calls[0]?.[1]?.signal;
+            expect(signal?.aborted).toBe(false);
+            const clientClosed = once(ws, "close");
+            const connectedClient = server.wss.clients.values().next().value;
+            if (!connectedClient)
+                throw new Error("Expected a connected server-side websocket");
+            const serverClientClosed = once(connectedClient, "close");
+            await server.close();
+            closed = true;
+            await Promise.all([clientClosed, serverClientClosed]);
+            expect(signal?.aborted).toBe(true);
+            expect(watcherClose).toHaveBeenCalledOnce();
+            expect(ws.readyState).toBe(WebSocket.CLOSED);
+            expect(server.wss.clients.size).toBe(0);
+            expect(server.wss.address()).toBeNull();
+            expect(() => server.stats.run()).toThrow(
+                "The inspector session has closed."
+            );
+        } finally {
+            ws.terminate();
+            if (!closed) await closeServer(server);
+        }
+    });
+
+    it("rejects public close when the websocket server reports a shutdown error", async () => {
+        const cwd = await mkdtemp(
+            join(tmpdir(), "remark-config-inspector-ws-")
+        );
+        tempDirs.push(cwd);
+        resolveConfigPathMock.mockResolvedValue({
+            basePath: cwd,
+            configPath: join(cwd, ".remarkrc.mjs"),
+        });
+        const { createWsServer } = await import("../src/ws");
+        const server = await createWsServer({
+            cwd,
+            chdir: false,
+            globMatchedFiles: false,
+        });
+        const shutdownError = new Error("Websocket shutdown failed");
+        const closeSpy = vi
+            .spyOn(server.wss, "close")
+            .mockImplementationOnce((callback) => callback?.(shutdownError));
+        try {
+            await expect(server.close()).rejects.toBe(shutdownError);
+            expect(() => server.stats.run()).toThrow(
+                "The inspector session has closed."
+            );
+        } finally {
+            closeSpy.mockRestore();
+            await closeServer(server);
+        }
+    });
+
     it("returns a valid payload shape when readConfig throws generic errors", async () => {
         const cwd = await mkdtemp(
             join(tmpdir(), "remark-config-inspector-ws-")
@@ -255,6 +342,7 @@ describe("ws payload and server contract", () => {
             })
         ).rejects.toBe(exitError);
         expect(prettyPrintSpy).toHaveBeenCalledOnce();
+        expect(getPort).not.toHaveBeenCalled();
     });
 
     it("rethrows unexpected resolveConfigPath startup errors", async () => {
@@ -275,5 +363,6 @@ describe("ws payload and server contract", () => {
                 globMatchedFiles: false,
             })
         ).rejects.toBe(startupError);
+        expect(getPort).not.toHaveBeenCalled();
     });
 });

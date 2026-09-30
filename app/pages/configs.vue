@@ -395,6 +395,10 @@ onMounted(async () => {
 
 <template>
     <div>
+        <InspectorPageHeader
+            title="Configs"
+            description="Explore configuration layers and test which settings apply to a file."
+        />
         <div flex="~ col gap-3" py4>
             <div relative flex>
                 <input
@@ -409,10 +413,9 @@ onMounted(async () => {
                         autoCompleteOpen && autoCompleteFiles.length > 0
                     "
                     class="inspector-input"
-                    border="~ base rounded-full"
+                    border="~ base rounded-md"
                     :class="input ? 'font-mono' : ''"
                     w-full
-                    bg-transparent
                     px3
                     py2
                     pl10
@@ -579,7 +582,7 @@ onMounted(async () => {
             </div>
             <div
                 v-if="pluginOptions.length"
-                grid="~ cols-[max-content_1fr] gap-2"
+                grid="~ cols-[max-content_minmax(0,1fr)] gap-2"
                 my2
                 items-center
             >
@@ -665,12 +668,7 @@ onMounted(async () => {
                             "
                             btn-action
                             border-none
-                            @click="
-                                stateStorage.viewFileMatchType =
-                                    stateStorage.viewFileMatchType === 'configs'
-                                        ? 'merged'
-                                        : 'configs'
-                            "
+                            @click="stateStorage.viewFileMatchType = 'configs'"
                         >
                             <div i-ph-stack-duotone />
                             <span>Matched Config Items</span>
@@ -688,12 +686,7 @@ onMounted(async () => {
                             "
                             btn-action
                             border-none
-                            @click="
-                                stateStorage.viewFileMatchType =
-                                    stateStorage.viewFileMatchType === 'configs'
-                                        ? 'merged'
-                                        : 'configs'
-                            "
+                            @click="stateStorage.viewFileMatchType = 'merged'"
                         >
                             <div i-ph-film-script-duotone />
                             <span>Merged Rules</span>
@@ -837,6 +830,7 @@ onMounted(async () => {
                         </summary>
                         <RuleList
                             m4
+                            :dim-disabled="stateStorage.dimDisabledRules"
                             :rules="mergedRules.common"
                             :grid-view="false"
                         />
@@ -884,9 +878,7 @@ onMounted(async () => {
                             <RuleList
                                 m4
                                 :grid-view="false"
-                                :get-bind="
-                                    (name: string) => ({ class: 'op50' })
-                                "
+                                :dim-disabled="stateStorage.dimDisabledRules"
                                 :rules="mergedRules.specificDisabled"
                             />
                         </template>
@@ -903,6 +895,7 @@ onMounted(async () => {
                             </div>
                             <RuleList
                                 m4
+                                :dim-disabled="stateStorage.dimDisabledRules"
                                 :rules="mergedRules.specificEnabled"
                                 :grid-view="false"
                             />

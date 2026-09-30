@@ -872,6 +872,7 @@ dist
 .idea/
 .DS_Store
 .eslint-config-inspector
+.remark-config-inspector/
 public/fonts
 *.code-workspace
 
@@ -883,6 +884,7 @@ temp/
 
 # Playwright
 /playwright/.auth/
+/output/playwright/
 test-report.junit.xml
 .lychee.report.md
 .lycheecache

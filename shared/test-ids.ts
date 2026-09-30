@@ -7,6 +7,7 @@ export const testIds = {
         rulesLink: "nav-link-rules",
         extendsLink: "nav-link-extends",
         filesLink: "nav-link-files",
+        statsLink: "nav-link-stats",
         devLink: "nav-link-dev",
     },
     configs: {
@@ -31,5 +32,6 @@ export const orderedNavLinkTestIds = [
     testIds.nav.rulesLink,
     testIds.nav.extendsLink,
     testIds.nav.filesLink,
+    testIds.nav.statsLink,
     testIds.nav.devLink,
 ] as const;

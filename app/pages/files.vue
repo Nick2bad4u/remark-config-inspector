@@ -21,13 +21,17 @@ function setListFilesOpen(event: Event): void {
 </script>
 
 <template>
-    <div flex="~ col gap-4" my4>
+    <div flex="~ col gap-4">
+        <InspectorPageHeader
+            title="Files"
+            description="Browse local Markdown files and the configuration groups that match them."
+        />
         <div class="inspector-experimental-pill">
             <div i-ph-flask-duotone flex-none />
             <span>Experimental file match preview</span>
         </div>
         <template v-if="payload.filesResolved">
-            <div flex="~ gap-2 items-center">
+            <div flex="~ gap-2 items-center wrap">
                 <div class="inspector-segmented-control">
                     <button
                         type="button"

@@ -38,7 +38,7 @@ const groupName = useId();
         >
             <div
                 :class="[
-                    i === value ? '' : 'op50',
+                    i === value ? 'color-active' : 'color-muted',
                     titles?.[idx] ? '' : 'capitalize',
                     classes?.[idx] || '',
                 ]"

@@ -42,7 +42,7 @@ export default defineComponent({
 
         return () =>
             h("div", {
-                class: "filter-hue-rotate-90",
+                class: "inspector-code",
                 innerHTML: highlighted.value,
             });
     },

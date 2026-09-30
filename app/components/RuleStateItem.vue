@@ -254,8 +254,8 @@ function goto() {
     padding: 0.125rem 0.5rem;
     font-size: 0.875rem;
     color: inherit;
-    background: rgb(216 3 3 / 0.1);
-    border: 1px solid rgb(248 113 113 / 0.22);
+    background: var(--inspector-accent-soft);
+    border: 1px solid var(--inspector-border);
     border-radius: 9999px;
     transition:
         border-color 140ms ease,
@@ -268,13 +268,13 @@ function goto() {
 
     &:hover,
     &:focus-visible {
-        background: rgb(216 3 3 / 0.16);
-        border-color: rgb(248 113 113 / 0.42);
-        box-shadow: 0 0 0 3px rgb(216 3 3 / 0.14);
+        background: var(--inspector-surface-hover);
+        border-color: var(--inspector-accent);
+        box-shadow: 0 0 0 3px var(--inspector-focus-ring);
     }
 }
 
 .rule-state-scope {
-    border-color: rgb(248 113 113 / 0.16);
+    border-color: var(--inspector-border);
 }
 </style>

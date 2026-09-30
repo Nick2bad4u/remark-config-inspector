@@ -117,6 +117,11 @@ out
 .nuxt
 dist
 
+# Local verification artifacts and packed-package consumer fixtures
+/temp/
+/output/playwright/
+/.remark-config-inspector/
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

@@ -69,7 +69,7 @@ export default defineNuxtConfig({
             },
         },
         output: {
-            dir: "./dist",
+            dir: isProduction ? "./dist" : "./.nuxt/dev-output",
         },
         routeRules: {
             "/": {

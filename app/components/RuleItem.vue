@@ -179,12 +179,10 @@ const resolvedRuleStates = computed<RuleConfigStates>(
     () => props.ruleStates ?? []
 );
 const visibleRuleStates = computed<RuleConfigStates>(() =>
-    props.gridView
-        ? resolvedRuleStates.value
-        : resolvedRuleStates.value.slice(0, 2)
+    resolvedRuleStates.value.slice(0, 2)
 );
 const overflowRuleStates = computed<RuleConfigStates>(() =>
-    props.gridView ? [] : resolvedRuleStates.value.slice(2)
+    resolvedRuleStates.value.slice(2)
 );
 const hiddenRuleStateCount = computed(() => overflowRuleStates.value.length);
 const overflowRuleStateLabel = computed(() => {
@@ -283,7 +281,7 @@ const isDimmedRule = computed(() => {
 });
 
 const dimRuleClass = computed(() =>
-    isDimmedRule.value ? "op55 hover:op100 transition-opacity" : ""
+    isDimmedRule.value ? "rule-muted-off" : ""
 );
 
 const hasLocalValue = computed(() => props.value !== undefined);
@@ -363,7 +361,7 @@ const popoverPanelClass =
             props.class,
             dimRuleClass,
             gridView
-                ? 'absolute top-2 right-2 flex justify-end items-start'
+                ? 'flex justify-end items-center'
                 : 'relative w-full flex items-center justify-start overflow-visible',
         ]"
     >
@@ -371,8 +369,10 @@ const popoverPanelClass =
             <div
                 data-testid="rule-state-rail"
                 class="rule-state-rail"
-                flex="~ items-center gap-1 justify-start nowrap"
-                :class="gridView ? 'flex-col' : 'rule-state-rail--list'"
+                flex="~ items-center gap-1 justify-start"
+                :class="
+                    gridView ? 'flex-wrap' : 'rule-state-rail--list flex-nowrap'
+                "
             >
                 <template
                     v-for="(s, idx) of visibleRuleStates"
@@ -399,7 +399,7 @@ const popoverPanelClass =
                                     :has-redundant-options="
                                         redundantOptions(s.options)
                                     "
-                                    :show-config-index="!gridView"
+                                    show-config-index
                                 />
                             </button>
                             <template #popper="{ shown }">
@@ -412,14 +412,14 @@ const popoverPanelClass =
                         </VDropdown>
                     </span>
                 </template>
-                <VDropdown
-                    v-if="hiddenRuleStateCount > 0 && !gridView"
-                    :triggers="['hover', 'focus', 'click']"
+                <InspectorDropdown
+                    v-if="hiddenRuleStateCount > 0"
+                    :triggers="['hover', 'click']"
                 >
                     <button
                         type="button"
                         data-testid="rule-state-overflow"
-                        class="rule-state-overflow-pill min-w-13 inline-flex flex-none items-center justify-center gap-1 border border-base rounded-full bg-zinc-950/80 px-2 py-0.75 text-xs text-gray4 leading-none font-mono tabular-nums shadow-sm transition-colors hover:border-red5/55 hover:text-red3"
+                        class="rule-state-overflow-pill min-w-13 inline-flex flex-none items-center justify-center gap-1 border border-base rounded-md bg-glass px-2 py-0.75 text-xs color-muted leading-none font-mono tabular-nums transition-colors hover:bg-hover"
                         :title="overflowRuleStateLabel"
                         :aria-label="overflowRuleStateLabel"
                     >
@@ -438,7 +438,7 @@ const popoverPanelClass =
                             />
                         </div>
                     </template>
-                </VDropdown>
+                </InspectorDropdown>
             </div>
         </template>
         <template v-else-if="hasLocalValue">
@@ -455,7 +455,7 @@ const popoverPanelClass =
     </div>
 
     <div :class="[props.class, dimRuleClass]" relative min-w-0 pr2>
-        <VDropdown>
+        <InspectorDropdown>
             <div min-w-0 w-full inline-flex items-center gap-1>
                 <span
                     v-if="isCoreRemarkRule"
@@ -470,7 +470,7 @@ const popoverPanelClass =
                     :prefix="rule.plugin"
                     :deprecated="rule.deprecated"
                     :borderless="true"
-                    :break="gridView"
+                    break
                     :hover-reveal="false"
                     :title="rule.name"
                     class="min-w-0"
@@ -576,7 +576,7 @@ const popoverPanelClass =
                     <slot name="popup" />
                 </div>
             </template>
-        </VDropdown>
+        </InspectorDropdown>
     </div>
 
     <div
@@ -640,8 +640,8 @@ const popoverPanelClass =
                 rule.deprecated ? 'line-through' : '',
                 rule.invalid ? 'text-red' : '',
                 gridView
-                    ? 'op55 text-sm leading-5'
-                    : 'op75 text-sm ws-nowrap of-hidden text-ellipsis line-clamp-1',
+                    ? 'color-muted text-sm leading-5'
+                    : 'color-muted text-sm ws-nowrap of-hidden text-ellipsis line-clamp-1',
             ]"
         >
             <template
@@ -700,10 +700,7 @@ const popoverPanelClass =
 <style scoped>
 .rule-state-rail--list {
     position: relative;
-    max-inline-size: 100%;
     padding-block: 0.125rem;
-    overflow: hidden;
-    border-radius: 9999px;
 }
 
 .rule-state-trigger {
@@ -717,7 +714,7 @@ const popoverPanelClass =
     border: 0;
 
     &:focus-visible {
-        outline: 2px solid rgb(248 113 113 / 62%);
+        outline: 2px solid var(--inspector-accent);
         outline-offset: 2px;
         border-radius: 9999px;
     }

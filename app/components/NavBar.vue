@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useTimeAgo } from "@vueuse/core";
-import { Dropdown as VDropdown } from "floating-vue";
 import { computed } from "vue";
 import { version } from "~~/package.json";
 import { testIds } from "~~/shared/test-ids";
@@ -54,7 +53,7 @@ function showDeprecated() {
 </script>
 
 <template>
-    <div flex="~ col gap-3">
+    <header flex="~ col gap-3">
         <div flex="~ col gap-2 md:row md:items-start md:justify-between">
             <ConfigInspectorBadge text-3xl font-200 :show-version="false" />
             <div flex="~ col gap-1 items-start" md:items-end md:text-right>
@@ -66,9 +65,7 @@ function showDeprecated() {
                 >
                     v{{ version }}
                 </a>
-                <div
-                    class="inline-flex items-center gap-2 border border-primary/45 rounded-full bg-zinc-950/80 px3 py1 text-xs text-zinc-200"
-                >
+                <div class="inline-flex items-center gap-2 text-xs color-muted">
                     <img
                         src="/remark/favicon.svg"
                         alt="remarklint logo"
@@ -95,11 +92,15 @@ function showDeprecated() {
             my1
             text-sm
         >
-            <span font-mono op35>{{ payload.meta.configPath }}</span>
+            <span break-all color-muted font-mono>{{
+                payload.meta.configPath
+            }}</span>
         </div>
-        <div v-if="showTargetFile" flex="~ gap-1 items-center" my1 text-sm>
+        <div v-if="showTargetFile" flex="~ gap-1 items-center wrap" my1 text-sm>
             <span op50>Resolved using target file</span>
-            <code font-mono op75>{{ payload.meta.targetFilePath }}</code>
+            <code break-all color-muted font-mono>{{
+                payload.meta.targetFilePath
+            }}</code>
         </div>
         <div flex="~ gap-1 items-center wrap" text-sm>
             <span op50>Composed with</span>
@@ -118,6 +119,7 @@ function showDeprecated() {
             </div>
         </div>
         <nav
+            class="inspector-nav"
             :data-testid="testIds.nav.tabs"
             aria-label="Inspector sections"
             flex="~ gap-3 items-center wrap"
@@ -184,6 +186,18 @@ function showDeprecated() {
                 />
             </NuxtLink>
             <NuxtLink
+                to="/stats"
+                :data-testid="testIds.nav.statsLink"
+                btn-action
+                px3
+                py1
+                text-base
+                active-class="btn-action-active"
+            >
+                <div i-ph-chart-bar-duotone flex-none />
+                Stats
+            </NuxtLink>
+            <NuxtLink
                 to="/dev"
                 :data-testid="testIds.nav.devLink"
                 btn-action
@@ -195,7 +209,7 @@ function showDeprecated() {
                 <div i-ph-terminal-window-duotone flex-none />
                 Dev
             </NuxtLink>
-            <VDropdown>
+            <InspectorDropdown>
                 <button
                     type="button"
                     btn-action
@@ -217,13 +231,16 @@ function showDeprecated() {
                                 'btn-action-active':
                                     stateStorage.fontScale === option.value,
                             }"
+                            :aria-pressed="
+                                stateStorage.fontScale === option.value
+                            "
                             @click="stateStorage.fontScale = option.value"
                         >
                             <span>{{ option.label }}</span>
                             <span text-xs op70>
                                 {{
                                     option.value === "sm"
-                                        ? "95%"
+                                        ? "93.75%"
                                         : option.value === "lg"
                                           ? "112.5%"
                                           : "100%"
@@ -232,7 +249,7 @@ function showDeprecated() {
                         </button>
                     </div>
                 </template>
-            </VDropdown>
+            </InspectorDropdown>
             <button
                 type="button"
                 btn-action
@@ -299,5 +316,5 @@ function showDeprecated() {
                 </button>
             </template>
         </nav>
-    </div>
+    </header>
 </template>

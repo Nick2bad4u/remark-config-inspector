@@ -24,7 +24,7 @@ const emit = defineEmits<{
     ruleSelect: [ruleName: string];
 }>();
 const defaultListColumns =
-    "42px_minmax(12rem,clamp(12rem,32vw,24rem))_5rem_minmax(0,1fr)";
+    "max-content_minmax(12rem,clamp(12rem,32vw,24rem))_max-content_minmax(16rem,1fr)";
 
 const resolvedGridView = computed(() => props.gridView ?? isGridView.value);
 
@@ -62,7 +62,7 @@ const containerClass = computed(() => {
     if (resolvedGridView.value) {
         return "grid grid-cols-[repeat(auto-fill,minmax(min(100%,350px),1fr))] gap-2";
     } else {
-        return "grid max-w-full min-w-0 gap-x-2 gap-y-2 items-center overflow-x-auto pb-1";
+        return "grid max-w-full min-w-0 gap-x-2 gap-y-2 items-center overflow-x-auto p1.5";
     }
 });
 
@@ -92,7 +92,13 @@ const Wrapper = defineComponent({
 </script>
 
 <template>
-    <div :class="containerClass" :style="containerStyle">
+    <div
+        :class="containerClass"
+        :style="containerStyle"
+        :tabindex="resolvedGridView ? undefined : 0"
+        :role="resolvedGridView ? undefined : 'region'"
+        :aria-label="resolvedGridView ? undefined : 'Scrollable rule list'"
+    >
         <template v-for="name in names" :key="name">
             <Wrapper v-if="props.filter?.(name) !== false">
                 <RuleItem

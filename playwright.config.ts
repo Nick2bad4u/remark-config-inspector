@@ -2,12 +2,17 @@ import process from "node:process";
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI);
+const serverPort = Number(process.env.REMARK_INSPECTOR_TEST_PORT ?? "4173");
+if (!Number.isInteger(serverPort) || serverPort < 1 || serverPort > 65535)
+    throw new Error("REMARK_INSPECTOR_TEST_PORT must be a valid TCP port.");
+const baseURL = `http://127.0.0.1:${serverPort}`;
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
     testDir: "./tests/e2e",
+    outputDir: "./output/playwright/test-results",
     testIgnore: ["**/fixtures/**"],
     forbidOnly: isCI,
     timeout: 45_000,
@@ -19,7 +24,7 @@ export default defineConfig({
     workers: isCI ? 1 : undefined,
     reporter: [["list"], ["html", { open: "never" }]],
     use: {
-        baseURL: "http://127.0.0.1:4173",
+        baseURL,
         actionTimeout: 10_000,
         navigationTimeout: 20_000,
         screenshot: "only-on-failure",
@@ -41,10 +46,9 @@ export default defineConfig({
             : []),
     ],
     webServer: {
-        command:
-            "node scripts/serve-static-dist.mjs --host 127.0.0.1 --port 4173 --dir dist/public",
-        url: "http://127.0.0.1:4173",
-        reuseExistingServer: !process.env.CI,
+        command: `node scripts/serve-static-dist.mjs --host 127.0.0.1 --port ${serverPort} --dir dist/public`,
+        url: baseURL,
+        reuseExistingServer: false,
         timeout: 120_000,
     },
 });

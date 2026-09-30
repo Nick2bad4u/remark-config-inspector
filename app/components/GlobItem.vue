@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Dropdown as VDropdown } from "floating-vue";
 import { computed, defineComponent } from "vue";
 import { useRouter } from "#app/composables/router";
 import { payload } from "~/composables/payload";
 import { filtersConfigs } from "~/composables/state";
 import { useHighlightedGlob } from "../composables/shiki";
+import InspectorDropdown from "./InspectorDropdown.vue";
 
 const props = withDefaults(
     defineProps<{
@@ -65,7 +65,7 @@ const Noop = defineComponent({
 </script>
 
 <template>
-    <component :is="showsPopup ? VDropdown : Noop">
+    <component :is="showsPopup ? InspectorDropdown : Noop">
         <component
             :is="showsPopup ? 'button' : 'div'"
             :type="showsPopup ? 'button' : undefined"
@@ -79,13 +79,13 @@ const Noop = defineComponent({
                 active === true ? '' : variantClass,
             ]"
         >
-            <span class="filter-hue-rotate-180" v-html="highlighted" />
+            <span break-all v-html="highlighted" />
         </component>
         <template #popper="{ shown, hide }">
             <div
                 v-if="shown && popup === 'files'"
                 max-h="30vh"
-                min-w-80
+                min-w="min(20rem,84vw)"
                 of-auto
                 p3
             >
@@ -107,7 +107,7 @@ const Noop = defineComponent({
             <div
                 v-if="shown && popup === 'configs'"
                 max-h="30vh"
-                min-w-80
+                min-w="min(20rem,84vw)"
                 of-auto
                 p3
             >
